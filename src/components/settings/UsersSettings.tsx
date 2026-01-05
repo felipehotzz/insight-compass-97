@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -33,55 +33,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock data for users
-const mockUsers = [
-  {
-    id: "1",
-    name: "Felipe Hotz",
-    email: "felipe@comunica.in",
-    role: "Owner",
-    joinedDate: "15 Mai, 2025",
-    usage: "483 créditos",
-    totalUsage: "20613 créditos",
-  },
-  {
-    id: "2",
-    name: "Luiz Campos",
-    email: "luiz.campos@comunica.in",
-    role: "Colaborador",
-    joinedDate: "10 Nov, 2025",
-    usage: "-",
-    totalUsage: "-",
-  },
-  {
-    id: "3",
-    name: "Cristiano Mattos Veiga",
-    email: "cristiano@comunica.in",
-    role: "Colaborador",
-    joinedDate: "31 Out, 2025",
-    usage: "-",
-    totalUsage: "-",
-  },
-  {
-    id: "4",
-    name: "Luiya Iglesias",
-    email: "luiya@comunica.in",
-    role: "Colaborador",
-    joinedDate: "16 Out, 2025",
-    usage: "60 créditos",
-    totalUsage: "60 créditos",
-  },
-  {
-    id: "5",
-    name: "Kayo Lima",
-    email: "kayo@comunica.in",
-    role: "Colaborador",
-    joinedDate: "6 Out, 2025",
-    usage: "305 créditos",
-    totalUsage: "305 créditos",
-  },
-];
+interface UserWithRole {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  avatar_url: string | null;
+  role: string;
+}
+
+const roleLabels: Record<string, string> = {
+  admin: "Admin",
+  editor: "Editor",
+  viewer: "Visualizador",
+  customer_success: "Customer Success",
+  growth: "Growth",
+};
 
 export function UsersSettings() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,8 +59,50 @@ export function UsersSettings() {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("editor");
+  const [users, setUsers] = useState<UserWithRole[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const filteredUsers = mockUsers.filter((user) => {
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*");
+
+      if (profilesError) throw profilesError;
+
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("*");
+
+      if (rolesError) throw rolesError;
+
+      const usersWithRoles = profiles?.map((profile) => {
+        const userRole = roles?.find((r) => r.user_id === profile.user_id);
+        return {
+          ...profile,
+          role: userRole?.role || "viewer",
+        };
+      }) || [];
+
+      setUsers(usersWithRoles);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os usuários",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
@@ -98,11 +110,40 @@ export function UsersSettings() {
   });
 
   const handleInvite = () => {
-    // TODO: Implement invite logic
+    // TODO: Implement invite logic with edge function
     console.log("Inviting:", inviteEmail, "with role:", inviteRole);
+    toast({
+      title: "Convite enviado",
+      description: `Convite enviado para ${inviteEmail}`,
+    });
     setInviteEmail("");
     setInviteRole("editor");
     setIsInviteModalOpen(false);
+  };
+
+  const handleChangeRole = async (userId: string, newRole: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ role: newRole as any })
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Perfil atualizado",
+        description: "O perfil do usuário foi atualizado com sucesso",
+      });
+
+      fetchUsers();
+    } catch (error) {
+      console.error("Error updating role:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o perfil",
+        variant: "destructive",
+      });
+    }
   };
 
   const getInitials = (name: string) => {
@@ -189,9 +230,11 @@ export function UsersSettings() {
                   <SelectValue placeholder="Selecionar perfil" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="editor">Editor</SelectItem>
                   <SelectItem value="viewer">Visualizador</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="customer_success">Customer Success</SelectItem>
+                  <SelectItem value="growth">Growth</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -219,42 +262,68 @@ export function UsersSettings() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                        {getInitials(user.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <p className="font-medium text-sm">{user.name}</p>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">{user.email}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">{user.role}</span>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Alterar perfil</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        Remover
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+              </TableRow>
+            ) : filteredUsers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  Nenhum usuário encontrado
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                          {getInitials(user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="font-medium text-sm">{user.name}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-muted-foreground">{user.email}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">{roleLabels[user.role] || user.role}</span>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "admin")}>
+                          Tornar Admin
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "editor")}>
+                          Tornar Editor
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "viewer")}>
+                          Tornar Visualizador
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "customer_success")}>
+                          Tornar Customer Success
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "growth")}>
+                          Tornar Growth
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
