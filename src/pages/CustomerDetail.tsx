@@ -5,15 +5,13 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
 import { CustomerSelector } from "@/components/dashboard/CustomerSelector";
+import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from "@/components/charts/ChannelBreakdownChart";
 import {
   Mail,
   Phone,
   Linkedin,
   Video,
   ExternalLink,
-  MessageSquare,
-  Activity,
-  Headphones,
 } from "lucide-react";
 import { customerDetail } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
@@ -24,6 +22,7 @@ const formatCurrency = (value: number) =>
 const CustomerDetail = () => {
   const [searchParams] = useSearchParams();
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
+  const [usageFilter, setUsageFilter] = useState<TimeFilter>("month");
 
   const customerName = searchParams.get("name") || customerDetail.name;
   const customer = customerDetail;
@@ -95,10 +94,7 @@ const CustomerDetail = () => {
 
         {/* Relationship Section */}
         <div>
-          <h2 className="section-title mb-4 flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            Relacionamento
-          </h2>
+          <h2 className="section-title mb-4">Relacionamento</h2>
           <div className="flex justify-end mb-4">
             <FilterButtons value={timeFilter} onChange={setTimeFilter} />
           </div>
@@ -142,26 +138,21 @@ const CustomerDetail = () => {
 
         {/* Usage Section */}
         <div>
-          <h2 className="section-title mb-4 flex items-center gap-2">
-            <Activity className="h-4 w-4 text-muted-foreground" />
-            Utilização
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <StatCard
-              title="Comunicados Enviados"
-              value={customer.usage.communications.toLocaleString("pt-BR")}
-              trend={{ value: 12 }}
-            />
-            <StatCard title="% E-mail" value={`${customer.usage.emailPercentage}%`} />
-            <StatCard title="% Teams" value={`${customer.usage.teamsPercentage}%`} />
-            <StatCard title="% WhatsApp" value={`${customer.usage.whatsappPercentage}%`} />
-            <StatCard
-              title="Disparos Totais"
-              value={customer.usage.totalDispatches.toLocaleString("pt-BR")}
-              trend={{ value: 8 }}
-            />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-title">Utilização</h2>
+            <FilterButtons value={usageFilter} onChange={setUsageFilter} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
+            <ChartCard title="Comunicados Enviados" subtitle="Por canal">
+              <ChannelBreakdownChart data={generateChannelData(usageFilter)} />
+            </ChartCard>
+            <ChartCard title="Disparos Totais" subtitle="Por canal">
+              <ChannelBreakdownChart data={generateDispatchData(usageFilter)} />
+            </ChartCard>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <StatCard
               title="Usuários na Base"
               value={customer.usage.usersInBase.toLocaleString("pt-BR")}
@@ -177,10 +168,7 @@ const CustomerDetail = () => {
 
         {/* Support Section */}
         <div>
-          <h2 className="section-title mb-4 flex items-center gap-2">
-            <Headphones className="h-4 w-4 text-muted-foreground" />
-            Suporte
-          </h2>
+          <h2 className="section-title mb-4">Suporte</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <ChartCard title="Chamados Abertos">
               <div className="grid grid-cols-3 gap-4">
