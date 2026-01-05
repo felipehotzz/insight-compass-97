@@ -116,7 +116,7 @@ const NewAction = () => {
         {/* Minimal top bar */}
         <div className="flex items-center justify-between mb-12">
           <button
-            onClick={() => navigate("/actions")}
+            onClick={() => navigate(-1)}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4 inline mr-1" />
