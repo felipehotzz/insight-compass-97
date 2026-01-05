@@ -137,11 +137,13 @@ const Customers = () => {
             </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ChartCard title="Evolução de Clientes">
+            <ChartCard title="Número de Clientes">
               <StackedBarChart
                 data={customerCompositionData}
                 series={customerSeries}
                 height={280}
+                showTotalLine={true}
+                totalLabel="Total de Clientes"
               />
             </ChartCard>
             <ChartCard title="Nº de Clientes por Plano">
