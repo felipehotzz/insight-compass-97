@@ -348,7 +348,6 @@ const Growth = () => {
             title="Conversões Forms"
             data={currentData.conversions}
             currentValue="156"
-            trend={{ value: 12 }}
             color="hsl(200 70% 50%)"
           />
           <MetricChartCard
@@ -362,7 +361,6 @@ const Growth = () => {
             data={currentData.pipelineGenerated}
             formatValue={(v) => `R$ ${formatCurrency(v)}`}
             currentValue={formatCurrency(850000)}
-            trend={{ value: 15 }}
             color="hsl(280 70% 55%)"
           />
           <MetricChartCard
