@@ -394,20 +394,44 @@ const Customers = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartCard title="$ por Plano (R$)">
-            <HorizontalBarChart
-              data={customersByPlan.map(p => ({ name: p.name, value: p.amount }))}
-              formatValue={formatCurrency}
-              color="hsl(0 0% 60%)"
-              height={200}
-            />
+            <div className="space-y-0">
+              <div className="grid grid-cols-2 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+                <span>Plano</span>
+                <span className="text-right">Valor</span>
+              </div>
+              <div className="divide-y divide-border">
+                {customersByPlan.map((plan) => (
+                  <div key={plan.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
+                    <span className="text-sm font-medium">{plan.name}</span>
+                    <span className="text-sm text-right">R$ {formatCurrency(plan.amount)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20">
+                <span className="text-sm font-medium">Total</span>
+                <span className="text-sm font-medium text-right">R$ {formatCurrency(customersByPlan.reduce((sum, p) => sum + p.amount, 0))}</span>
+              </div>
+            </div>
           </ChartCard>
           <ChartCard title="$ por CS (R$)">
-            <HorizontalBarChart
-              data={customersByCS.map(c => ({ name: c.name, value: c.amount }))}
-              formatValue={formatCurrency}
-              color="hsl(0 0% 55%)"
-              height={200}
-            />
+            <div className="space-y-0">
+              <div className="grid grid-cols-2 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+                <span>CS</span>
+                <span className="text-right">Valor</span>
+              </div>
+              <div className="divide-y divide-border">
+                {customersByCS.map((cs) => (
+                  <div key={cs.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
+                    <span className="text-sm font-medium">{cs.name}</span>
+                    <span className="text-sm text-right">R$ {formatCurrency(cs.amount)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20">
+                <span className="text-sm font-medium">Total</span>
+                <span className="text-sm font-medium text-right">R$ {formatCurrency(customersByCS.reduce((sum, c) => sum + c.amount, 0))}</span>
+              </div>
+            </div>
           </ChartCard>
         </div>
 
