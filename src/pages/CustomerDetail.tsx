@@ -71,42 +71,43 @@ const CustomerDetail = () => {
           />
         </div>
 
-        {/* CS Responsible Section */}
-        <div className="glass-card p-5">
-          <h2 className="section-title mb-3">CS Responsável</h2>
-          <div className="flex items-center justify-between py-1">
-            <span className="font-medium">{customer.csResponsible.name}</span>
-            <a href={`mailto:${customer.csResponsible.email}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <Mail className="h-3.5 w-3.5" />
-              <span>{customer.csResponsible.email}</span>
-            </a>
+        {/* CS Responsible & Champions Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* CS Responsible */}
+          <div className="glass-card p-5">
+            <h2 className="section-title mb-3">CS Responsável</h2>
+            <div className="flex items-center justify-between py-1">
+              <span className="font-medium">{customer.csResponsible.name}</span>
+              <a href={`mailto:${customer.csResponsible.email}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Mail className="h-3.5 w-3.5" />
+                <span>{customer.csResponsible.email}</span>
+              </a>
+            </div>
           </div>
-        </div>
 
-        {/* Champions Section */}
-        <div className="glass-card p-5">
-          <h2 className="section-title mb-3">Champions (Contatos)</h2>
-          <div className="divide-y divide-border">
-            {customer.champions.map((champion, index) => (
-              <div key={index} className="py-3 first:pt-0 last:pb-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{champion.name}</span>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <a href={`mailto:${champion.email}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                      <Mail className="h-3.5 w-3.5" />
-                      <span className="hidden lg:inline">{champion.email}</span>
-                    </a>
-                    <a href={`tel:${champion.phone}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                      <Phone className="h-3.5 w-3.5" />
-                      <span className="hidden lg:inline">{champion.phone}</span>
-                    </a>
-                    <a href={`https://${champion.linkedin}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                      <Linkedin className="h-3.5 w-3.5" />
-                    </a>
+          {/* Champions */}
+          <div className="glass-card p-5">
+            <h2 className="section-title mb-3">Champions (Contatos)</h2>
+            <div className="divide-y divide-border">
+              {customer.champions.map((champion, index) => (
+                <div key={index} className="py-2 first:pt-0 last:pb-0">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-sm">{champion.name}</span>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <a href={`mailto:${champion.email}`} className="hover:text-foreground transition-colors">
+                        <Mail className="h-3.5 w-3.5" />
+                      </a>
+                      <a href={`tel:${champion.phone}`} className="hover:text-foreground transition-colors">
+                        <Phone className="h-3.5 w-3.5" />
+                      </a>
+                      <a href={`https://${champion.linkedin}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+                        <Linkedin className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
