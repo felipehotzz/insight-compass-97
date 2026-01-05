@@ -33,23 +33,55 @@ import {
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR");
 
-// Forecast data with deals for each month
-const forecastByMonth = [
+// Forecast data with deals for each month (with individual values)
+interface Deal {
+  name: string;
+  value: number;
+}
+
+interface ForecastMonth {
+  name: string;
+  pipeline: number;
+  commit: number;
+  bestCase: number;
+  commitDeals: Deal[];
+  bestCaseDeals: Deal[];
+  pipelineDeals: Deal[];
+}
+
+const forecastByMonth: ForecastMonth[] = [
   { 
     name: "Jan 2026", 
     pipeline: 150000, 
     commit: 300000, 
     bestCase: 180000,
-    commitDeals: ["Grendene", "Syngenta"],
-    bestCaseDeals: ["Alpargatas", "Metro BH"]
+    commitDeals: [
+      { name: "Grendene", value: 180000 },
+      { name: "Syngenta", value: 120000 },
+    ],
+    bestCaseDeals: [
+      { name: "Alpargatas", value: 96000 },
+      { name: "Metro BH", value: 84000 },
+    ],
+    pipelineDeals: [
+      { name: "Novo Cliente A", value: 80000 },
+      { name: "Novo Cliente B", value: 70000 },
+    ]
   },
   { 
     name: "Fev 2026", 
     pipeline: 120000, 
     commit: 127464, 
     bestCase: 96000,
-    commitDeals: ["CBMM"],
-    bestCaseDeals: ["SESC Nacional"]
+    commitDeals: [
+      { name: "CBMM", value: 127464 },
+    ],
+    bestCaseDeals: [
+      { name: "SESC Nacional", value: 96000 },
+    ],
+    pipelineDeals: [
+      { name: "Lead Qualificado", value: 120000 },
+    ]
   },
   { 
     name: "Mar 2026", 
@@ -57,7 +89,14 @@ const forecastByMonth = [
     commit: 0, 
     bestCase: 150000,
     commitDeals: [],
-    bestCaseDeals: ["Softplan", "Eucatex"]
+    bestCaseDeals: [
+      { name: "Softplan", value: 90000 },
+      { name: "Eucatex", value: 60000 },
+    ],
+    pipelineDeals: [
+      { name: "Prospect X", value: 120000 },
+      { name: "Prospect Y", value: 80000 },
+    ]
   },
   { 
     name: "Abr 2026", 
@@ -65,7 +104,12 @@ const forecastByMonth = [
     commit: 0, 
     bestCase: 120000,
     commitDeals: [],
-    bestCaseDeals: ["Caixa Consórcios"]
+    bestCaseDeals: [
+      { name: "Caixa Consórcios", value: 120000 },
+    ],
+    pipelineDeals: [
+      { name: "Empresa Z", value: 180000 },
+    ]
   },
   { 
     name: "Mai 2026", 
@@ -73,7 +117,13 @@ const forecastByMonth = [
     commit: 0, 
     bestCase: 80000,
     commitDeals: [],
-    bestCaseDeals: ["CJ do Brasil"]
+    bestCaseDeals: [
+      { name: "CJ do Brasil", value: 80000 },
+    ],
+    pipelineDeals: [
+      { name: "Oportunidade 1", value: 150000 },
+      { name: "Oportunidade 2", value: 100000 },
+    ]
   },
   { 
     name: "Jun 2026", 
@@ -81,7 +131,13 @@ const forecastByMonth = [
     commit: 0, 
     bestCase: 79900,
     commitDeals: [],
-    bestCaseDeals: []
+    bestCaseDeals: [
+      { name: "Cliente Potencial", value: 79900 },
+    ],
+    pipelineDeals: [
+      { name: "Lead Premium", value: 200000 },
+      { name: "Lead Standard", value: 100000 },
+    ]
   },
 ];
 
@@ -288,18 +344,19 @@ const Growth = () => {
             <div className="space-y-4 mt-4">
               {selectedMonth?.commit && selectedMonth.commit > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
                     <div className="w-3 h-3 rounded-sm bg-emerald-500" />
                     <span className="text-sm font-medium">Commit</span>
                     <span className="text-sm text-muted-foreground ml-auto">
                       R$ {formatCurrency(selectedMonth.commit)}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-2 pl-5">
+                  <div className="space-y-2 pl-5">
                     {selectedMonth.commitDeals.map((deal) => (
-                      <span key={deal} className="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded text-sm">
-                        {deal}
-                      </span>
+                      <div key={deal.name} className="flex items-center justify-between text-sm">
+                        <span>{deal.name}</span>
+                        <span className="text-emerald-500 font-medium">R$ {formatCurrency(deal.value)}</span>
+                      </div>
                     ))}
                     {selectedMonth.commitDeals.length === 0 && (
                       <span className="text-sm text-muted-foreground">Nenhuma negociação</span>
@@ -310,18 +367,19 @@ const Growth = () => {
               
               {selectedMonth?.bestCase && selectedMonth.bestCase > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
                     <div className="w-3 h-3 rounded-sm bg-blue-500" />
                     <span className="text-sm font-medium">Best Case</span>
                     <span className="text-sm text-muted-foreground ml-auto">
                       R$ {formatCurrency(selectedMonth.bestCase)}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-2 pl-5">
+                  <div className="space-y-2 pl-5">
                     {selectedMonth.bestCaseDeals.map((deal) => (
-                      <span key={deal} className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded text-sm">
-                        {deal}
-                      </span>
+                      <div key={deal.name} className="flex items-center justify-between text-sm">
+                        <span>{deal.name}</span>
+                        <span className="text-blue-500 font-medium">R$ {formatCurrency(deal.value)}</span>
+                      </div>
                     ))}
                     {selectedMonth.bestCaseDeals.length === 0 && (
                       <span className="text-sm text-muted-foreground">Nenhuma negociação</span>
@@ -331,13 +389,21 @@ const Growth = () => {
               )}
 
               {selectedMonth?.pipeline && selectedMonth.pipeline > 0 && (
-                <div className="pt-2 border-t border-border">
-                  <div className="flex items-center gap-2">
+                <div>
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
                     <div className="w-3 h-3 rounded-sm bg-gray-400" />
                     <span className="text-sm font-medium">Pipeline</span>
                     <span className="text-sm text-muted-foreground ml-auto">
                       R$ {formatCurrency(selectedMonth.pipeline)}
                     </span>
+                  </div>
+                  <div className="space-y-2 pl-5">
+                    {selectedMonth.pipelineDeals.map((deal) => (
+                      <div key={deal.name} className="flex items-center justify-between text-sm">
+                        <span>{deal.name}</span>
+                        <span className="text-muted-foreground font-medium">R$ {formatCurrency(deal.value)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
