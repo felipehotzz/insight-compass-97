@@ -113,14 +113,14 @@ export function ChannelBreakdownChart({ data, height = 280, showAverage = false 
           dataKey="email" 
           name="E-mail" 
           stackId="a" 
-          fill="hsl(var(--color-usage))" 
+          fill="hsl(var(--color-growth-accent))" 
           radius={[0, 0, 0, 0]}
         />
         <Bar 
           dataKey="teams" 
           name="Teams" 
           stackId="a" 
-          fill="hsl(var(--color-customers))" 
+          fill="hsl(var(--color-growth))" 
         />
         <Bar 
           dataKey="whatsapp" 
