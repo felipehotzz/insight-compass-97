@@ -7,6 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  ReferenceLine,
 } from "recharts";
 
 interface ChannelData {
@@ -20,6 +21,7 @@ interface ChannelData {
 interface ChannelBreakdownChartProps {
   data: ChannelData[];
   height?: number;
+  showAverage?: boolean;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -56,7 +58,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function ChannelBreakdownChart({ data, height = 280 }: ChannelBreakdownChartProps) {
+export function ChannelBreakdownChart({ data, height = 280, showAverage = false }: ChannelBreakdownChartProps) {
+  // Calculate average total
+  const averageTotal = data.length > 0 
+    ? data.reduce((sum, item) => sum + item.total, 0) / data.length 
+    : 0;
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -81,6 +88,21 @@ export function ChannelBreakdownChart({ data, height = 280 }: ChannelBreakdownCh
           iconType="square"
           iconSize={10}
         />
+        {showAverage && (
+          <ReferenceLine 
+            y={averageTotal} 
+            stroke="hsl(142 71% 45%)" 
+            strokeDasharray="5 5" 
+            strokeWidth={2}
+            label={{ 
+              value: `Média: ${averageTotal >= 1000 ? `${(averageTotal / 1000).toFixed(0)}K` : averageTotal.toFixed(0)}`, 
+              position: 'right',
+              fill: 'hsl(142 71% 45%)',
+              fontSize: 11,
+              fontWeight: 500
+            }}
+          />
+        )}
         <Bar 
           dataKey="email" 
           name="E-mail" 
