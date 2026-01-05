@@ -125,7 +125,7 @@ export function AccessProfileSettings() {
       </div>
 
       {/* Pages List */}
-      <div className="border border-border rounded-lg divide-y divide-border">
+      <div className="border border-border rounded-lg divide-y divide-border max-h-[400px] overflow-y-auto">
         {pages.map((page) => {
           const Icon = page.icon;
           const isEnabled = permissions[activeRole]?.[page.id] ?? false;
