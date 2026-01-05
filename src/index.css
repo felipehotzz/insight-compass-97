@@ -34,16 +34,19 @@
     --success-foreground: 0 0% 95%;
 
     --warning: 0 0% 60%;
-    --warning-foreground: 0 0% 8%;
 
-    --chart-1: 0 0% 70%;
-    --chart-2: 0 0% 55%;
-    --chart-3: 0 0% 45%;
-    --chart-4: 0 0% 60%;
-    --chart-5: 0 0% 50%;
-    --chart-coral: 0 0% 65%;
-    --chart-teal: 0 0% 70%;
-    --chart-purple: 0 0% 55%;
+    /* Section colors - organized by page/section */
+    --color-overview: 142 71% 45%;      /* Green - Visão Geral */
+    --color-growth: 200 70% 50%;         /* Blue - Growth */
+    --color-growth-alt: 280 70% 55%;     /* Purple - Growth secondary */
+    --color-growth-accent: 38 92% 50%;   /* Orange/Amber - Growth accent */
+    --color-presence: 173 80% 40%;       /* Teal - Presença */
+    --color-linkedin: 210 90% 55%;       /* LinkedIn Blue */
+    --color-community: 45 93% 47%;       /* Yellow/Gold - Community */
+    --color-success: 142 71% 45%;        /* Green - Success/Commit */
+    --color-neutral: 0 0% 50%;           /* Neutral gray */
+
+
 
     --border: 0 0% 18%;
     --input: 0 0% 18%;
