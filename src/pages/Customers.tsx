@@ -419,15 +419,6 @@ const Customers = () => {
           </div>
         </div>
 
-        <ChartCard title="Clientes por CS">
-          <SimpleBarChart
-            data={customersByCS}
-            color="hsl(0 0% 50%)"
-            height={220}
-            onBarClick={handleCSBarClick}
-          />
-        </ChartCard>
-
         {/* CS Customers Modal */}
         <Dialog open={!!selectedCS} onOpenChange={(open) => !open && setSelectedCS(null)}>
           <DialogContent className="max-w-2xl max-h-[80vh]">
@@ -470,14 +461,14 @@ const Customers = () => {
           </DialogContent>
         </Dialog>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <ChartCard title="$ por Plano (R$)">
-            <div className="space-y-0">
+            <div className="flex flex-col h-[280px]">
               <div className="grid grid-cols-2 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
                 <span>Plano</span>
                 <span className="text-right">Valor</span>
               </div>
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-border flex-1 overflow-y-auto">
                 {customersByPlan.map((plan) => (
                   <div key={plan.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
                     <span className="text-sm font-medium">{plan.name}</span>
@@ -485,19 +476,19 @@ const Customers = () => {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20">
+              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20 mt-auto">
                 <span className="text-sm font-medium">Total</span>
                 <span className="text-sm font-medium text-right">R$ {formatCurrency(customersByPlan.reduce((sum, p) => sum + p.amount, 0))}</span>
               </div>
             </div>
           </ChartCard>
           <ChartCard title="$ por CS (R$)">
-            <div className="space-y-0">
+            <div className="flex flex-col h-[280px]">
               <div className="grid grid-cols-2 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
                 <span>CS</span>
                 <span className="text-right">Valor</span>
               </div>
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-border flex-1 overflow-y-auto">
                 {customersByCS.map((cs) => (
                   <div key={cs.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
                     <span className="text-sm font-medium">{cs.name}</span>
@@ -505,9 +496,33 @@ const Customers = () => {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20">
+              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20 mt-auto">
                 <span className="text-sm font-medium">Total</span>
                 <span className="text-sm font-medium text-right">R$ {formatCurrency(customersByCS.reduce((sum, c) => sum + c.amount, 0))}</span>
+              </div>
+            </div>
+          </ChartCard>
+          <ChartCard title="Clientes por CS">
+            <div className="flex flex-col h-[280px]">
+              <div className="grid grid-cols-2 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+                <span>CS</span>
+                <span className="text-right">Clientes</span>
+              </div>
+              <div className="divide-y divide-border flex-1 overflow-y-auto">
+                {customersByCS.map((cs) => (
+                  <div 
+                    key={cs.name} 
+                    className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors cursor-pointer"
+                    onClick={() => setSelectedCS(cs.name)}
+                  >
+                    <span className="text-sm font-medium">{cs.name}</span>
+                    <span className="text-sm text-right">{cs.value}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20 mt-auto">
+                <span className="text-sm font-medium">Total</span>
+                <span className="text-sm font-medium text-right">{customersByCS.reduce((sum, c) => sum + c.value, 0)}</span>
               </div>
             </div>
           </ChartCard>
