@@ -351,7 +351,7 @@ const Growth = () => {
             color="hsl(200 70% 50%)"
           />
           <MetricChartCard
-            title="Oportunidades Abertas"
+            title="Ops Abertas"
             data={currentData.opportunitiesOpen}
             currentValue="47"
             color="hsl(38 92% 50%)"
