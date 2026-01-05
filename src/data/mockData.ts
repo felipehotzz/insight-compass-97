@@ -119,6 +119,115 @@ export const emailMetrics = {
   invites: 1200,
 };
 
+// Presence Monthly Data for Charts
+export const visitorsMonthlyData = [
+  { month: "Jul", value: 18000, previousValue: 15000 },
+  { month: "Ago", value: 19500, previousValue: 16200 },
+  { month: "Set", value: 21000, previousValue: 17500 },
+  { month: "Out", value: 22500, previousValue: 18800 },
+  { month: "Nov", value: 24000, previousValue: 20000 },
+  { month: "Dez", value: 25000, previousValue: 21500 },
+];
+
+export const blogPostsMonthlyData = [
+  { month: "Jul", value: 6, previousValue: 5 },
+  { month: "Ago", value: 7, previousValue: 5 },
+  { month: "Set", value: 8, previousValue: 6 },
+  { month: "Out", value: 9, previousValue: 7 },
+  { month: "Nov", value: 11, previousValue: 8 },
+  { month: "Dez", value: 12, previousValue: 9 },
+];
+
+export const whatsappMembersMonthlyData = [
+  { month: "Jul", value: 650, previousValue: 580 },
+  { month: "Ago", value: 700, previousValue: 610 },
+  { month: "Set", value: 750, previousValue: 640 },
+  { month: "Out", value: 790, previousValue: 680 },
+  { month: "Nov", value: 820, previousValue: 720 },
+  { month: "Dez", value: 850, previousValue: 760 },
+];
+
+export const postsMadeMonthlyData = [
+  { month: "Jul", value: 28, previousValue: 22 },
+  { month: "Ago", value: 32, previousValue: 25 },
+  { month: "Set", value: 35, previousValue: 28 },
+  { month: "Out", value: 38, previousValue: 30 },
+  { month: "Nov", value: 42, previousValue: 34 },
+  { month: "Dez", value: 45, previousValue: 38 },
+];
+
+export const followersMonthlyData = [
+  { month: "Jul", value: 10500, previousValue: 9200 },
+  { month: "Ago", value: 10900, previousValue: 9600 },
+  { month: "Set", value: 11400, previousValue: 10000 },
+  { month: "Out", value: 11900, previousValue: 10400 },
+  { month: "Nov", value: 12200, previousValue: 10800 },
+  { month: "Dez", value: 12500, previousValue: 11200 },
+];
+
+export const newFollowersMonthlyData = [
+  { month: "Jul", value: 320, previousValue: 280 },
+  { month: "Ago", value: 350, previousValue: 300 },
+  { month: "Set", value: 380, previousValue: 320 },
+  { month: "Out", value: 400, previousValue: 340 },
+  { month: "Nov", value: 420, previousValue: 360 },
+  { month: "Dez", value: 450, previousValue: 380 },
+];
+
+export const postsLinkedinMonthlyData = [
+  { month: "Jul", value: 16, previousValue: 12 },
+  { month: "Ago", value: 18, previousValue: 14 },
+  { month: "Set", value: 19, previousValue: 15 },
+  { month: "Out", value: 21, previousValue: 17 },
+  { month: "Nov", value: 22, previousValue: 18 },
+  { month: "Dez", value: 24, previousValue: 20 },
+];
+
+export const impressionsMonthlyData = [
+  { month: "Jul", value: 58000, previousValue: 48000 },
+  { month: "Ago", value: 64000, previousValue: 52000 },
+  { month: "Set", value: 70000, previousValue: 58000 },
+  { month: "Out", value: 75000, previousValue: 62000 },
+  { month: "Nov", value: 80000, previousValue: 68000 },
+  { month: "Dez", value: 85000, previousValue: 72000 },
+];
+
+export const commentsMonthlyData = [
+  { month: "Jul", value: 180, previousValue: 150 },
+  { month: "Ago", value: 210, previousValue: 170 },
+  { month: "Set", value: 240, previousValue: 190 },
+  { month: "Out", value: 270, previousValue: 220 },
+  { month: "Nov", value: 295, previousValue: 250 },
+  { month: "Dez", value: 320, previousValue: 280 },
+];
+
+export const reactionsMonthlyData = [
+  { month: "Jul", value: 1400, previousValue: 1200 },
+  { month: "Ago", value: 1550, previousValue: 1320 },
+  { month: "Set", value: 1700, previousValue: 1450 },
+  { month: "Out", value: 1850, previousValue: 1580 },
+  { month: "Nov", value: 1980, previousValue: 1700 },
+  { month: "Dez", value: 2100, previousValue: 1850 },
+];
+
+export const pageViewsMonthlyData = [
+  { month: "Jul", value: 3000, previousValue: 2600 },
+  { month: "Ago", value: 3300, previousValue: 2850 },
+  { month: "Set", value: 3600, previousValue: 3100 },
+  { month: "Out", value: 3900, previousValue: 3400 },
+  { month: "Nov", value: 4200, previousValue: 3700 },
+  { month: "Dez", value: 4500, previousValue: 4000 },
+];
+
+export const uniqueVisitorsMonthlyData = [
+  { month: "Jul", value: 1200, previousValue: 1050 },
+  { month: "Ago", value: 1350, previousValue: 1150 },
+  { month: "Set", value: 1480, previousValue: 1280 },
+  { month: "Out", value: 1600, previousValue: 1400 },
+  { month: "Nov", value: 1720, previousValue: 1520 },
+  { month: "Dez", value: 1800, previousValue: 1650 },
+];
+
 // Customer Data
 export const customersByProduct = [
   { name: "Produto A", value: 25 },

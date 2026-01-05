@@ -1,10 +1,24 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
+import { MonthlyLineChart } from "@/components/charts/MonthlyLineChart";
 import { Globe, MessageCircle, Linkedin, Mail } from "lucide-react";
-import { linkedinMetrics, siteMetrics, communityMetrics, emailMetrics } from "@/data/mockData";
+import { 
+  emailMetrics,
+  visitorsMonthlyData,
+  blogPostsMonthlyData,
+  whatsappMembersMonthlyData,
+  postsMadeMonthlyData,
+  followersMonthlyData,
+  newFollowersMonthlyData,
+  postsLinkedinMonthlyData,
+  impressionsMonthlyData,
+  commentsMonthlyData,
+  reactionsMonthlyData,
+  pageViewsMonthlyData,
+  uniqueVisitorsMonthlyData,
+} from "@/data/mockData";
 
 const Presence = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
@@ -24,15 +38,12 @@ const Presence = () => {
             Site
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <StatCard
-              title="Visitantes"
-              value={siteMetrics.visitors.toLocaleString("pt-BR")}
-              trend={{ value: 18 }}
-            />
-            <StatCard
-              title="Blog Posts"
-              value={siteMetrics.blogPosts}
-            />
+            <ChartCard title="Visitantes" subtitle="Evolução mensal">
+              <MonthlyLineChart data={visitorsMonthlyData} />
+            </ChartCard>
+            <ChartCard title="Blog Posts" subtitle="Evolução mensal">
+              <MonthlyLineChart data={blogPostsMonthlyData} />
+            </ChartCard>
           </div>
         </div>
 
@@ -43,15 +54,12 @@ const Presence = () => {
             Community Building
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <StatCard
-              title="Membros WhatsApp"
-              value={communityMetrics.whatsappMembers}
-              trend={{ value: 5 }}
-            />
-            <StatCard
-              title="Posts Feitos (Equipe)"
-              value={communityMetrics.postsMade}
-            />
+            <ChartCard title="Membros WhatsApp" subtitle="Evolução mensal">
+              <MonthlyLineChart data={whatsappMembersMonthlyData} />
+            </ChartCard>
+            <ChartCard title="Posts Feitos (Equipe)" subtitle="Evolução mensal">
+              <MonthlyLineChart data={postsMadeMonthlyData} />
+            </ChartCard>
           </div>
         </div>
 
@@ -62,42 +70,32 @@ const Presence = () => {
             LinkedIn
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard
-              title="Followers"
-              value={linkedinMetrics.followers.toLocaleString("pt-BR")}
-            />
-            <StatCard
-              title="New Followers"
-              value={`+${linkedinMetrics.newFollowers}`}
-              trend={{ value: 8 }}
-            />
-            <StatCard
-              title="Postagens"
-              value={linkedinMetrics.posts}
-            />
-            <StatCard
-              title="Impressões"
-              value={linkedinMetrics.impressions.toLocaleString("pt-BR")}
-              trend={{ value: 22 }}
-            />
+            <ChartCard title="Followers" subtitle="Evolução mensal">
+              <MonthlyLineChart data={followersMonthlyData} />
+            </ChartCard>
+            <ChartCard title="New Followers" subtitle="Evolução mensal">
+              <MonthlyLineChart data={newFollowersMonthlyData} />
+            </ChartCard>
+            <ChartCard title="Postagens" subtitle="Evolução mensal">
+              <MonthlyLineChart data={postsLinkedinMonthlyData} />
+            </ChartCard>
+            <ChartCard title="Impressões" subtitle="Evolução mensal">
+              <MonthlyLineChart data={impressionsMonthlyData} />
+            </ChartCard>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-            <StatCard
-              title="Comentários"
-              value={linkedinMetrics.comments}
-            />
-            <StatCard
-              title="Reações"
-              value={linkedinMetrics.reactions.toLocaleString("pt-BR")}
-            />
-            <StatCard
-              title="Page Views"
-              value={linkedinMetrics.pageViews.toLocaleString("pt-BR")}
-            />
-            <StatCard
-              title="Unique Visitors"
-              value={linkedinMetrics.uniqueVisitors.toLocaleString("pt-BR")}
-            />
+            <ChartCard title="Comentários" subtitle="Evolução mensal">
+              <MonthlyLineChart data={commentsMonthlyData} />
+            </ChartCard>
+            <ChartCard title="Reações" subtitle="Evolução mensal">
+              <MonthlyLineChart data={reactionsMonthlyData} />
+            </ChartCard>
+            <ChartCard title="Page Views" subtitle="Evolução mensal">
+              <MonthlyLineChart data={pageViewsMonthlyData} />
+            </ChartCard>
+            <ChartCard title="Unique Visitors" subtitle="Evolução mensal">
+              <MonthlyLineChart data={uniqueVisitorsMonthlyData} />
+            </ChartCard>
           </div>
         </div>
 
