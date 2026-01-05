@@ -12,11 +12,13 @@ import ActionRegistry from "./pages/ActionRegistry";
 import NewAction from "./pages/NewAction";
 import NotFound from "./pages/NotFound";
 import { GlobalSearch, useGlobalSearch } from "./components/search/GlobalSearch";
+import { useNewActionShortcut } from "./hooks/useNewActionShortcut";
 
 const queryClient = new QueryClient();
 
 function AppContent() {
   const { open, setOpen } = useGlobalSearch();
+  useNewActionShortcut();
 
   return (
     <>
