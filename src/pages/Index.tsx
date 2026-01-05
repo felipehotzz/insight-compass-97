@@ -14,15 +14,15 @@ const formatCurrency = (value: number) =>
   `${(value / 1000).toFixed(0)}K`;
 
 const arrSeries = [
-  { key: "novo", name: "Novo ARR", color: "hsl(var(--color-success))" },
-  { key: "mantido", name: "ARR Mantido", color: "hsl(var(--color-overview))" },
   { key: "churn", name: "Churn", color: "hsl(var(--color-danger))" },
+  { key: "mantido", name: "ARR Mantido", color: "hsl(var(--color-overview))" },
+  { key: "novo", name: "Novo ARR", color: "hsl(var(--color-growth))" },
 ];
 
 const clientsSeries = [
-  { key: "novo", name: "Novos", color: "hsl(var(--color-success))" },
-  { key: "mantido", name: "Mantidos", color: "hsl(var(--color-overview))" },
   { key: "churn", name: "Churn", color: "hsl(var(--color-danger))" },
+  { key: "mantido", name: "Mantidos", color: "hsl(var(--color-overview))" },
+  { key: "novo", name: "Novos", color: "hsl(var(--color-growth))" },
 ];
 
 const Index = () => {
