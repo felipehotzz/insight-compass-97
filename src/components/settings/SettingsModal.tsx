@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Users, Settings, Shield, Bell, KeyRound } from "lucide-react";
+import { Users, Settings, Shield, Bell, KeyRound, Upload } from "lucide-react";
 import { UsersSettings } from "./UsersSettings";
 import { AccessProfileSettings } from "./AccessProfileSettings";
+import { ImportDataSettings } from "./ImportDataSettings";
 import { usePermissions } from "@/hooks/usePermissions";
 
 interface SettingsModalProps {
@@ -13,6 +14,7 @@ interface SettingsModalProps {
 const settingsNavigation = [
   { id: "users", name: "Usuários", icon: Users, permission: null },
   { id: "access", name: "Perfil de Acesso", icon: KeyRound, permission: "perfis_acesso" as const },
+  { id: "import", name: "Importar Dados", icon: Upload, permission: null },
   { id: "general", name: "Geral", icon: Settings, permission: null },
   { id: "security", name: "Segurança", icon: Shield, permission: null },
   { id: "notifications", name: "Notificações", icon: Bell, permission: null },
@@ -33,6 +35,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         return <UsersSettings />;
       case "access":
         return <AccessProfileSettings />;
+      case "import":
+        return <ImportDataSettings />;
       case "general":
         return (
           <div className="p-6">
