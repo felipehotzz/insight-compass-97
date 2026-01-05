@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      actions: {
+        Row: {
+          action_date: string
+          action_type: string
+          category: string | null
+          content: string | null
+          created_at: string
+          customer: string
+          description: string | null
+          id: string
+          responsibles: string[] | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          action_date: string
+          action_type: string
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          customer: string
+          description?: string | null
+          id?: string
+          responsibles?: string[] | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          action_date?: string
+          action_type?: string
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          customer?: string
+          description?: string | null
+          id?: string
+          responsibles?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           created_at: string
