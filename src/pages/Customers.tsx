@@ -5,7 +5,8 @@ import { ChartCard } from "@/components/dashboard/ChartCard";
 import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
 import { HorizontalBarChart } from "@/components/charts/HorizontalBarChart";
 import { SimpleBarChart } from "@/components/charts/SimpleBarChart";
-import { Calendar, Headphones, MessageSquare, Activity } from "lucide-react";
+import { StackedBarChart } from "@/components/charts/StackedBarChart";
+import { Calendar, Headphones, MessageSquare, Activity, Users } from "lucide-react";
 import {
   customersByProduct,
   customersByPlan,
@@ -19,14 +20,72 @@ import {
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR");
 
+type CompositionFilter = "month" | "quarter";
+
+// Mock data for customer composition over time
+const getCustomerCompositionData = (filter: CompositionFilter) => {
+  if (filter === "month") {
+    return [
+      { name: "Jan", novos: 5, mantidos: 48, churn: 2 },
+      { name: "Fev", novos: 3, mantidos: 51, churn: 1 },
+      { name: "Mar", novos: 6, mantidos: 53, churn: 3 },
+      { name: "Abr", novos: 4, mantidos: 54, churn: 2 },
+      { name: "Mai", novos: 7, mantidos: 55, churn: 1 },
+      { name: "Jun", novos: 5, mantidos: 58, churn: 2 },
+    ];
+  }
+  return [
+    { name: "Q1 2025", novos: 14, mantidos: 48, churn: 6 },
+    { name: "Q2 2025", novos: 16, mantidos: 54, churn: 5 },
+    { name: "Q3 2025", novos: 12, mantidos: 58, churn: 4 },
+    { name: "Q4 2025", novos: 18, mantidos: 60, churn: 3 },
+  ];
+};
+
+// Mock data for plan composition over time
+const getPlanCompositionData = (filter: CompositionFilter) => {
+  if (filter === "month") {
+    return [
+      { name: "Jan", starter: 20, pro: 25, enterprise: 8 },
+      { name: "Fev", starter: 21, pro: 26, enterprise: 8 },
+      { name: "Mar", starter: 22, pro: 27, enterprise: 9 },
+      { name: "Abr", starter: 20, pro: 28, enterprise: 10 },
+      { name: "Mai", starter: 21, pro: 30, enterprise: 10 },
+      { name: "Jun", starter: 22, pro: 28, enterprise: 11 },
+    ];
+  }
+  return [
+    { name: "Q1 2025", starter: 20, pro: 25, enterprise: 8 },
+    { name: "Q2 2025", starter: 21, pro: 28, enterprise: 9 },
+    { name: "Q3 2025", starter: 22, pro: 30, enterprise: 10 },
+    { name: "Q4 2025", starter: 22, pro: 28, enterprise: 11 },
+  ];
+};
+
+const customerSeries = [
+  { key: "novos", name: "Novos", color: "hsl(142 71% 45%)" },
+  { key: "mantidos", name: "Mantidos", color: "hsl(0 0% 55%)" },
+  { key: "churn", name: "Churn", color: "hsl(0 84% 60%)" },
+];
+
+const planSeries = [
+  { key: "starter", name: "Starter", color: "hsl(0 0% 45%)" },
+  { key: "pro", name: "Pro", color: "hsl(0 0% 60%)" },
+  { key: "enterprise", name: "Enterprise", color: "hsl(0 0% 75%)" },
+];
+
 const Customers = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
+  const [compositionFilter, setCompositionFilter] = useState<CompositionFilter>("month");
 
   const totalClients = 60;
+  const customerCompositionData = getCustomerCompositionData(compositionFilter);
+  const planCompositionData = getPlanCompositionData(compositionFilter);
 
   return (
     <DashboardLayout title="Clientes">
       <div className="space-y-6 animate-fade-in">
+        {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <StatCard
             title="Total de Clientes"
@@ -45,6 +104,54 @@ const Customers = () => {
             title="Por CS"
             value={customersByCS.length + " CSs"}
           />
+        </div>
+
+        {/* Customer Composition Charts */}
+        <div>
+          <h2 className="section-title mb-4 flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            Composição da Carteira
+          </h2>
+          <div className="flex justify-end mb-4">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCompositionFilter("month")}
+                className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                  compositionFilter === "month"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                Mês
+              </button>
+              <button
+                onClick={() => setCompositionFilter("quarter")}
+                className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                  compositionFilter === "quarter"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                Trimestre
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartCard title="Evolução de Clientes">
+              <StackedBarChart
+                data={customerCompositionData}
+                series={customerSeries}
+                height={280}
+              />
+            </ChartCard>
+            <ChartCard title="Evolução por Plano">
+              <StackedBarChart
+                data={planCompositionData}
+                series={planSeries}
+                height={280}
+              />
+            </ChartCard>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
