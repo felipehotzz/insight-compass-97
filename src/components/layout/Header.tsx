@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Bell, Settings } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -31,7 +30,7 @@ const customers = [
 ];
 
 interface HeaderProps {
-  title: string;
+  title: string | ReactNode;
 }
 
 export function Header({ title }: HeaderProps) {
@@ -47,7 +46,7 @@ export function Header({ title }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-6">
-      <h1 className="page-title">{title}</h1>
+      {typeof title === "string" ? <h1 className="page-title">{title}</h1> : title}
 
       <div className="flex items-center gap-4">
         {/* Global Search */}
