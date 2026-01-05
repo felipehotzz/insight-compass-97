@@ -129,10 +129,10 @@ const CustomerDetail = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <ChartCard title="Ações Feitas" subtitle="Por tipo de ação">
+            <ChartCard title="Ações por tipo">
               <ActionBreakdownChart data={generateActionsData(timeFilter)} />
             </ChartCard>
-            <ChartCard title="Ações Feitas" subtitle="Por tema">
+            <ChartCard title="Ações por tema">
               <ActionThemeChart data={generateActionsThemeData(timeFilter)} />
             </ChartCard>
           </div>
