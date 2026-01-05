@@ -1,8 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -10,13 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Plus,
   Video,
@@ -107,10 +100,10 @@ const getActionLabel = (type: string) => {
 };
 
 const ActionRegistry = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterCustomer, setFilterCustomer] = useState<string>("all");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const filteredActions = mockActions.filter((action) => {
     const matchesSearch =
@@ -165,86 +158,10 @@ const ActionRegistry = () => {
             </Select>
           </div>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="shrink-0">
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Ação
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Adicionar Nova Ação</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Cliente</label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {customers.map((customer) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Tipo de Ação</label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {actionTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id}>
-                          <div className="flex items-center gap-2">
-                            <type.icon className="h-4 w-4" />
-                            {type.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Título</label>
-                  <Input placeholder="Ex: Reunião de alinhamento" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Data</label>
-                  <Input type="date" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Descrição</label>
-                  <Textarea
-                    placeholder="Descreva os detalhes da ação..."
-                    rows={3}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Link (opcional)
-                  </label>
-                  <Input placeholder="https://..." />
-                </div>
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button onClick={() => setIsDialogOpen(false)}>
-                    Salvar Ação
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button className="shrink-0" onClick={() => navigate("/actions/new")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Ação
+          </Button>
         </div>
 
         {/* Actions list */}
@@ -259,7 +176,8 @@ const ActionRegistry = () => {
               return (
                 <div
                   key={action.id}
-                  className="flex items-start gap-4 p-4 hover:bg-secondary/30 transition-colors"
+                  className="flex items-start gap-4 p-4 hover:bg-secondary/30 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/actions/new?edit=${action.id}`)}
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground/60 shrink-0">
                     <Icon className="h-4 w-4" />
@@ -279,6 +197,7 @@ const ActionRegistry = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-muted-foreground hover:text-foreground transition-colors"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <ExternalLink className="h-4 w-4" />
                           </a>

@@ -9,6 +9,7 @@ import Presence from "./pages/Presence";
 import Customers from "./pages/Customers";
 import CustomerDetail from "./pages/CustomerDetail";
 import ActionRegistry from "./pages/ActionRegistry";
+import NewAction from "./pages/NewAction";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/customers" element={<Customers />} />
           <Route path="/customer-detail" element={<CustomerDetail />} />
           <Route path="/actions" element={<ActionRegistry />} />
+          <Route path="/actions/new" element={<NewAction />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
