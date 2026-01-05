@@ -116,13 +116,28 @@ const Growth = () => {
               formatValue={formatCurrency}
             />
           </ChartCard>
-          <ChartCard title="Ranking de Oportunidades por Valor (R$)">
-            <HorizontalBarChart
-              data={opportunitiesByValue}
-              formatValue={formatCurrency}
-              color="hsl(0 0% 65%)"
-            />
-          </ChartCard>
+          <div className="glass-card p-5">
+            <h3 className="text-lg font-semibold mb-4">Ranking de Oportunidades por Valor (R$)</h3>
+            <div className="space-y-0">
+              <div className="grid grid-cols-3 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+                <span>#</span>
+                <span>Cliente</span>
+                <span className="text-right">Valor</span>
+              </div>
+              <div className="divide-y divide-border max-h-[320px] overflow-y-auto">
+                {opportunitiesByValue.map((item, index) => (
+                  <div 
+                    key={item.name} 
+                    className="grid grid-cols-3 gap-4 px-2 py-3 hover:bg-secondary/30 transition-colors"
+                  >
+                    <span className="text-sm text-muted-foreground">{index + 1}</span>
+                    <span className="text-sm font-medium">{item.name}</span>
+                    <span className="text-sm text-right">R$ {formatCurrency(item.value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         <ChartCard title="Motivos de Perda" subtitle="Contagem de negócios">
