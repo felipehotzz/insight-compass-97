@@ -145,8 +145,9 @@ const CustomerDetail = () => {
               </a>
             </div>
             <div className="space-y-0">
-              <div className="grid grid-cols-4 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+              <div className="grid grid-cols-5 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
                 <span>Ação</span>
+                <span>Cliente</span>
                 <span>Tipo</span>
                 <span>Tema</span>
                 <span className="text-right">Data</span>
@@ -155,10 +156,11 @@ const CustomerDetail = () => {
                 {customer.meetings.map((meeting, index) => (
                   <div 
                     key={index} 
-                    className="grid grid-cols-4 gap-4 px-2 py-3 cursor-pointer hover:bg-secondary/30 transition-colors"
+                    className="grid grid-cols-5 gap-4 px-2 py-3 cursor-pointer hover:bg-secondary/30 transition-colors"
                     onClick={() => navigate(`/actions/new?edit=${index + 1}`)}
                   >
                     <span className="text-sm font-medium truncate">{meeting.title}</span>
+                    <span className="text-sm text-muted-foreground truncate">{customerName}</span>
                     <Badge variant="outline" className="w-fit text-xs">{meeting.type}</Badge>
                     <Badge variant="secondary" className="w-fit text-xs">{meeting.theme}</Badge>
                     <span className="text-sm text-muted-foreground text-right">
