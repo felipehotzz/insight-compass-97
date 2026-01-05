@@ -172,10 +172,8 @@ export function UsersSettings() {
           <TableHeader>
             <TableRow className="bg-secondary/30">
               <TableHead className="font-medium">Nome</TableHead>
-              <TableHead className="font-medium">Papel</TableHead>
-              <TableHead className="font-medium">Data de entrada</TableHead>
-              <TableHead className="font-medium">Uso (Jan)</TableHead>
-              <TableHead className="font-medium">Uso total</TableHead>
+              <TableHead className="font-medium">E-mail</TableHead>
+              <TableHead className="font-medium">Perfil</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -189,23 +187,14 @@ export function UsersSettings() {
                         {getInitials(user.name)}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium text-sm">{user.name}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
+                    <p className="font-medium text-sm">{user.name}</p>
                   </div>
                 </TableCell>
                 <TableCell>
+                  <span className="text-sm text-muted-foreground">{user.email}</span>
+                </TableCell>
+                <TableCell>
                   <span className="text-sm">{user.role}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">{user.joinedDate}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">{user.usage}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">{user.totalUsage}</span>
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -216,7 +205,7 @@ export function UsersSettings() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Alterar papel</DropdownMenuItem>
+                      <DropdownMenuItem>Alterar perfil</DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">
                         Remover
                       </DropdownMenuItem>
