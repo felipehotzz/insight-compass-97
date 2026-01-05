@@ -331,9 +331,9 @@ const customersByCSDetails: Record<string, { name: string; plan: string; contrac
 };
 
 const customerSeries = [
-  { key: "novos", name: "Novos", color: "hsl(var(--color-success))" },
-  { key: "mantidos", name: "Mantidos", color: "hsl(var(--color-customers))" },
   { key: "churn", name: "Churn", color: "hsl(var(--color-danger))" },
+  { key: "mantidos", name: "Mantidos", color: "hsl(var(--color-overview))" },
+  { key: "novos", name: "Novos", color: "hsl(var(--color-growth))" },
 ];
 
 const planSeries = [
