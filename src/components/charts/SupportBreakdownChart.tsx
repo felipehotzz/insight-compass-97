@@ -77,9 +77,10 @@ export function SupportBreakdownChart({ data, height = 280 }: SupportBreakdownCh
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
         <Legend 
-          wrapperStyle={{ paddingTop: 16 }}
+          wrapperStyle={{ paddingTop: 20, fontSize: 10 }}
           iconType="square"
-          iconSize={10}
+          iconSize={8}
+          formatter={(value) => <span style={{ color: 'hsl(var(--muted-foreground))', marginRight: 16 }}>{value}</span>}
         />
         <Bar 
           dataKey="n1" 
