@@ -6,7 +6,9 @@ import {
   Share2, 
   Users, 
   Globe, 
-  ClipboardList 
+  ClipboardList,
+  UserPlus,
+  KeyRound
 } from "lucide-react";
 
 const pages = [
@@ -16,6 +18,8 @@ const pages = [
   { id: "clientes", name: "Clientes", icon: Users },
   { id: "raio-x", name: "Raio-X", icon: Globe },
   { id: "acoes", name: "Ações", icon: ClipboardList },
+  { id: "convidar", name: "Convidar pessoas", icon: UserPlus },
+  { id: "perfis-acesso", name: "Perfis de Acesso", icon: KeyRound },
 ];
 
 const roles = [
@@ -35,6 +39,8 @@ const initialPermissions: Record<string, Record<string, boolean>> = {
     "clientes": true,
     "raio-x": true,
     "acoes": true,
+    "convidar": true,
+    "perfis-acesso": true,
   },
   editor: {
     "visao-geral": true,
@@ -43,6 +49,8 @@ const initialPermissions: Record<string, Record<string, boolean>> = {
     "clientes": true,
     "raio-x": false,
     "acoes": true,
+    "convidar": false,
+    "perfis-acesso": false,
   },
   viewer: {
     "visao-geral": true,
@@ -51,6 +59,8 @@ const initialPermissions: Record<string, Record<string, boolean>> = {
     "clientes": true,
     "raio-x": false,
     "acoes": false,
+    "convidar": false,
+    "perfis-acesso": false,
   },
   "customer-success": {
     "visao-geral": true,
@@ -59,6 +69,8 @@ const initialPermissions: Record<string, Record<string, boolean>> = {
     "clientes": true,
     "raio-x": true,
     "acoes": true,
+    "convidar": false,
+    "perfis-acesso": false,
   },
   growth: {
     "visao-geral": true,
@@ -67,6 +79,8 @@ const initialPermissions: Record<string, Record<string, boolean>> = {
     "clientes": false,
     "raio-x": false,
     "acoes": false,
+    "convidar": false,
+    "perfis-acesso": false,
   },
 };
 
