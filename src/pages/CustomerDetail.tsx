@@ -106,30 +106,30 @@ const CustomerDetail = () => {
             <ChartCard title="Reuniões Feitas" subtitle="Evolução ao longo do tempo">
               <SimpleLineChart data={generateMeetingsData(timeFilter)} />
             </ChartCard>
-            <ChartCard title="Registro de Reuniões" subtitle="Últimas reuniões">
-              <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
+            <div className="glass-card p-5">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Registro de Reuniões</h3>
+              <div className="divide-y divide-border">
                 {customer.meetings.map((meeting, index) => (
-                  <div key={index} className="flex items-center gap-3 p-2 bg-secondary/30 rounded hover:bg-secondary/50 transition-colors">
-                    <Video className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <h4 className="text-sm font-medium truncate">{meeting.title}</h4>
-                        <span className="text-xs text-muted-foreground shrink-0">{meeting.date}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">{meeting.notes}</p>
+                  <div key={index} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Video className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-sm truncate">{meeting.title}</span>
                     </div>
-                    <a 
-                      href={meeting.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-xs text-muted-foreground">{meeting.date}</span>
+                      <a 
+                        href={meeting.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>
-            </ChartCard>
+            </div>
           </div>
         </div>
 
