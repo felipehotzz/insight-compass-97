@@ -378,7 +378,7 @@ const Customers = () => {
         {/* Customer Composition Charts */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-semibold text-foreground">Clientes</h1>
+            <h1 className="text-xl text-foreground">Clientes</h1>
             <div className="flex gap-2">
               <button
                 onClick={() => setCompositionFilter("month")}
