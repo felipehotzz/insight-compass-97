@@ -29,8 +29,9 @@ const Index = () => {
   const prevGrossMargin = grossMarginData[grossMarginData.length - 2].value;
 
   return (
-    <DashboardLayout title="Visão Geral da Empresa">
+    <DashboardLayout title="">
       <div className="space-y-6 animate-fade-in">
+        <h1 className="text-2xl font-semibold text-foreground">Visão Geral</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="ARR (R$)"

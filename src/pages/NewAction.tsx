@@ -92,7 +92,7 @@ const NewAction = () => {
   };
 
   return (
-    <DashboardLayout title={title || "Nova Ação"}>
+    <DashboardLayout title="">
       <div className="animate-fade-in max-w-3xl mx-auto py-8">
         {/* Minimal top bar */}
         <div className="flex items-center justify-between mb-12">
