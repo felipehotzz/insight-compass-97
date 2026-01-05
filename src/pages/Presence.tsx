@@ -44,10 +44,12 @@ const Presence = () => {
                 secondaryDataKey="conversions"
                 secondaryLabel="Conversões"
                 useSecondaryYAxis
+                color="hsl(var(--color-presence))"
+                secondaryColor="hsl(var(--color-success))"
               />
             </ChartCard>
             <ChartCard title="Blog Posts" subtitle="Evolução mensal">
-              <MonthlyLineChart data={blogPostsMonthlyData} />
+              <MonthlyLineChart data={blogPostsMonthlyData} color="hsl(var(--color-presence))" />
             </ChartCard>
           </div>
         </div>
@@ -60,10 +62,10 @@ const Presence = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ChartCard title="Membros WhatsApp" subtitle="Evolução mensal">
-              <MonthlyLineChart data={whatsappMembersMonthlyData} />
+              <MonthlyLineChart data={whatsappMembersMonthlyData} color="hsl(var(--color-community))" />
             </ChartCard>
             <ChartCard title="Posts Feitos (Equipe)" subtitle="Evolução mensal">
-              <MonthlyLineChart data={postsMadeMonthlyData} />
+              <MonthlyLineChart data={postsMadeMonthlyData} color="hsl(var(--color-community))" />
             </ChartCard>
           </div>
         </div>
@@ -76,30 +78,30 @@ const Presence = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <ChartCard title="Followers" subtitle="Evolução mensal">
-              <MonthlyLineChart data={followersMonthlyData} />
+              <MonthlyLineChart data={followersMonthlyData} color="hsl(var(--color-linkedin))" />
             </ChartCard>
             <ChartCard title="New Followers" subtitle="Evolução mensal">
-              <MonthlyLineChart data={newFollowersMonthlyData} />
+              <MonthlyLineChart data={newFollowersMonthlyData} color="hsl(var(--color-linkedin))" />
             </ChartCard>
             <ChartCard title="Postagens" subtitle="Evolução mensal">
-              <MonthlyLineChart data={postsLinkedinMonthlyData} />
+              <MonthlyLineChart data={postsLinkedinMonthlyData} color="hsl(var(--color-linkedin))" />
             </ChartCard>
             <ChartCard title="Impressões" subtitle="Evolução mensal">
-              <MonthlyLineChart data={impressionsMonthlyData} />
+              <MonthlyLineChart data={impressionsMonthlyData} color="hsl(var(--color-linkedin))" />
             </ChartCard>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
             <ChartCard title="Comentários" subtitle="Evolução mensal">
-              <MonthlyLineChart data={commentsMonthlyData} />
+              <MonthlyLineChart data={commentsMonthlyData} color="hsl(var(--color-linkedin))" />
             </ChartCard>
             <ChartCard title="Reações" subtitle="Evolução mensal">
-              <MonthlyLineChart data={reactionsMonthlyData} />
+              <MonthlyLineChart data={reactionsMonthlyData} color="hsl(var(--color-linkedin))" />
             </ChartCard>
             <ChartCard title="Page Views" subtitle="Evolução mensal">
-              <MonthlyLineChart data={pageViewsMonthlyData} />
+              <MonthlyLineChart data={pageViewsMonthlyData} color="hsl(var(--color-linkedin))" />
             </ChartCard>
             <ChartCard title="Unique Visitors" subtitle="Evolução mensal">
-              <MonthlyLineChart data={uniqueVisitorsMonthlyData} />
+              <MonthlyLineChart data={uniqueVisitorsMonthlyData} color="hsl(var(--color-linkedin))" />
             </ChartCard>
           </div>
         </div>

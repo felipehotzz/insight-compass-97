@@ -24,12 +24,14 @@ const Index = () => {
               data={arrData}
               formatValue={formatCurrency}
               previousDataKey="previousValue"
+              color="hsl(var(--color-overview))"
             />
           </ChartCard>
           <ChartCard title="Nº de Clientes" subtitle="Evolução mensal">
             <MonthlyLineChart
               data={clientsData}
               previousDataKey="previousValue"
+              color="hsl(var(--color-overview))"
             />
           </ChartCard>
         </div>
@@ -39,18 +41,20 @@ const Index = () => {
             <MonthlyLineChart
               data={grossMarginData}
               formatValue={(v) => `${v}%`}
+              color="hsl(var(--color-overview))"
             />
           </ChartCard>
           <ChartCard title="Net Income" subtitle="Evolução mensal">
             <MonthlyLineChart
               data={netIncomeData}
               formatValue={formatCurrency}
+              color="hsl(var(--color-overview))"
             />
           </ChartCard>
         </div>
 
         <ChartCard title="Nº de Colaboradores" subtitle="Evolução mensal">
-          <MonthlyLineChart data={employeesData} />
+          <MonthlyLineChart data={employeesData} color="hsl(var(--color-overview))" />
         </ChartCard>
       </div>
     </DashboardLayout>
