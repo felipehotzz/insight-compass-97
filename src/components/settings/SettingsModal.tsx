@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Users, Settings, Shield, Bell } from "lucide-react";
+import { Users, Settings, Shield, Bell, KeyRound } from "lucide-react";
 import { UsersSettings } from "./UsersSettings";
+import { AccessProfileSettings } from "./AccessProfileSettings";
 
 interface SettingsModalProps {
   open: boolean;
@@ -10,6 +11,7 @@ interface SettingsModalProps {
 
 const settingsNavigation = [
   { id: "users", name: "Usuários", icon: Users },
+  { id: "access", name: "Perfil de Acesso", icon: KeyRound },
   { id: "general", name: "Geral", icon: Settings },
   { id: "security", name: "Segurança", icon: Shield },
   { id: "notifications", name: "Notificações", icon: Bell },
@@ -22,6 +24,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
     switch (activeSection) {
       case "users":
         return <UsersSettings />;
+      case "access":
+        return <AccessProfileSettings />;
       case "general":
         return (
           <div className="p-6">
