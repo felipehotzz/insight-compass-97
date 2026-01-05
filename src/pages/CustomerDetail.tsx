@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartCard } from "@/components/dashboard/ChartCard";
@@ -14,6 +14,7 @@ import {
   Linkedin,
   Video,
   ExternalLink,
+  Plus,
 } from "lucide-react";
 import { customerDetail } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR");
 
 const CustomerDetail = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
   const [usageFilter, setUsageFilter] = useState<TimeFilter>("month");
@@ -30,9 +32,21 @@ const CustomerDetail = () => {
   const customerName = searchParams.get("name") || customerDetail.name;
   const customer = customerDetail;
 
+  const handleRegisterAction = () => {
+    navigate(`/actions/new?customer=${encodeURIComponent(customerName)}`);
+  };
+
   return (
     <DashboardLayout title={<CustomerSelector currentCustomerName={customerName} />}>
       <div className="space-y-6 animate-fade-in">
+        {/* Action button */}
+        <div className="flex justify-end">
+          <Button onClick={handleRegisterAction}>
+            <Plus className="h-4 w-4 mr-2" />
+            Registrar Ação
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
             title="Valor do Contrato (R$)"
