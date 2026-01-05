@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,11 @@ import {
   HelpCircle,
   Wrench,
   Heart,
+  Trash2,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const actionTypes = [
   { id: "meeting", label: "Reunião", icon: Video },
@@ -50,7 +53,7 @@ const categories = [
   { id: "relacionamento", label: "Relacionamento", icon: Heart },
 ];
 
-const customers = [
+const defaultCustomers = [
   { id: "1", name: "Grendene" },
   { id: "2", name: "Ambev" },
   { id: "3", name: "CBMM" },
@@ -70,6 +73,8 @@ const NewAction = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedCustomer = searchParams.get("customer") || "";
+  const editId = searchParams.get("edit");
+  const { user } = useAuth();
 
   const [customer, setCustomer] = useState(preselectedCustomer);
   const [actionType, setActionType] = useState("");
@@ -78,6 +83,46 @@ const NewAction = () => {
   const [date, setDate] = useState("");
   const [content, setContent] = useState("");
   const [responsibles, setResponsibles] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (editId) {
+      fetchAction(editId);
+    }
+  }, [editId]);
+
+  const fetchAction = async (id: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("actions")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setTitle(data.title);
+        setCustomer(data.customer);
+        setActionType(data.action_type);
+        setCategory(data.category || "");
+        setDate(data.action_date);
+        setContent(data.content || "");
+        setResponsibles(data.responsibles || []);
+      }
+    } catch (error) {
+      console.error("Error fetching action:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar a ação",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const toggleResponsible = (memberId: string) => {
     setResponsibles((prev) =>
@@ -93,7 +138,7 @@ const NewAction = () => {
 
   const isValid = customer && actionType && title && date;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!isValid) {
       toast({
         title: "Campos obrigatórios",
@@ -103,12 +148,91 @@ const NewAction = () => {
       return;
     }
 
-    toast({
-      title: "Ação salva",
-      description: "A ação foi registrada com sucesso.",
-    });
-    navigate("/actions");
+    setSaving(true);
+
+    try {
+      const actionData = {
+        title,
+        customer,
+        action_type: actionType,
+        category: category || null,
+        action_date: date,
+        content: content || null,
+        responsibles,
+        user_id: user?.id || null,
+      };
+
+      if (editId) {
+        const { error } = await supabase
+          .from("actions")
+          .update(actionData)
+          .eq("id", editId);
+
+        if (error) throw error;
+
+        toast({
+          title: "Ação atualizada",
+          description: "A ação foi atualizada com sucesso.",
+        });
+      } else {
+        const { error } = await supabase.from("actions").insert(actionData);
+
+        if (error) throw error;
+
+        toast({
+          title: "Ação salva",
+          description: "A ação foi registrada com sucesso.",
+        });
+      }
+
+      navigate("/actions");
+    } catch (error: any) {
+      console.error("Error saving action:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: error.message || "Não foi possível salvar a ação",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const handleDelete = async () => {
+    if (!editId) return;
+
+    if (!confirm("Tem certeza que deseja excluir esta ação?")) return;
+
+    try {
+      const { error } = await supabase.from("actions").delete().eq("id", editId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Ação excluída",
+        description: "A ação foi excluída com sucesso.",
+      });
+
+      navigate("/actions");
+    } catch (error: any) {
+      console.error("Error deleting action:", error);
+      toast({
+        title: "Erro ao excluir",
+        description: error.message || "Não foi possível excluir a ação",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout title="">
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout title="">
@@ -122,9 +246,22 @@ const NewAction = () => {
             <ArrowLeft className="h-4 w-4 inline mr-1" />
             Voltar
           </button>
-          <Button size="sm" onClick={handleSave} disabled={!isValid}>
-            Salvar
-          </Button>
+          <div className="flex items-center gap-2">
+            {editId && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleDelete}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Excluir
+              </Button>
+            )}
+            <Button size="sm" onClick={handleSave} disabled={!isValid || saving}>
+              {saving ? "Salvando..." : editId ? "Atualizar" : "Salvar"}
+            </Button>
+          </div>
         </div>
 
         {/* Title input - Notion style */}
@@ -148,7 +285,7 @@ const NewAction = () => {
                 <SelectValue placeholder="Selecionar..." />
               </SelectTrigger>
               <SelectContent>
-                {customers.map((c) => (
+                {defaultCustomers.map((c) => (
                   <SelectItem key={c.id} value={c.name}>
                     {c.name}
                   </SelectItem>
@@ -266,7 +403,7 @@ const NewAction = () => {
         <div className="border-t border-border my-6" />
 
         {/* Content area - Notion-style editor */}
-        <NotionEditor onChange={(blocks) => console.log(blocks)} />
+        <NotionEditor onChange={(blocks) => setContent(JSON.stringify(blocks))} />
       </div>
     </DashboardLayout>
   );
