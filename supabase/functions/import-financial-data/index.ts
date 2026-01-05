@@ -51,8 +51,10 @@ function parseNumber(value: string | undefined | null): number | null {
   // Remove currency symbols and spaces
   cleanValue = cleanValue.replace(/[R$\s]/g, '')
   
-  // Detect format: if has comma after dot, it's BR format (1.234,56)
-  // If has dot after comma, it's US format (1,234.56)
+  // Count dots and commas
+  const dotCount = (cleanValue.match(/\./g) || []).length
+  const commaCount = (cleanValue.match(/,/g) || []).length
+  
   const lastComma = cleanValue.lastIndexOf(',')
   const lastDot = cleanValue.lastIndexOf('.')
   
@@ -61,17 +63,38 @@ function parseNumber(value: string | undefined | null): number | null {
   if (lastComma > lastDot) {
     // BR format: 1.234,56 -> remove dots, replace comma with dot
     normalized = cleanValue.replace(/\./g, '').replace(',', '.')
-  } else if (lastDot > lastComma) {
-    // US format: 1,234.56 -> remove commas
+  } else if (lastDot > lastComma && commaCount > 0) {
+    // US format with comma as thousands: 1,234.56 -> remove commas
     normalized = cleanValue.replace(/,/g, '')
   } else if (lastComma === -1 && lastDot === -1) {
     // No separators, just a number
     normalized = cleanValue
-  } else if (lastComma !== -1 && lastDot === -1) {
-    // Only comma, could be BR decimal: 123,45
-    normalized = cleanValue.replace(',', '.')
+  } else if (commaCount > 0 && dotCount === 0) {
+    // Only comma(s), BR decimal or BR thousands
+    if (commaCount === 1) {
+      // Single comma - likely decimal: 123,45
+      normalized = cleanValue.replace(',', '.')
+    } else {
+      // Multiple commas - thousands separator in some format, remove them
+      normalized = cleanValue.replace(/,/g, '')
+    }
+  } else if (dotCount > 0 && commaCount === 0) {
+    // Only dot(s) - need to determine if it's decimal or thousands
+    if (dotCount === 1) {
+      // Check if it looks like thousands separator (exactly 3 digits after dot)
+      const afterDot = cleanValue.split('.')[1]
+      if (afterDot && afterDot.length === 3 && /^\d{3}$/.test(afterDot)) {
+        // Looks like thousands separator: 248.600 -> 248600
+        normalized = cleanValue.replace(/\./g, '')
+      } else {
+        // Decimal: 123.45
+        normalized = cleanValue
+      }
+    } else {
+      // Multiple dots - thousands separator: 1.234.567 -> 1234567
+      normalized = cleanValue.replace(/\./g, '')
+    }
   } else {
-    // Only dot, US decimal: 123.45
     normalized = cleanValue
   }
   
