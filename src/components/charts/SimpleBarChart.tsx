@@ -20,6 +20,7 @@ interface SimpleBarChartProps {
   formatValue?: (value: number) => string;
   height?: number;
   showLabels?: boolean;
+  onBarClick?: (data: BarData) => void;
 }
 
 export function SimpleBarChart({
@@ -28,10 +29,22 @@ export function SimpleBarChart({
   formatValue = (v) => v.toString(),
   height = 250,
   showLabels = true,
+  onBarClick,
 }: SimpleBarChartProps) {
+  const handleClick = (data: any) => {
+    if (onBarClick && data?.activePayload?.[0]?.payload) {
+      onBarClick(data.activePayload[0].payload);
+    }
+  };
+
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+      <BarChart 
+        data={data} 
+        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+        onClick={onBarClick ? handleClick : undefined}
+        style={onBarClick ? { cursor: 'pointer' } : undefined}
+      >
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
         <XAxis
           dataKey="name"
