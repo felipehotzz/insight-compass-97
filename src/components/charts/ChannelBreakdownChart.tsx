@@ -174,3 +174,72 @@ export function generateDispatchData(filter: string): ChannelData[] {
 
   return baseData[filter] || baseData.month;
 }
+
+// Aggregate data generators for all customers view (General)
+export function generateGeneralChannelData(filter: string): ChannelData[] {
+  const baseData: Record<string, ChannelData[]> = {
+    day: [
+      { period: "Seg", email: 5400, teams: 3600, whatsapp: 1800, total: 10800 },
+      { period: "Ter", email: 5850, teams: 4050, whatsapp: 2100, total: 12000 },
+      { period: "Qua", email: 6300, teams: 4500, whatsapp: 1950, total: 12750 },
+      { period: "Qui", email: 5250, teams: 3750, whatsapp: 1650, total: 10650 },
+      { period: "Sex", email: 4800, teams: 3300, whatsapp: 1500, total: 9600 },
+    ],
+    week: [
+      { period: "Sem 1", email: 13500, teams: 9450, whatsapp: 5400, total: 28350 },
+      { period: "Sem 2", email: 15600, teams: 10500, whatsapp: 5850, total: 31950 },
+      { period: "Sem 3", email: 14400, teams: 10200, whatsapp: 5550, total: 30150 },
+      { period: "Sem 4", email: 16800, teams: 11700, whatsapp: 6300, total: 34800 },
+    ],
+    month: [
+      { period: "Jul", email: 54000, teams: 37800, whatsapp: 21600, total: 113400 },
+      { period: "Ago", email: 63000, teams: 44100, whatsapp: 25200, total: 132300 },
+      { period: "Set", email: 58500, teams: 40950, whatsapp: 23400, total: 122850 },
+      { period: "Out", email: 67500, teams: 47250, whatsapp: 27000, total: 141750 },
+      { period: "Nov", email: 72000, teams: 50400, whatsapp: 28800, total: 151200 },
+      { period: "Dez", email: 76500, teams: 53550, whatsapp: 30600, total: 160650 },
+    ],
+    quarter: [
+      { period: "Q1", email: 162000, teams: 113400, whatsapp: 64800, total: 340200 },
+      { period: "Q2", email: 189000, teams: 132300, whatsapp: 75600, total: 396900 },
+      { period: "Q3", email: 202500, teams: 141750, whatsapp: 81000, total: 425250 },
+      { period: "Q4", email: 216000, teams: 151200, whatsapp: 86400, total: 453600 },
+    ],
+  };
+
+  return baseData[filter] || baseData.month;
+}
+
+export function generateGeneralDispatchData(filter: string): ChannelData[] {
+  const baseData: Record<string, ChannelData[]> = {
+    day: [
+      { period: "Seg", email: 36000, teams: 25500, whatsapp: 13500, total: 75000 },
+      { period: "Ter", email: 40500, teams: 27600, whatsapp: 14400, total: 82500 },
+      { period: "Qua", email: 43500, teams: 30000, whatsapp: 15600, total: 89100 },
+      { period: "Qui", email: 38400, teams: 26400, whatsapp: 13200, total: 78000 },
+      { period: "Sex", email: 33000, teams: 23400, whatsapp: 12000, total: 68400 },
+    ],
+    week: [
+      { period: "Sem 1", email: 174000, teams: 121800, whatsapp: 69600, total: 365400 },
+      { period: "Sem 2", email: 186000, teams: 130200, whatsapp: 74400, total: 390600 },
+      { period: "Sem 3", email: 177000, teams: 123900, whatsapp: 70800, total: 371700 },
+      { period: "Sem 4", email: 195000, teams: 136500, whatsapp: 78000, total: 409500 },
+    ],
+    month: [
+      { period: "Jul", email: 555000, teams: 388500, whatsapp: 222000, total: 1165500 },
+      { period: "Ago", email: 630000, teams: 441000, whatsapp: 252000, total: 1323000 },
+      { period: "Set", email: 594000, teams: 415800, whatsapp: 237600, total: 1247400 },
+      { period: "Out", email: 675000, teams: 472500, whatsapp: 270000, total: 1417500 },
+      { period: "Nov", email: 720000, teams: 504000, whatsapp: 288000, total: 1512000 },
+      { period: "Dez", email: 765000, teams: 535500, whatsapp: 306000, total: 1606500 },
+    ],
+    quarter: [
+      { period: "Q1", email: 1620000, teams: 1134000, whatsapp: 648000, total: 3402000 },
+      { period: "Q2", email: 1890000, teams: 1323000, whatsapp: 756000, total: 3969000 },
+      { period: "Q3", email: 2025000, teams: 1417500, whatsapp: 810000, total: 4252500 },
+      { period: "Q4", email: 2160000, teams: 1512000, whatsapp: 864000, total: 4536000 },
+    ],
+  };
+
+  return baseData[filter] || baseData.month;
+}
