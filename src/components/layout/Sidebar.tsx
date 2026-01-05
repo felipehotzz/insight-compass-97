@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   TrendingUp,
   Share2,
@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { SettingsModal } from "@/components/settings/SettingsModal";
+import { useAuth } from "@/hooks/useAuth";
 import logoImg from "@/assets/logo-comunica.png";
 
 const navigation = [
@@ -31,7 +32,9 @@ const navigation = [
 
 export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const { profile, signOut } = useAuth();
 
   const openSearch = () => {
     // Dispatch keyboard event to trigger Ctrl+K
@@ -41,6 +44,11 @@ export function Sidebar() {
       bubbles: true,
     });
     document.dispatchEvent(event);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
   };
 
   return (
@@ -96,7 +104,9 @@ export function Sidebar() {
                     <UserCircle className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm text-sidebar-foreground">CEO</p>
+                    <p className="text-sm text-sidebar-foreground truncate max-w-[120px]">
+                      {profile?.name || "Usuário"}
+                    </p>
                   </div>
                 </button>
               </PopoverTrigger>
@@ -118,9 +128,12 @@ export function Sidebar() {
                     Configurações
                   </button>
                   <div className="my-1 border-t border-border" />
-                  <button className="flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-destructive/10 text-destructive transition-colors text-left">
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-destructive/10 text-destructive transition-colors text-left"
+                  >
                     <LogOut className="h-4 w-4" />
-                    Logout
+                    Sair
                   </button>
                 </div>
               </PopoverContent>
