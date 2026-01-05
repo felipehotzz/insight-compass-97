@@ -636,7 +636,7 @@ const Customers = () => {
                 <span className="text-right">Quantidade</span>
               </div>
               <div className="divide-y divide-border max-h-[280px] overflow-y-auto">
-                {ticketsByType.map((ticket) => (
+                {[...ticketsByType].sort((a, b) => b.value - a.value).map((ticket) => (
                   <div key={ticket.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
                     <span className="text-sm font-medium">{ticket.name}</span>
                     <span className="text-sm text-right">{ticket.value}</span>
@@ -656,7 +656,7 @@ const Customers = () => {
                 <span className="text-right">Chamados</span>
               </div>
               <div className="divide-y divide-border max-h-[280px] overflow-y-auto">
-                {ticketsByCustomer.map((customer) => (
+                {[...ticketsByCustomer].sort((a, b) => b.value - a.value).map((customer) => (
                   <div key={customer.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
                     <span className="text-sm font-medium">{customer.name}</span>
                     <span className="text-sm text-right">{customer.value}</span>
