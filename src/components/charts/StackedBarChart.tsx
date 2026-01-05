@@ -40,7 +40,7 @@ const CustomTooltip = ({
   totalLabel,
 }: {
   active?: boolean;
-  payload?: Array<{ name: string; value: number; color: string }>;
+  payload?: Array<{ name: string; value: number; color: string; dataKey?: string }>;
   label?: string;
   formatValue: (v: number) => string;
   showTotal: boolean;
@@ -48,7 +48,9 @@ const CustomTooltip = ({
 }) => {
   if (!active || !payload || payload.length === 0) return null;
 
-  const total = payload.reduce((sum, entry) => sum + (entry.value || 0), 0);
+  // Filter out the _total line from the payload
+  const filteredPayload = payload.filter(entry => entry.dataKey !== "_total");
+  const total = filteredPayload.reduce((sum, entry) => sum + (entry.value || 0), 0);
 
   return (
     <div
@@ -60,7 +62,7 @@ const CustomTooltip = ({
       }}
     >
       <p style={{ fontWeight: 500, marginBottom: "4px", color: "hsl(var(--foreground))" }}>{label}</p>
-      {payload.map((entry, index) => (
+      {filteredPayload.map((entry, index) => (
         <p key={index} style={{ color: entry.color, fontSize: "13px" }}>
           {entry.name}: {formatValue(entry.value)}
         </p>
