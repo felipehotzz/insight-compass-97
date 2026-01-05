@@ -24,7 +24,7 @@ interface ChannelBreakdownChartProps {
   showAverage?: boolean;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, averageTotal }: any) => {
   if (active && payload && payload.length) {
     const total = payload.reduce((sum: number, entry: any) => sum + entry.value, 0);
     
@@ -52,6 +52,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             );
           })}
         </div>
+        {averageTotal > 0 && (
+          <div className="mt-2 pt-2 border-t border-border flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-0.5 bg-emerald-500" />
+              <span className="text-muted-foreground">Média histórica</span>
+            </div>
+            <span className="text-emerald-500 font-medium">{averageTotal.toLocaleString("pt-BR")}</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -66,7 +75,7 @@ export function ChannelBreakdownChart({ data, height = 280, showAverage = false 
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+      <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
         <XAxis
           dataKey="period"
@@ -82,7 +91,10 @@ export function ChannelBreakdownChart({ data, height = 280, showAverage = false 
           axisLine={false}
           tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
+        <Tooltip 
+          content={<CustomTooltip averageTotal={showAverage ? averageTotal : 0} />} 
+          cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} 
+        />
         <Legend 
           wrapperStyle={{ paddingTop: 16 }}
           iconType="square"
@@ -94,13 +106,7 @@ export function ChannelBreakdownChart({ data, height = 280, showAverage = false 
             stroke="hsl(142 71% 45%)" 
             strokeDasharray="5 5" 
             strokeWidth={2}
-            label={{ 
-              value: `Média: ${averageTotal >= 1000 ? `${(averageTotal / 1000).toFixed(0)}K` : averageTotal.toFixed(0)}`, 
-              position: 'right',
-              fill: 'hsl(142 71% 45%)',
-              fontSize: 11,
-              fontWeight: 500
-            }}
+            isFront={true}
           />
         )}
         <Bar 
