@@ -61,7 +61,14 @@ export function StackedBarChart({
           }}
           formatter={(value: number) => [formatValue(value), ""]}
         />
-        <Legend />
+        <Legend 
+          wrapperStyle={{
+            paddingTop: "16px",
+          }}
+          formatter={(value) => (
+            <span style={{ color: "hsl(var(--foreground))", fontSize: "12px" }}>{value}</span>
+          )}
+        />
         {series.map((s) => (
           <Bar
             key={s.key}
