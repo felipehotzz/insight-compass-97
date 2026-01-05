@@ -130,22 +130,16 @@ const CustomerDetail = () => {
               </div>
               <div className="divide-y divide-border">
                 {customer.meetings.map((meeting, index) => (
-                  <div key={index} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+                  <div 
+                    key={index} 
+                    className="flex items-center justify-between py-2 first:pt-0 last:pb-0 cursor-pointer hover:bg-secondary/30 -mx-2 px-2 rounded transition-colors"
+                    onClick={() => navigate(`/actions/new?edit=${index + 1}`)}
+                  >
                     <div className="flex items-center gap-2 min-w-0">
                       <Video className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       <span className="text-sm truncate">{meeting.title}</span>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-xs text-muted-foreground">{meeting.date}</span>
-                      <a 
-                        href={meeting.link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    </div>
+                    <span className="text-xs text-muted-foreground shrink-0">{meeting.date}</span>
                   </div>
                 ))}
               </div>
