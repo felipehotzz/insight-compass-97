@@ -56,10 +56,7 @@ const CustomerDetail = () => {
 
         {/* CS Responsible Section */}
         <div className="glass-card p-5">
-          <h2 className="section-title mb-3 flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
-            CS Responsável
-          </h2>
+          <h2 className="section-title mb-3">CS Responsável</h2>
           <div className="flex items-center justify-between py-1">
             <span className="font-medium">{customer.csResponsible.name}</span>
             <a href={`mailto:${customer.csResponsible.email}`} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -71,10 +68,7 @@ const CustomerDetail = () => {
 
         {/* Champions Section */}
         <div className="glass-card p-5">
-          <h2 className="section-title mb-3 flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
-            Champions (Contatos)
-          </h2>
+          <h2 className="section-title mb-3">Champions (Contatos)</h2>
           <div className="divide-y divide-border">
             {customer.champions.map((champion, index) => (
               <div key={index} className="py-3 first:pt-0 last:pb-0">
