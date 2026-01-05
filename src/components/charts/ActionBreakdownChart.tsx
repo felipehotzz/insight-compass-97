@@ -200,3 +200,38 @@ export function generateActionsData(filter: string): ActionData[] {
 
   return baseData[filter] || baseData.month;
 }
+
+// Global data (all customers aggregated)
+export function generateGlobalActionsData(filter: string): ActionData[] {
+  const baseData: Record<string, ActionData[]> = {
+    day: [
+      { period: "Seg", reuniao: 18, email: 32, ligacao: 12, whatsapp: 22, total: 84 },
+      { period: "Ter", reuniao: 24, email: 28, ligacao: 15, whatsapp: 18, total: 85 },
+      { period: "Qua", reuniao: 15, email: 35, ligacao: 10, whatsapp: 25, total: 85 },
+      { period: "Qui", reuniao: 22, email: 30, ligacao: 18, whatsapp: 20, total: 90 },
+      { period: "Sex", reuniao: 28, email: 25, ligacao: 12, whatsapp: 15, total: 80 },
+    ],
+    week: [
+      { period: "Sem 1", reuniao: 72, email: 108, ligacao: 45, whatsapp: 63, total: 288 },
+      { period: "Sem 2", reuniao: 85, email: 120, ligacao: 52, whatsapp: 70, total: 327 },
+      { period: "Sem 3", reuniao: 78, email: 98, ligacao: 38, whatsapp: 55, total: 269 },
+      { period: "Sem 4", reuniao: 95, email: 128, ligacao: 58, whatsapp: 78, total: 359 },
+    ],
+    month: [
+      { period: "Jul", reuniao: 245, email: 380, ligacao: 162, whatsapp: 215, total: 1002 },
+      { period: "Ago", reuniao: 280, email: 420, ligacao: 175, whatsapp: 245, total: 1120 },
+      { period: "Set", reuniao: 265, email: 395, ligacao: 145, whatsapp: 198, total: 1003 },
+      { period: "Out", reuniao: 305, email: 455, ligacao: 195, whatsapp: 265, total: 1220 },
+      { period: "Nov", reuniao: 335, email: 485, ligacao: 212, whatsapp: 285, total: 1317 },
+      { period: "Dez", reuniao: 355, email: 510, ligacao: 230, whatsapp: 310, total: 1405 },
+    ],
+    quarter: [
+      { period: "Q1", reuniao: 750, email: 1150, ligacao: 460, whatsapp: 620, total: 2980 },
+      { period: "Q2", reuniao: 840, email: 1280, ligacao: 515, whatsapp: 690, total: 3325 },
+      { period: "Q3", reuniao: 925, email: 1370, ligacao: 550, whatsapp: 755, total: 3600 },
+      { period: "Q4", reuniao: 1015, email: 1485, ligacao: 620, whatsapp: 840, total: 3960 },
+    ],
+  };
+
+  return baseData[filter] || baseData.month;
+}

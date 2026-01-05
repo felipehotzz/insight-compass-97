@@ -226,3 +226,38 @@ export function generateActionsThemeData(filter: string): ActionThemeData[] {
 
   return baseData[filter] || baseData.month;
 }
+
+// Global data (all customers aggregated)
+export function generateGlobalActionsThemeData(filter: string): ActionThemeData[] {
+  const baseData: Record<string, ActionThemeData[]> = {
+    day: [
+      { period: "Seg", renovacao: 12, expansao: 10, onboarding: 18, contencao: 5, suporte: 18, tecnica: 12, relacionamento: 9, total: 84 },
+      { period: "Ter", renovacao: 15, expansao: 8, onboarding: 15, contencao: 8, suporte: 15, tecnica: 15, relacionamento: 9, total: 85 },
+      { period: "Qua", renovacao: 8, expansao: 15, onboarding: 18, contencao: 10, suporte: 16, tecnica: 10, relacionamento: 8, total: 85 },
+      { period: "Qui", renovacao: 12, expansao: 12, onboarding: 15, contencao: 12, suporte: 18, tecnica: 12, relacionamento: 9, total: 90 },
+      { period: "Sex", renovacao: 15, expansao: 10, onboarding: 12, contencao: 5, suporte: 12, tecnica: 10, relacionamento: 16, total: 80 },
+    ],
+    week: [
+      { period: "Sem 1", renovacao: 45, expansao: 36, onboarding: 72, contencao: 27, suporte: 54, tecnica: 36, relacionamento: 18, total: 288 },
+      { period: "Sem 2", renovacao: 52, expansao: 42, onboarding: 82, contencao: 32, suporte: 60, tecnica: 38, relacionamento: 21, total: 327 },
+      { period: "Sem 3", renovacao: 38, expansao: 35, onboarding: 68, contencao: 28, suporte: 48, tecnica: 32, relacionamento: 20, total: 269 },
+      { period: "Sem 4", renovacao: 58, expansao: 48, onboarding: 90, contencao: 35, suporte: 68, tecnica: 40, relacionamento: 20, total: 359 },
+    ],
+    month: [
+      { period: "Jul", renovacao: 135, expansao: 108, onboarding: 252, contencao: 90, suporte: 198, tecnica: 135, relacionamento: 84, total: 1002 },
+      { period: "Ago", renovacao: 158, expansao: 125, onboarding: 285, contencao: 105, suporte: 225, tecnica: 150, relacionamento: 72, total: 1120 },
+      { period: "Set", renovacao: 145, expansao: 110, onboarding: 255, contencao: 98, suporte: 200, tecnica: 128, relacionamento: 67, total: 1003 },
+      { period: "Out", renovacao: 175, expansao: 135, onboarding: 315, contencao: 115, suporte: 252, tecnica: 162, relacionamento: 66, total: 1220 },
+      { period: "Nov", renovacao: 195, expansao: 148, onboarding: 345, contencao: 125, suporte: 270, tecnica: 172, relacionamento: 62, total: 1317 },
+      { period: "Dez", renovacao: 215, expansao: 158, onboarding: 365, contencao: 138, suporte: 290, tecnica: 180, relacionamento: 59, total: 1405 },
+    ],
+    quarter: [
+      { period: "Q1", renovacao: 425, expansao: 340, onboarding: 755, contencao: 285, suporte: 608, tecnica: 375, relacionamento: 192, total: 2980 },
+      { period: "Q2", renovacao: 485, expansao: 378, onboarding: 845, contencao: 320, suporte: 675, tecnica: 430, relacionamento: 192, total: 3325 },
+      { period: "Q3", renovacao: 535, expansao: 415, onboarding: 920, contencao: 345, suporte: 740, tecnica: 472, relacionamento: 173, total: 3600 },
+      { period: "Q4", renovacao: 605, expansao: 450, onboarding: 1008, contencao: 380, suporte: 815, tecnica: 525, relacionamento: 177, total: 3960 },
+    ],
+  };
+
+  return baseData[filter] || baseData.month;
+}

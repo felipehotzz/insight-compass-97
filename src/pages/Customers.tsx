@@ -8,6 +8,8 @@ import { StackedBarChart } from "@/components/charts/StackedBarChart";
 import { ChannelBreakdownChart, generateGeneralChannelData, generateGeneralDispatchData } from "@/components/charts/ChannelBreakdownChart";
 import { SupportBreakdownChart, generateGeneralOpenedTicketsData, generateGeneralClosedTicketsData, generateGeneralBacklogData } from "@/components/charts/SupportBreakdownChart";
 import { SimpleLineChart, generateGeneralUsersData, generateGeneralCollaboratorsData } from "@/components/charts/SimpleLineChart";
+import { ActionBreakdownChart, generateGlobalActionsData } from "@/components/charts/ActionBreakdownChart";
+import { ActionThemeChart, generateGlobalActionsThemeData } from "@/components/charts/ActionThemeChart";
 import { Calendar, Headphones, Activity, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -342,6 +344,7 @@ const planSeries = [
 
 const Customers = () => {
   const [compositionFilter, setCompositionFilter] = useState<CompositionFilter>("month");
+  const [relationshipFilter, setRelationshipFilter] = useState<TimeFilter>("month");
   const [usageFilter, setUsageFilter] = useState<TimeFilter>("month");
   const [supportFilter, setSupportFilter] = useState<TimeFilter>("month");
   const [renewalsOpen, setRenewalsOpen] = useState(false);
@@ -415,6 +418,23 @@ const Customers = () => {
                 series={planSeries}
                 height={280}
               />
+            </ChartCard>
+          </div>
+        </div>
+
+        {/* Relationship Section */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-title">Relacionamento</h2>
+            <FilterButtons value={relationshipFilter} onChange={setRelationshipFilter} />
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartCard title="Ações por tipo">
+              <ActionBreakdownChart data={generateGlobalActionsData(relationshipFilter)} />
+            </ChartCard>
+            <ChartCard title="Ações por tema">
+              <ActionThemeChart data={generateGlobalActionsThemeData(relationshipFilter)} />
             </ChartCard>
           </div>
         </div>
