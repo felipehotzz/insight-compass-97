@@ -31,7 +31,7 @@ export function SimpleBarChart({
 }: SimpleBarChartProps) {
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+      <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
         <XAxis
           dataKey="name"
@@ -39,8 +39,8 @@ export function SimpleBarChart({
           fontSize={11}
           tickLine={false}
           axisLine={false}
-          angle={-30}
-          textAnchor="end"
+          angle={0}
+          textAnchor="middle"
           interval={0}
         />
         <YAxis
