@@ -35,6 +35,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface UserWithRole {
   id: string;
@@ -64,6 +65,9 @@ export function UsersSettings() {
   const [loading, setLoading] = useState(true);
   const [inviteLoading, setInviteLoading] = useState(false);
   const { toast } = useToast();
+  const { canView } = usePermissions();
+
+  const canInvite = canView("convidar");
 
   useEffect(() => {
     fetchUsers();
@@ -308,9 +312,11 @@ export function UsersSettings() {
             className="pl-9"
           />
         </div>
-        <Button size="sm" onClick={() => setIsInviteModalOpen(true)}>
-          Convidar
-        </Button>
+        {canInvite && (
+          <Button size="sm" onClick={() => setIsInviteModalOpen(true)}>
+            Convidar
+          </Button>
+        )}
       </div>
 
       {/* Invite Modal */}

@@ -19,15 +19,18 @@ import {
 } from "@/components/ui/popover";
 import { SettingsModal } from "@/components/settings/SettingsModal";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
 import logoImg from "@/assets/logo-comunica.png";
 
-const navigation = [
-  { name: "Visão Geral", href: "/", icon: BarChart3 },
-  { name: "Pipeline", href: "/pipeline", icon: TrendingUp },
-  { name: "Growth", href: "/growth", icon: Share2 },
-  { name: "Clientes", href: "/customers", icon: Users },
-  { name: "Raio-X", href: "/customer-detail", icon: UserCircle },
-  { name: "Ações", href: "/actions", icon: ClipboardList },
+type AppPage = "visao_geral" | "pipeline" | "growth" | "clientes" | "raio_x" | "acoes";
+
+const navigation: { name: string; href: string; icon: any; permission: AppPage }[] = [
+  { name: "Visão Geral", href: "/", icon: BarChart3, permission: "visao_geral" },
+  { name: "Pipeline", href: "/pipeline", icon: TrendingUp, permission: "pipeline" },
+  { name: "Growth", href: "/growth", icon: Share2, permission: "growth" },
+  { name: "Clientes", href: "/customers", icon: Users, permission: "clientes" },
+  { name: "Raio-X", href: "/customer-detail", icon: UserCircle, permission: "raio_x" },
+  { name: "Ações", href: "/actions", icon: ClipboardList, permission: "acoes" },
 ];
 
 export function Sidebar() {
@@ -35,6 +38,9 @@ export function Sidebar() {
   const navigate = useNavigate();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { profile, signOut } = useAuth();
+  const { canView, loading: permissionsLoading } = usePermissions();
+
+  const filteredNavigation = navigation.filter((item) => canView(item.permission));
 
   const openSearch = () => {
     // Dispatch keyboard event to trigger Ctrl+K
@@ -80,7 +86,7 @@ export function Sidebar() {
               </kbd>
             </button>
 
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
                 <Link
