@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartCard } from "@/components/dashboard/ChartCard";
-import { MonthlyLineChart } from "@/components/charts/MonthlyLineChart";
+import { MonthlyBarChart } from "@/components/charts/MonthlyBarChart";
 import { PeriodSelector, PeriodPreset, getDateRangeFromPreset } from "@/components/dashboard/PeriodSelector";
 import { useFinancialMetricsByDateRange, formatMonthLabel } from "@/hooks/useFinancialMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -100,7 +100,7 @@ const Index = () => {
                 title="ARR" 
                 subtitle={hasRealData ? `${metrics.length} meses • Dados reais da DRE` : "Dados de exemplo"}
               >
-                <MonthlyLineChart
+                <MonthlyBarChart
                   data={arrData}
                   formatValue={formatMillions}
                   color="hsl(var(--color-growth))"
@@ -110,7 +110,7 @@ const Index = () => {
                 title="MRR" 
                 subtitle={hasRealData ? `${metrics.length} meses • Dados reais da DRE` : "Dados de exemplo"}
               >
-                <MonthlyLineChart
+                <MonthlyBarChart
                   data={mrrData}
                   formatValue={formatCurrency}
                   color="hsl(var(--color-growth))"
@@ -123,7 +123,7 @@ const Index = () => {
                 title="Gross Margin (%)" 
                 subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
               >
-                <MonthlyLineChart
+                <MonthlyBarChart
                   data={grossMarginData}
                   formatValue={(v) => `${v.toFixed(0)}%`}
                   color="hsl(var(--color-overview))"
@@ -133,7 +133,7 @@ const Index = () => {
                 title="Net Income" 
                 subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
               >
-                <MonthlyLineChart
+                <MonthlyBarChart
                   data={netIncomeData}
                   formatValue={formatCurrency}
                   color="hsl(var(--color-overview))"
@@ -146,7 +146,7 @@ const Index = () => {
                 title="EBITDA" 
                 subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
               >
-                <MonthlyLineChart
+                <MonthlyBarChart
                   data={ebitdaData}
                   formatValue={formatCurrency}
                   color="hsl(var(--color-growth))"
@@ -156,7 +156,7 @@ const Index = () => {
                 title="Saldo em Caixa" 
                 subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
               >
-                <MonthlyLineChart
+                <MonthlyBarChart
                   data={cashBalanceData}
                   formatValue={formatMillions}
                   color="hsl(var(--color-growth))"
@@ -169,7 +169,7 @@ const Index = () => {
                 title="Nº de Colaboradores" 
                 subtitle="Dados reais da DRE"
               >
-                <MonthlyLineChart data={employeesData} color="hsl(var(--color-overview))" />
+                <MonthlyBarChart data={employeesData} color="hsl(var(--color-overview))" />
               </ChartCard>
             )}
           </>
