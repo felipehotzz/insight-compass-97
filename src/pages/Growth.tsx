@@ -4,13 +4,28 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
 import { FunnelChart } from "@/components/charts/FunnelChart";
-import { HorizontalBarChart } from "@/components/charts/HorizontalBarChart";
 import { StackedBarChart } from "@/components/charts/StackedBarChart";
 import { SimpleBarChart } from "@/components/charts/SimpleBarChart";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  Cell,
+} from "recharts";
+import {
   funnelData,
   funnelValueData,
-  pipelineByMonth,
   opportunitiesByValue,
   lostReasons,
 } from "@/data/mockData";
@@ -18,17 +33,104 @@ import {
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR");
 
-const pipelineSeries = [
-  { key: "pipeline", name: "Pipeline", color: "hsl(0 0% 70%)" },
-  { key: "commit", name: "Commit", color: "hsl(0 0% 55%)" },
-  { key: "bestCase", name: "Best Case", color: "hsl(0 0% 40%)" },
+// Forecast data with deals for each month
+const forecastByMonth = [
+  { 
+    name: "Jan 2026", 
+    pipeline: 150000, 
+    commit: 300000, 
+    bestCase: 180000,
+    commitDeals: ["Grendene", "Syngenta"],
+    bestCaseDeals: ["Alpargatas", "Metro BH"]
+  },
+  { 
+    name: "Fev 2026", 
+    pipeline: 120000, 
+    commit: 127464, 
+    bestCase: 96000,
+    commitDeals: ["CBMM"],
+    bestCaseDeals: ["SESC Nacional"]
+  },
+  { 
+    name: "Mar 2026", 
+    pipeline: 200000, 
+    commit: 0, 
+    bestCase: 150000,
+    commitDeals: [],
+    bestCaseDeals: ["Softplan", "Eucatex"]
+  },
+  { 
+    name: "Abr 2026", 
+    pipeline: 180000, 
+    commit: 0, 
+    bestCase: 120000,
+    commitDeals: [],
+    bestCaseDeals: ["Caixa Consórcios"]
+  },
+  { 
+    name: "Mai 2026", 
+    pipeline: 250000, 
+    commit: 0, 
+    bestCase: 80000,
+    commitDeals: [],
+    bestCaseDeals: ["CJ do Brasil"]
+  },
+  { 
+    name: "Jun 2026", 
+    pipeline: 300000, 
+    commit: 0, 
+    bestCase: 79900,
+    commitDeals: [],
+    bestCaseDeals: []
+  },
 ];
+
+const ForecastTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const total = payload.reduce((sum: number, entry: any) => sum + entry.value, 0);
+    
+    return (
+      <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
+        <p className="text-sm font-medium mb-2">{label}</p>
+        <p className="text-lg font-medium mb-2">Total: R$ {formatCurrency(total)}</p>
+        <div className="space-y-1">
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center justify-between gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-2.5 h-2.5 rounded-sm" 
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-muted-foreground">{entry.name}</span>
+              </div>
+              <span>R$ {formatCurrency(entry.value)}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
+          Clique para ver negociações
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 const Growth = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
+  const [selectedMonth, setSelectedMonth] = useState<typeof forecastByMonth[0] | null>(null);
 
-  const commitOpportunities = ["Grendene", "Syngenta", "CBMM"];
-  const bestCaseOpportunities = ["Alpargatas", "SESC Nacional", "Metro BH", "Softplan"];
+  const totalCommit = forecastByMonth.reduce((sum, m) => sum + m.commit, 0);
+  const totalBestCase = forecastByMonth.reduce((sum, m) => sum + m.bestCase, 0);
+
+  const handleBarClick = (data: any) => {
+    if (data && data.activePayload) {
+      const monthData = forecastByMonth.find(m => m.name === data.activeLabel);
+      if (monthData) {
+        setSelectedMonth(monthData);
+      }
+    }
+  };
 
   return (
     <DashboardLayout title="">
@@ -64,36 +166,74 @@ const Growth = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="stat-card">
-            <p className="stat-label">Forecast Commit (R$)</p>
-            <p className="stat-value">{formatCurrency(427464)}</p>
-            <div className="mt-4">
-              <p className="text-sm text-muted-foreground mb-2">Oportunidades:</p>
-              <div className="flex flex-wrap gap-2">
-                {commitOpportunities.map((opp) => (
-                  <span key={opp} className="px-3 py-1 bg-secondary text-foreground/80 rounded text-sm">
-                    {opp}
-                  </span>
-                ))}
+        {/* Forecast Chart - Full Width */}
+        <div className="glass-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">Forecast por Mês</h3>
+              <p className="text-sm text-muted-foreground">Clique em um mês para ver as negociações</p>
+            </div>
+            <div className="flex gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Commit Total:</span>
+                <span className="font-semibold">R$ {formatCurrency(totalCommit)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Best Case Total:</span>
+                <span className="font-semibold">R$ {formatCurrency(totalBestCase)}</span>
               </div>
             </div>
           </div>
-
-          <div className="stat-card">
-            <p className="stat-label">Forecast Best Case (R$)</p>
-            <p className="stat-value">{formatCurrency(705900)}</p>
-            <div className="mt-4">
-              <p className="text-sm text-muted-foreground mb-2">Oportunidades:</p>
-              <div className="flex flex-wrap gap-2">
-                {bestCaseOpportunities.map((opp) => (
-                  <span key={opp} className="px-3 py-1 bg-secondary text-foreground/80 rounded text-sm">
-                    {opp}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart 
+              data={forecastByMonth} 
+              margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              onClick={handleBarClick}
+              style={{ cursor: 'pointer' }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+              <XAxis
+                dataKey="name"
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value}
+              />
+              <Tooltip content={<ForecastTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
+              <Legend 
+                wrapperStyle={{ paddingTop: 16, fontSize: 11 }}
+                iconType="square"
+                iconSize={8}
+              />
+              <Bar 
+                dataKey="pipeline" 
+                name="Pipeline" 
+                stackId="a" 
+                fill="hsl(0 0% 70%)" 
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar 
+                dataKey="bestCase" 
+                name="Best Case" 
+                stackId="a" 
+                fill="hsl(200 70% 50%)" 
+              />
+              <Bar 
+                dataKey="commit" 
+                name="Commit" 
+                stackId="a" 
+                fill="hsl(142 71% 45%)" 
+                radius={[3, 3, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -108,34 +248,25 @@ const Growth = () => {
           </ChartCard>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Previsão de Fechamento por Categoria (R$)" subtitle="Por mês">
-            <StackedBarChart
-              data={pipelineByMonth}
-              series={pipelineSeries}
-              formatValue={formatCurrency}
-            />
-          </ChartCard>
-          <div className="glass-card p-5">
-            <h3 className="text-lg font-semibold mb-4">Ranking de Oportunidades por Valor (R$)</h3>
-            <div className="space-y-0">
-              <div className="grid grid-cols-3 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
-                <span>#</span>
-                <span>Cliente</span>
-                <span className="text-right">Valor</span>
-              </div>
-              <div className="divide-y divide-border max-h-[320px] overflow-y-auto">
-                {opportunitiesByValue.map((item, index) => (
-                  <div 
-                    key={item.name} 
-                    className="grid grid-cols-3 gap-4 px-2 py-3 hover:bg-secondary/30 transition-colors"
-                  >
-                    <span className="text-sm text-muted-foreground">{index + 1}</span>
-                    <span className="text-sm font-medium">{item.name}</span>
-                    <span className="text-sm text-right">R$ {formatCurrency(item.value)}</span>
-                  </div>
-                ))}
-              </div>
+        <div className="glass-card p-5">
+          <h3 className="text-lg font-semibold mb-4">Ranking de Oportunidades por Valor (R$)</h3>
+          <div className="space-y-0">
+            <div className="grid grid-cols-3 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+              <span>#</span>
+              <span>Cliente</span>
+              <span className="text-right">Valor</span>
+            </div>
+            <div className="divide-y divide-border max-h-[320px] overflow-y-auto">
+              {opportunitiesByValue.map((item, index) => (
+                <div 
+                  key={item.name} 
+                  className="grid grid-cols-3 gap-4 px-2 py-3 hover:bg-secondary/30 transition-colors"
+                >
+                  <span className="text-sm text-muted-foreground">{index + 1}</span>
+                  <span className="text-sm font-medium">{item.name}</span>
+                  <span className="text-sm text-right">R$ {formatCurrency(item.value)}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -147,6 +278,72 @@ const Growth = () => {
             height={280}
           />
         </ChartCard>
+
+        {/* Month Details Modal */}
+        <Dialog open={!!selectedMonth} onOpenChange={() => setSelectedMonth(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Negociações - {selectedMonth?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              {selectedMonth?.commit && selectedMonth.commit > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 rounded-sm bg-emerald-500" />
+                    <span className="text-sm font-medium">Commit</span>
+                    <span className="text-sm text-muted-foreground ml-auto">
+                      R$ {formatCurrency(selectedMonth.commit)}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pl-5">
+                    {selectedMonth.commitDeals.map((deal) => (
+                      <span key={deal} className="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded text-sm">
+                        {deal}
+                      </span>
+                    ))}
+                    {selectedMonth.commitDeals.length === 0 && (
+                      <span className="text-sm text-muted-foreground">Nenhuma negociação</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {selectedMonth?.bestCase && selectedMonth.bestCase > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-3 h-3 rounded-sm bg-blue-500" />
+                    <span className="text-sm font-medium">Best Case</span>
+                    <span className="text-sm text-muted-foreground ml-auto">
+                      R$ {formatCurrency(selectedMonth.bestCase)}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pl-5">
+                    {selectedMonth.bestCaseDeals.map((deal) => (
+                      <span key={deal} className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded text-sm">
+                        {deal}
+                      </span>
+                    ))}
+                    {selectedMonth.bestCaseDeals.length === 0 && (
+                      <span className="text-sm text-muted-foreground">Nenhuma negociação</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {selectedMonth?.pipeline && selectedMonth.pipeline > 0 && (
+                <div className="pt-2 border-t border-border">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-sm bg-gray-400" />
+                    <span className="text-sm font-medium">Pipeline</span>
+                    <span className="text-sm text-muted-foreground ml-auto">
+                      R$ {formatCurrency(selectedMonth.pipeline)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
