@@ -55,34 +55,28 @@ const CustomerDetail = () => {
         </div>
 
         {/* Champions Section */}
-        <div>
-          <h2 className="section-title mb-4 flex items-center gap-2">
+        <div className="glass-card p-5">
+          <h2 className="section-title mb-3 flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
             Champions (Contatos)
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="divide-y divide-border">
             {customer.champions.map((champion, index) => (
-              <div key={index} className="stat-card">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-foreground/60">
-                    <User className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <h3 className="font-medium text-lg">{champion.name}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <span>{champion.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Phone className="h-4 w-4" />
-                      <span>{champion.phone}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Linkedin className="h-4 w-4" />
-                      <a href={`https://${champion.linkedin}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
-                        {champion.linkedin}
-                      </a>
-                    </div>
+              <div key={index} className="py-3 first:pt-0 last:pb-0">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{champion.name}</span>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <a href={`mailto:${champion.email}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                      <Mail className="h-3.5 w-3.5" />
+                      <span className="hidden lg:inline">{champion.email}</span>
+                    </a>
+                    <a href={`tel:${champion.phone}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                      <Phone className="h-3.5 w-3.5" />
+                      <span className="hidden lg:inline">{champion.phone}</span>
+                    </a>
+                    <a href={`https://${champion.linkedin}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                      <Linkedin className="h-3.5 w-3.5" />
+                    </a>
                   </div>
                 </div>
               </div>
