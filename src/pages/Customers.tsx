@@ -8,13 +8,19 @@ import { StackedBarChart } from "@/components/charts/StackedBarChart";
 import { ChannelBreakdownChart, generateGeneralChannelData, generateGeneralDispatchData } from "@/components/charts/ChannelBreakdownChart";
 import { SupportBreakdownChart, generateGeneralOpenedTicketsData, generateGeneralClosedTicketsData, generateGeneralBacklogData } from "@/components/charts/SupportBreakdownChart";
 import { SimpleLineChart, generateGeneralUsersData, generateGeneralCollaboratorsData } from "@/components/charts/SimpleLineChart";
-import { Calendar, Headphones, Activity, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, Headphones, Activity, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   customersByPlan,
   customersByCS,
@@ -174,6 +180,76 @@ const renewalsList: RenewalItem[] = [
   { id: 20, customer: "AgriSmart", contractValue: 47000, renewalDate: "2026-06-30", status: "ongoing", period: "180" },
 ];
 
+// Mock data for customers by CS manager
+const customersByCSDetails: Record<string, { name: string; plan: string; contractValue: number }[]> = {
+  "Daniel Santos": [
+    { name: "Grendene", plan: "Enterprise", contractValue: 45000 },
+    { name: "Alpargatas", plan: "Business", contractValue: 28000 },
+    { name: "SESC Nacional", plan: "Enterprise", contractValue: 55000 },
+    { name: "Metro BH", plan: "Professional", contractValue: 18000 },
+    { name: "TechCorp", plan: "Enterprise", contractValue: 48000 },
+    { name: "CloudBR", plan: "Business", contractValue: 35000 },
+    { name: "FinanceHub", plan: "Enterprise", contractValue: 62000 },
+    { name: "RetailMax", plan: "Professional", contractValue: 22000 },
+    { name: "LogisTech", plan: "Business", contractValue: 44000 },
+    { name: "HealthPlus", plan: "Enterprise", contractValue: 51000 },
+    { name: "EduTech", plan: "Professional", contractValue: 33000 },
+    { name: "AgriSmart", plan: "Business", contractValue: 47000 },
+    { name: "DataSolutions", plan: "Enterprise", contractValue: 42000 },
+    { name: "InnovateBR", plan: "Professional", contractValue: 36000 },
+    { name: "Eucatex", plan: "Business", contractValue: 25000 },
+    { name: "Softplan", plan: "Professional", contractValue: 29000 },
+    { name: "CJ do Brasil", plan: "Starter", contractValue: 12000 },
+    { name: "Caixa Consórcios", plan: "Starter", contractValue: 15000 },
+  ],
+  "Eduardo Carvalho": [
+    { name: "Syngenta", plan: "Enterprise", contractValue: 68000 },
+    { name: "CBMM", plan: "Enterprise", contractValue: 72000 },
+    { name: "Natura", plan: "Business", contractValue: 38000 },
+    { name: "Localiza", plan: "Enterprise", contractValue: 55000 },
+    { name: "Ambev", plan: "Enterprise", contractValue: 85000 },
+    { name: "Bayer", plan: "Business", contractValue: 42000 },
+    { name: "Votorantim", plan: "Enterprise", contractValue: 63000 },
+    { name: "JBS", plan: "Business", contractValue: 48000 },
+    { name: "BRF", plan: "Professional", contractValue: 31000 },
+    { name: "Marfrig", plan: "Business", contractValue: 35000 },
+    { name: "Cosan", plan: "Professional", contractValue: 28000 },
+    { name: "Raízen", plan: "Enterprise", contractValue: 58000 },
+    { name: "Suzano", plan: "Business", contractValue: 44000 },
+    { name: "Klabin", plan: "Professional", contractValue: 32000 },
+    { name: "Weg", plan: "Enterprise", contractValue: 52000 },
+    { name: "Embraer", plan: "Enterprise", contractValue: 78000 },
+    { name: "Totvs", plan: "Business", contractValue: 39000 },
+    { name: "Linx", plan: "Professional", contractValue: 26000 },
+    { name: "Cielo", plan: "Business", contractValue: 41000 },
+    { name: "Stone", plan: "Professional", contractValue: 33000 },
+    { name: "PagSeguro", plan: "Starter", contractValue: 18000 },
+    { name: "Nubank", plan: "Enterprise", contractValue: 72000 },
+  ],
+  "Jessica Bueno": [
+    { name: "Magazine Luiza", plan: "Enterprise", contractValue: 88000 },
+    { name: "B2W", plan: "Enterprise", contractValue: 75000 },
+    { name: "Via Varejo", plan: "Business", contractValue: 52000 },
+    { name: "Lojas Americanas", plan: "Enterprise", contractValue: 68000 },
+    { name: "Renner", plan: "Business", contractValue: 45000 },
+    { name: "Riachuelo", plan: "Professional", contractValue: 32000 },
+    { name: "C&A", plan: "Business", contractValue: 48000 },
+    { name: "Hering", plan: "Professional", contractValue: 28000 },
+    { name: "Arezzo", plan: "Business", contractValue: 38000 },
+    { name: "Vivara", plan: "Professional", contractValue: 25000 },
+    { name: "Grupo Soma", plan: "Enterprise", contractValue: 55000 },
+    { name: "Track&Field", plan: "Professional", contractValue: 22000 },
+    { name: "Centauro", plan: "Business", contractValue: 42000 },
+    { name: "Netshoes", plan: "Professional", contractValue: 29000 },
+    { name: "Dafiti", plan: "Business", contractValue: 35000 },
+    { name: "Zattini", plan: "Starter", contractValue: 15000 },
+    { name: "Tricae", plan: "Starter", contractValue: 12000 },
+    { name: "Kanui", plan: "Starter", contractValue: 10000 },
+    { name: "Posthaus", plan: "Starter", contractValue: 8000 },
+    { name: "Mobly", plan: "Professional", contractValue: 31000 },
+  ],
+};
+
 const customerSeries = [
   { key: "novos", name: "Novos", color: "hsl(142 71% 45%)" },
   { key: "mantidos", name: "Mantidos", color: "hsl(0 0% 55%)" },
@@ -192,6 +268,7 @@ const Customers = () => {
   const [supportFilter, setSupportFilter] = useState<TimeFilter>("month");
   const [renewalsOpen, setRenewalsOpen] = useState(false);
   const [renewalsPeriod, setRenewalsPeriod] = useState<"30" | "90" | "180">("30");
+  const [selectedCS, setSelectedCS] = useState<string | null>(null);
 
   const customerCompositionData = getCustomerCompositionData(compositionFilter);
   const planCompositionData = getPlanCompositionData(compositionFilter);
@@ -206,6 +283,13 @@ const Customers = () => {
   // Group by status
   const ongoingRenewals = filteredRenewals.filter(r => r.status === "ongoing");
   const notStartedRenewals = filteredRenewals.filter(r => r.status === "not_started");
+
+  const handleCSBarClick = (data: { name: string; value: number }) => {
+    setSelectedCS(data.name);
+  };
+
+  const selectedCSCustomers = selectedCS ? customersByCSDetails[selectedCS] || [] : [];
+
 
   return (
     <DashboardLayout title="">
@@ -262,8 +346,51 @@ const Customers = () => {
             data={customersByCS}
             color="hsl(0 0% 50%)"
             height={220}
+            onBarClick={handleCSBarClick}
           />
         </ChartCard>
+
+        {/* CS Customers Modal */}
+        <Dialog open={!!selectedCS} onOpenChange={(open) => !open && setSelectedCS(null)}>
+          <DialogContent className="max-w-2xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <span>Clientes de {selectedCS}</span>
+                <Badge variant="secondary">{selectedCSCustomers.length} clientes</Badge>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="border-t border-border">
+              {/* Header */}
+              <div className="grid grid-cols-3 gap-4 px-4 py-2 bg-secondary/30 text-xs font-medium text-muted-foreground uppercase">
+                <span>Cliente</span>
+                <span>Plano</span>
+                <span>Valor do Contrato</span>
+              </div>
+              {/* List */}
+              <div className="max-h-[400px] overflow-y-auto divide-y divide-border">
+                {selectedCSCustomers.map((customer, index) => (
+                  <div 
+                    key={index} 
+                    className="grid grid-cols-3 gap-4 px-4 py-3 hover:bg-secondary/20 transition-colors items-center"
+                  >
+                    <span className="text-sm font-medium">{customer.name}</span>
+                    <Badge variant="outline" className="w-fit text-xs">
+                      {customer.plan}
+                    </Badge>
+                    <span className="text-sm">R$ {formatCurrency(customer.contractValue)}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Footer with total */}
+              <div className="border-t border-border px-4 py-3 bg-secondary/20">
+                <div className="flex justify-between text-sm font-medium">
+                  <span>Total</span>
+                  <span>R$ {formatCurrency(selectedCSCustomers.reduce((sum, c) => sum + c.contractValue, 0))}</span>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartCard title="$ por Plano (R$)">
