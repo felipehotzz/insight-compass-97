@@ -18,6 +18,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 // Mock data for users
 const mockUsers = [
@@ -71,6 +86,9 @@ const mockUsers = [
 export function UsersSettings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("editor");
 
   const filteredUsers = mockUsers.filter((user) => {
     const matchesSearch =
@@ -78,6 +96,14 @@ export function UsersSettings() {
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
+
+  const handleInvite = () => {
+    // TODO: Implement invite logic
+    console.log("Inviting:", inviteEmail, "with role:", inviteRole);
+    setInviteEmail("");
+    setInviteRole("editor");
+    setIsInviteModalOpen(false);
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -132,10 +158,54 @@ export function UsersSettings() {
             className="pl-9"
           />
         </div>
-        <Button size="sm">
+        <Button size="sm" onClick={() => setIsInviteModalOpen(true)}>
           Convidar
         </Button>
       </div>
+
+      {/* Invite Modal */}
+      <Dialog open={isInviteModalOpen} onOpenChange={setIsInviteModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Convidar membros</DialogTitle>
+            <DialogDescription>
+              Convide membros para o workspace por e-mail
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mail</Label>
+              <Input
+                id="email"
+                placeholder="exemplo1@email.com, exemplo2@email.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Perfil</Label>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar perfil" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="editor">Editor</SelectItem>
+                  <SelectItem value="viewer">Visualizador</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setIsInviteModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleInvite}>
+              Convidar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Users Table */}
       <div className="border border-border rounded-lg overflow-hidden">
