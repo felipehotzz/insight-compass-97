@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -8,6 +9,12 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import {
+  Tooltip as UITooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ActionThemeData {
   period: string;
@@ -25,6 +32,16 @@ interface ActionThemeChartProps {
   data: ActionThemeData[];
   height?: number;
 }
+
+const legendItems = [
+  { name: "Renovação", color: "hsl(142 71% 45%)" },
+  { name: "Expansão", color: "hsl(200 70% 50%)" },
+  { name: "Onboarding", color: "hsl(280 60% 55%)" },
+  { name: "Contenção", color: "hsl(0 70% 55%)" },
+  { name: "Suporte", color: "hsl(40 80% 50%)" },
+  { name: "Técnica", color: "hsl(0 0% 50%)" },
+  { name: "Relacionamento", color: "hsl(320 60% 55%)" },
+];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -60,77 +77,119 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+const CustomLegend = () => {
+  const maxVisible = 4;
+  const visibleItems = legendItems.slice(0, maxVisible);
+  const hiddenItems = legendItems.slice(maxVisible);
+  const hiddenCount = hiddenItems.length;
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-4 text-[11px]">
+      {visibleItems.map((item, index) => (
+        <div key={index} className="flex items-center gap-1.5">
+          <div 
+            className="w-2 h-2 rounded-sm" 
+            style={{ backgroundColor: item.color }}
+          />
+          <span style={{ color: item.color }}>{item.name}</span>
+        </div>
+      ))}
+      {hiddenCount > 0 && (
+        <TooltipProvider>
+          <UITooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/50 cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                +{hiddenCount}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="p-2">
+              <div className="flex flex-col gap-1">
+                {hiddenItems.map((item, index) => (
+                  <div key={index} className="flex items-center gap-1.5">
+                    <div 
+                      className="w-2 h-2 rounded-sm" 
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span style={{ color: item.color }}>{item.name}</span>
+                  </div>
+                ))}
+              </div>
+            </TooltipContent>
+          </UITooltip>
+        </TooltipProvider>
+      )}
+    </div>
+  );
+};
+
 export function ActionThemeChart({ data, height = 280 }: ActionThemeChartProps) {
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-        <XAxis
-          dataKey="period"
-          stroke="hsl(var(--muted-foreground))"
-          fontSize={11}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          stroke="hsl(var(--muted-foreground))"
-          fontSize={11}
-          tickLine={false}
-          axisLine={false}
-        />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
-        <Legend 
-          wrapperStyle={{ paddingTop: 16, fontSize: 11 }}
-          iconType="square"
-          iconSize={8}
-          formatter={(value) => <span style={{ marginRight: 12 }}>{value}</span>}
-        />
-        <Bar 
-          dataKey="renovacao" 
-          name="Renovação" 
-          stackId="a" 
-          fill="hsl(142 71% 45%)" 
-          radius={[0, 0, 0, 0]}
-        />
-        <Bar 
-          dataKey="expansao" 
-          name="Expansão" 
-          stackId="a" 
-          fill="hsl(200 70% 50%)" 
-        />
-        <Bar 
-          dataKey="onboarding" 
-          name="Onboarding" 
-          stackId="a" 
-          fill="hsl(280 60% 55%)" 
-        />
-        <Bar 
-          dataKey="contencao" 
-          name="Contenção" 
-          stackId="a" 
-          fill="hsl(0 70% 55%)" 
-        />
-        <Bar 
-          dataKey="suporte" 
-          name="Suporte" 
-          stackId="a" 
-          fill="hsl(40 80% 50%)" 
-        />
-        <Bar 
-          dataKey="tecnica" 
-          name="Técnica" 
-          stackId="a" 
-          fill="hsl(0 0% 50%)" 
-        />
-        <Bar 
-          dataKey="relacionamento" 
-          name="Relacionamento" 
-          stackId="a" 
-          fill="hsl(320 60% 55%)" 
-          radius={[3, 3, 0, 0]}
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <div>
+      <ResponsiveContainer width="100%" height={height}>
+        <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+          <XAxis
+            dataKey="period"
+            stroke="hsl(var(--muted-foreground))"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            stroke="hsl(var(--muted-foreground))"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
+          <Bar 
+            dataKey="renovacao" 
+            name="Renovação" 
+            stackId="a" 
+            fill="hsl(142 71% 45%)" 
+            radius={[0, 0, 0, 0]}
+          />
+          <Bar 
+            dataKey="expansao" 
+            name="Expansão" 
+            stackId="a" 
+            fill="hsl(200 70% 50%)" 
+          />
+          <Bar 
+            dataKey="onboarding" 
+            name="Onboarding" 
+            stackId="a" 
+            fill="hsl(280 60% 55%)" 
+          />
+          <Bar 
+            dataKey="contencao" 
+            name="Contenção" 
+            stackId="a" 
+            fill="hsl(0 70% 55%)" 
+          />
+          <Bar 
+            dataKey="suporte" 
+            name="Suporte" 
+            stackId="a" 
+            fill="hsl(40 80% 50%)" 
+          />
+          <Bar 
+            dataKey="tecnica" 
+            name="Técnica" 
+            stackId="a" 
+            fill="hsl(0 0% 50%)" 
+          />
+          <Bar 
+            dataKey="relacionamento" 
+            name="Relacionamento" 
+            stackId="a" 
+            fill="hsl(320 60% 55%)" 
+            radius={[3, 3, 0, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+      <CustomLegend />
+    </div>
   );
 }
 
