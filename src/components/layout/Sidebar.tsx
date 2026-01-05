@@ -7,7 +7,15 @@ import {
   ClipboardList,
   Search,
   BarChart3,
+  LogOut,
+  Settings,
+  User,
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import logoImg from "@/assets/logo-comunica.png";
 
 const navigation = [
@@ -77,14 +85,39 @@ export function Sidebar() {
 
         {/* Footer */}
         <div className="border-t border-sidebar-border p-3">
-          <div className="flex items-center gap-3 rounded p-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-muted-foreground">
-              <UserCircle className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-sm text-sidebar-foreground">CEO</p>
-            </div>
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="flex w-full items-center gap-3 rounded p-2 hover:bg-secondary/50 transition-colors">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                  <UserCircle className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm text-sidebar-foreground">CEO</p>
+                </div>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent 
+              side="top" 
+              align="start" 
+              className="w-48 p-1 bg-popover border border-border"
+            >
+              <div className="flex flex-col">
+                <button className="flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left">
+                  <User className="h-4 w-4" />
+                  Meu Perfil
+                </button>
+                <button className="flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left">
+                  <Settings className="h-4 w-4" />
+                  Configurações
+                </button>
+                <div className="my-1 border-t border-border" />
+                <button className="flex items-center gap-2 rounded px-3 py-2 text-sm hover:bg-destructive/10 text-destructive transition-colors text-left">
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
     </aside>
