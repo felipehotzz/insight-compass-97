@@ -136,7 +136,7 @@ const Index = () => {
                 <MonthlyBarChart
                   data={netIncomeData}
                   formatValue={formatCurrency}
-                  color="hsl(var(--color-overview))"
+                  colorByValue
                 />
               </ChartCard>
             </div>
@@ -149,7 +149,7 @@ const Index = () => {
                 <MonthlyBarChart
                   data={ebitdaData}
                   formatValue={formatCurrency}
-                  color="hsl(var(--color-growth))"
+                  colorByValue
                 />
               </ChartCard>
               <ChartCard 
