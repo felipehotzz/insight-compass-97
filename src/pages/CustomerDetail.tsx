@@ -5,6 +5,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
 import { CustomerSelector } from "@/components/dashboard/CustomerSelector";
+import { ContactTooltip } from "@/components/dashboard/ContactTooltip";
 import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from "@/components/charts/ChannelBreakdownChart";
 import { SupportBreakdownChart, generateOpenedTicketsData, generateClosedTicketsData, generateBacklogData } from "@/components/charts/SupportBreakdownChart";
 import { SimpleLineChart, generateUsersData, generateCollaboratorsData } from "@/components/charts/SimpleLineChart";
@@ -94,15 +95,21 @@ const CustomerDetail = () => {
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-sm">{champion.name}</span>
                     <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <a href={`mailto:${champion.email}`} className="hover:text-foreground transition-colors">
-                        <Mail className="h-3.5 w-3.5" />
-                      </a>
-                      <a href={`tel:${champion.phone}`} className="hover:text-foreground transition-colors">
-                        <Phone className="h-3.5 w-3.5" />
-                      </a>
-                      <a href={`https://${champion.linkedin}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
-                        <Linkedin className="h-3.5 w-3.5" />
-                      </a>
+                      <ContactTooltip
+                        icon={<Mail className="h-3.5 w-3.5" />}
+                        value={champion.email}
+                        href={`mailto:${champion.email}`}
+                      />
+                      <ContactTooltip
+                        icon={<Phone className="h-3.5 w-3.5" />}
+                        value={champion.phone}
+                        href={`tel:${champion.phone}`}
+                      />
+                      <ContactTooltip
+                        icon={<Linkedin className="h-3.5 w-3.5" />}
+                        value={champion.linkedin}
+                        href={`https://${champion.linkedin}`}
+                      />
                     </div>
                   </div>
                 </div>
