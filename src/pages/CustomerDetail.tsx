@@ -10,6 +10,8 @@ import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from
 import { SupportBreakdownChart, generateOpenedTicketsData, generateClosedTicketsData, generateBacklogData } from "@/components/charts/SupportBreakdownChart";
 import { SimpleLineChart, generateUsersData, generateCollaboratorsData } from "@/components/charts/SimpleLineChart";
 import { ActionBreakdownChart, generateActionsData } from "@/components/charts/ActionBreakdownChart";
+import { ActionThemeChart, generateActionsThemeData } from "@/components/charts/ActionThemeChart";
+import { Badge } from "@/components/ui/badge";
 import {
   Mail,
   Phone,
@@ -130,25 +132,38 @@ const CustomerDetail = () => {
             <ChartCard title="Ações Feitas" subtitle="Por tipo de ação">
               <ActionBreakdownChart data={generateActionsData(timeFilter)} />
             </ChartCard>
-            <div className="glass-card p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Registro de Ações</h3>
-                <a href="/actions" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                  Ver todos →
-                </a>
+            <ChartCard title="Ações Feitas" subtitle="Por tema">
+              <ActionThemeChart data={generateActionsThemeData(timeFilter)} />
+            </ChartCard>
+          </div>
+          
+          <div className="glass-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Registro de Ações</h3>
+              <a href="/actions" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                Ver todos →
+              </a>
+            </div>
+            <div className="space-y-0">
+              <div className="grid grid-cols-4 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+                <span>Ação</span>
+                <span>Tipo</span>
+                <span>Tema</span>
+                <span className="text-right">Data</span>
               </div>
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-border max-h-[250px] overflow-y-auto">
                 {customer.meetings.map((meeting, index) => (
                   <div 
                     key={index} 
-                    className="flex items-center justify-between py-2 first:pt-0 last:pb-0 cursor-pointer hover:bg-secondary/30 -mx-2 px-2 rounded transition-colors"
+                    className="grid grid-cols-4 gap-4 px-2 py-3 cursor-pointer hover:bg-secondary/30 transition-colors"
                     onClick={() => navigate(`/actions/new?edit=${index + 1}`)}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Video className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <span className="text-sm truncate">{meeting.title}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground shrink-0">{meeting.date}</span>
+                    <span className="text-sm font-medium truncate">{meeting.title}</span>
+                    <Badge variant="outline" className="w-fit text-xs">{meeting.type}</Badge>
+                    <Badge variant="secondary" className="w-fit text-xs">{meeting.theme}</Badge>
+                    <span className="text-sm text-muted-foreground text-right">
+                      {new Date(meeting.date).toLocaleDateString("pt-BR")}
+                    </span>
                   </div>
                 ))}
               </div>

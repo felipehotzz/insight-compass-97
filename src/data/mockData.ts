@@ -188,8 +188,11 @@ export const customerDetail = {
     { name: "João Souza", email: "joao.souza@grendene.com", phone: "+55 11 99999-0002", linkedin: "linkedin.com/in/joaosouza" },
   ],
   meetings: [
-    { date: "2025-12-15", title: "Revisão Trimestral", link: "https://meet.google.com/abc-123", notes: "Discussão sobre expansão do contrato" },
-    { date: "2025-11-20", title: "Onboarding Novos Usuários", link: "https://meet.google.com/def-456", notes: "Treinamento realizado com sucesso" },
+    { date: "2025-12-15", title: "Revisão Trimestral", type: "Reunião", theme: "Renovação", link: "https://meet.google.com/abc-123", notes: "Discussão sobre expansão do contrato" },
+    { date: "2025-11-20", title: "Onboarding Novos Usuários", type: "Reunião", theme: "Onboarding", link: "https://meet.google.com/def-456", notes: "Treinamento realizado com sucesso" },
+    { date: "2025-11-10", title: "Suporte Técnico", type: "E-mail", theme: "Suporte / Dúvidas", link: "", notes: "Resolução de dúvidas" },
+    { date: "2025-10-25", title: "Alinhamento Mensal", type: "Reunião", theme: "Relacionamento", link: "https://meet.google.com/ghi-789", notes: "Revisão de métricas" },
+    { date: "2025-10-15", title: "Proposta Expansão", type: "E-mail", theme: "Expansão", link: "", notes: "Enviada proposta comercial" },
   ],
   usage: {
     communications: 1250,
