@@ -11,8 +11,30 @@ import CustomerDetail from "./pages/CustomerDetail";
 import ActionRegistry from "./pages/ActionRegistry";
 import NewAction from "./pages/NewAction";
 import NotFound from "./pages/NotFound";
+import { GlobalSearch, useGlobalSearch } from "./components/search/GlobalSearch";
 
 const queryClient = new QueryClient();
+
+function AppContent() {
+  const { open, setOpen } = useGlobalSearch();
+
+  return (
+    <>
+      <GlobalSearch open={open} onOpenChange={setOpen} />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/growth" element={<Growth />} />
+        <Route path="/presence" element={<Presence />} />
+        <Route path="/customers" element={<Customers />} />
+        <Route path="/customer-detail" element={<CustomerDetail />} />
+        <Route path="/actions" element={<ActionRegistry />} />
+        <Route path="/actions/new" element={<NewAction />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -20,17 +42,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/growth" element={<Growth />} />
-          <Route path="/presence" element={<Presence />} />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/customer-detail" element={<CustomerDetail />} />
-          <Route path="/actions" element={<ActionRegistry />} />
-          <Route path="/actions/new" element={<NewAction />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppContent />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

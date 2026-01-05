@@ -11,7 +11,6 @@ import {
 import logoImg from "@/assets/logo-comunica.png";
 
 const navigation = [
-  { name: "Busca", href: "/search", icon: Search },
   { name: "Visão Geral", href: "/", icon: BarChart3 },
   { name: "Growth", href: "/growth", icon: TrendingUp },
   { name: "Presença & Mídias", href: "/presence", icon: Share2 },
@@ -22,6 +21,16 @@ const navigation = [
 
 export function Sidebar() {
   const location = useLocation();
+
+  const openSearch = () => {
+    // Dispatch keyboard event to trigger Ctrl+K
+    const event = new KeyboardEvent("keydown", {
+      key: "k",
+      ctrlKey: true,
+      bubbles: true,
+    });
+    document.dispatchEvent(event);
+  };
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-52 border-r border-sidebar-border bg-sidebar">
@@ -37,6 +46,20 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-3">
+          {/* Search button */}
+          <button
+            onClick={openSearch}
+            className="nav-item w-full justify-between group"
+          >
+            <div className="flex items-center gap-3">
+              <Search className="h-4 w-4" />
+              <span className="text-sm">Busca</span>
+            </div>
+            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 group-hover:inline-flex">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </button>
+
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             return (
