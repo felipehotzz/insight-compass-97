@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CommandDialog,
@@ -8,7 +8,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Video, Mail, Phone, MessageSquare, Users, FileText } from "lucide-react";
+import { Video, Mail, Phone, MessageSquare, FileText } from "lucide-react";
+import { allCustomers } from "@/data/mockData";
 
 // Mock data - actions registry
 const mockActions = [
@@ -77,15 +78,6 @@ const mockActions = [
   },
 ];
 
-// Mock customers
-const customers = [
-  { id: "1", name: "Grendene" },
-  { id: "2", name: "Ambev" },
-  { id: "3", name: "CBMM" },
-  { id: "4", name: "Localiza" },
-  { id: "5", name: "Natura" },
-];
-
 const getTypeIcon = (type: string) => {
   switch (type) {
     case "Reunião":
@@ -123,7 +115,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   });
 
   // Filter customers based on search
-  const filteredCustomers = customers.filter((customer) =>
+  const filteredCustomers = allCustomers.filter((customer) =>
     customer.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -133,10 +125,10 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     navigate(`/actions?action=${actionId}`);
   };
 
-  const handleSelectCustomer = (customerId: string) => {
+  const handleSelectCustomer = (customerId: number, customerName: string) => {
     onOpenChange(false);
     setSearch("");
-    navigate(`/customer-detail?customer=${customerId}`);
+    navigate(`/customer-detail?id=${customerId}&name=${encodeURIComponent(customerName)}`);
   };
 
   return (
@@ -154,10 +146,15 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             {filteredCustomers.slice(0, 5).map((customer) => (
               <CommandItem
                 key={customer.id}
-                onSelect={() => handleSelectCustomer(customer.id)}
+                onSelect={() => handleSelectCustomer(customer.id, customer.name)}
                 className="cursor-pointer"
               >
-                <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                {/* Avatar with initials or logo */}
+                <div className="h-6 w-6 rounded bg-secondary border border-border flex items-center justify-center flex-shrink-0 mr-2 overflow-hidden">
+                  <span className="text-[9px] font-medium text-muted-foreground">
+                    {customer.name.substring(0, 2).toUpperCase()}
+                  </span>
+                </div>
                 <span>{customer.name}</span>
               </CommandItem>
             ))}
