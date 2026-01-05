@@ -20,6 +20,8 @@ import {
   Calendar,
   Building2,
   Tag,
+  Users,
+  X,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -38,6 +40,14 @@ const customers = [
   { id: "5", name: "Natura" },
 ];
 
+const teamMembers = [
+  { id: "1", name: "Ana Silva", initials: "AS" },
+  { id: "2", name: "Bruno Costa", initials: "BC" },
+  { id: "3", name: "Carla Dias", initials: "CD" },
+  { id: "4", name: "Diego Oliveira", initials: "DO" },
+  { id: "5", name: "Elena Santos", initials: "ES" },
+];
+
 const NewAction = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -48,6 +58,19 @@ const NewAction = () => {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [content, setContent] = useState("");
+  const [responsibles, setResponsibles] = useState<string[]>([]);
+
+  const toggleResponsible = (memberId: string) => {
+    setResponsibles((prev) =>
+      prev.includes(memberId)
+        ? prev.filter((id) => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
+
+  const getSelectedMembers = () => {
+    return teamMembers.filter((m) => responsibles.includes(m.id));
+  };
 
   const isValid = customer && actionType && title && date;
 
@@ -148,6 +171,53 @@ const NewAction = () => {
               onChange={(e) => setDate(e.target.value)}
               className="w-auto border-none bg-transparent hover:bg-secondary/50 h-8 px-2"
             />
+          </div>
+
+          <div className="flex items-start gap-3 group">
+            <div className="flex items-center gap-2 text-muted-foreground w-28 pt-1">
+              <Users className="h-4 w-4" />
+              <span>Responsável</span>
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                {getSelectedMembers().map((member) => (
+                  <span
+                    key={member.id}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-secondary text-sm"
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs font-medium">
+                      {member.initials}
+                    </span>
+                    {member.name}
+                    <button
+                      onClick={() => toggleResponsible(member.id)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+                <Select onValueChange={toggleResponsible}>
+                  <SelectTrigger className="w-auto border-none bg-transparent hover:bg-secondary/50 h-8 px-2">
+                    <SelectValue placeholder="Adicionar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamMembers
+                      .filter((m) => !responsibles.includes(m.id))
+                      .map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-xs font-medium">
+                              {member.initials}
+                            </span>
+                            {member.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         </div>
 
