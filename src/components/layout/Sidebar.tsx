@@ -12,11 +12,11 @@ import logoImg from "@/assets/logo-comunica.png";
 
 const navigation = [
   { name: "Visão Geral", href: "/", icon: BarChart3 },
-  { name: "Growth", href: "/growth", icon: TrendingUp },
-  { name: "Presença & Mídias", href: "/presence", icon: Share2 },
+  { name: "Pipeline", href: "/growth", icon: TrendingUp },
+  { name: "Presença", href: "/presence", icon: Share2 },
   { name: "Clientes", href: "/customers", icon: Users },
-  { name: "Raio-X Cliente", href: "/customer-detail", icon: UserCircle },
-  { name: "Registro de Ações", href: "/actions", icon: ClipboardList },
+  { name: "Raio-X", href: "/customer-detail", icon: UserCircle },
+  { name: "Ações", href: "/actions", icon: ClipboardList },
 ];
 
 export function Sidebar() {
