@@ -39,10 +39,11 @@ const CustomerDetail = () => {
   };
 
   return (
-    <DashboardLayout title={<CustomerSelector currentCustomerName={customerName} />}>
+    <DashboardLayout title="Raio-X Cliente">
       <div className="space-y-6 animate-fade-in">
-        {/* Action button */}
-        <div className="flex justify-end">
+        {/* Customer selector and action button */}
+        <div className="flex items-center justify-between">
+          <CustomerSelector currentCustomerName={customerName} />
           <Button onClick={handleRegisterAction}>
             <Plus className="h-4 w-4 mr-2" />
             Registrar Ação
