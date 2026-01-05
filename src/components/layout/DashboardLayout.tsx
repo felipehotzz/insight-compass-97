@@ -1,18 +1,16 @@
 import { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
-import { Header } from "./Header";
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  title: string | ReactNode;
+  title?: string | ReactNode;
 }
 
-export function DashboardLayout({ children, title }: DashboardLayoutProps) {
+export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
       <div className="ml-52">
-        <Header title={title} />
         <main className="p-5">
           {children}
         </main>

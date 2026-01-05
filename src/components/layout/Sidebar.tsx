@@ -6,9 +6,11 @@ import {
   Users,
   UserCircle,
   ClipboardList,
+  Search,
 } from "lucide-react";
 
 const navigation = [
+  { name: "Busca", href: "/search", icon: Search },
   { name: "Visão Geral", href: "/", icon: BarChart3 },
   { name: "Growth", href: "/growth", icon: TrendingUp },
   { name: "Presença & Mídias", href: "/presence", icon: Share2 },
