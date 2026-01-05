@@ -4,16 +4,16 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
+import { CustomerSelector } from "@/components/dashboard/CustomerSelector";
 import {
-  User,
   Mail,
   Phone,
   Linkedin,
   Video,
+  ExternalLink,
   MessageSquare,
   Activity,
   Headphones,
-  ExternalLink,
 } from "lucide-react";
 import { customerDetail } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ const CustomerDetail = () => {
   const customer = customerDetail;
 
   return (
-    <DashboardLayout title={`Raio-X: ${customerName}`}>
+    <DashboardLayout title={<CustomerSelector currentCustomerName={customerName} />}>
       <div className="space-y-6 animate-fade-in">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
