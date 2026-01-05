@@ -6,6 +6,7 @@ import { ChartCard } from "@/components/dashboard/ChartCard";
 import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
 import { CustomerSelector } from "@/components/dashboard/CustomerSelector";
 import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from "@/components/charts/ChannelBreakdownChart";
+import { SupportBreakdownChart, generateOpenedTicketsData, generateClosedTicketsData, generateBacklogData } from "@/components/charts/SupportBreakdownChart";
 import {
   Mail,
   Phone,
@@ -23,6 +24,7 @@ const CustomerDetail = () => {
   const [searchParams] = useSearchParams();
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
   const [usageFilter, setUsageFilter] = useState<TimeFilter>("month");
+  const [supportFilter, setSupportFilter] = useState<TimeFilter>("month");
 
   const customerName = searchParams.get("name") || customerDetail.name;
   const customer = customerDetail;
@@ -168,55 +170,19 @@ const CustomerDetail = () => {
 
         {/* Support Section */}
         <div>
-          <h2 className="section-title mb-4">Suporte</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-title">Suporte</h2>
+            <FilterButtons value={supportFilter} onChange={setSupportFilter} />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ChartCard title="Chamados Abertos">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{customer.support.opened.n1}</p>
-                  <p className="text-xs text-muted-foreground">N1</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{customer.support.opened.n2}</p>
-                  <p className="text-xs text-muted-foreground">N2</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{customer.support.opened.n3}</p>
-                  <p className="text-xs text-muted-foreground">N3</p>
-                </div>
-              </div>
+            <ChartCard title="Chamados Abertos" subtitle="Por nível">
+              <SupportBreakdownChart data={generateOpenedTicketsData(supportFilter)} />
             </ChartCard>
-            <ChartCard title="Chamados Fechados">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{customer.support.closed.n1}</p>
-                  <p className="text-xs text-muted-foreground">N1</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{customer.support.closed.n2}</p>
-                  <p className="text-xs text-muted-foreground">N2</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{customer.support.closed.n3}</p>
-                  <p className="text-xs text-muted-foreground">N3</p>
-                </div>
-              </div>
+            <ChartCard title="Chamados Fechados" subtitle="Por nível">
+              <SupportBreakdownChart data={generateClosedTicketsData(supportFilter)} />
             </ChartCard>
-            <ChartCard title="Backlog">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{customer.support.backlog.n1}</p>
-                  <p className="text-xs text-muted-foreground">N1</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{customer.support.backlog.n2}</p>
-                  <p className="text-xs text-muted-foreground">N2</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{customer.support.backlog.n3}</p>
-                  <p className="text-xs text-muted-foreground">N3</p>
-                </div>
-              </div>
+            <ChartCard title="Backlog" subtitle="Por nível">
+              <SupportBreakdownChart data={generateBacklogData(supportFilter)} />
             </ChartCard>
           </div>
         </div>
