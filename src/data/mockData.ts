@@ -179,6 +179,10 @@ export const customerDetail = {
   ltv: 720000,
   currentPlan: "Enterprise",
   remainingMonths: 12,
+  csResponsible: {
+    name: "Jessica Bueno",
+    email: "jessica.bueno@empresa.com",
+  },
   champions: [
     { name: "Maria Silva", email: "maria.silva@grendene.com", phone: "+55 11 99999-0001", linkedin: "linkedin.com/in/mariasilva" },
     { name: "João Souza", email: "joao.souza@grendene.com", phone: "+55 11 99999-0002", linkedin: "linkedin.com/in/joaosouza" },
