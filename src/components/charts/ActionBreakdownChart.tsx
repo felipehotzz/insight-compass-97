@@ -6,8 +6,13 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
+import {
+  Tooltip as UITooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ActionData {
   period: string;
@@ -22,6 +27,13 @@ interface ActionBreakdownChartProps {
   data: ActionData[];
   height?: number;
 }
+
+const legendItems = [
+  { name: "Reunião", color: "hsl(0 0% 70%)" },
+  { name: "E-mail", color: "hsl(0 0% 55%)" },
+  { name: "Ligação", color: "hsl(0 0% 45%)" },
+  { name: "WhatsApp", color: "hsl(0 0% 35%)" },
+];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -57,59 +69,101 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+const CustomLegend = () => {
+  const maxVisible = 3;
+  const visibleItems = legendItems.slice(0, maxVisible);
+  const hiddenItems = legendItems.slice(maxVisible);
+  const hiddenCount = hiddenItems.length;
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-4 text-[11px]">
+      {visibleItems.map((item, index) => (
+        <div key={index} className="flex items-center gap-1.5">
+          <div 
+            className="w-2 h-2 rounded-sm" 
+            style={{ backgroundColor: item.color }}
+          />
+          <span className="text-muted-foreground">{item.name}</span>
+        </div>
+      ))}
+      {hiddenCount > 0 && (
+        <TooltipProvider>
+          <UITooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/50 cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                +{hiddenCount}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="p-2">
+              <div className="flex flex-col gap-1">
+                {hiddenItems.map((item, index) => (
+                  <div key={index} className="flex items-center gap-1.5">
+                    <div 
+                      className="w-2 h-2 rounded-sm" 
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-muted-foreground">{item.name}</span>
+                  </div>
+                ))}
+              </div>
+            </TooltipContent>
+          </UITooltip>
+        </TooltipProvider>
+      )}
+    </div>
+  );
+};
+
 export function ActionBreakdownChart({ data, height = 280 }: ActionBreakdownChartProps) {
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-        <XAxis
-          dataKey="period"
-          stroke="hsl(var(--muted-foreground))"
-          fontSize={11}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          stroke="hsl(var(--muted-foreground))"
-          fontSize={11}
-          tickLine={false}
-          axisLine={false}
-        />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
-        <Legend 
-          wrapperStyle={{ paddingTop: 16, fontSize: 11 }}
-          iconType="square"
-          iconSize={8}
-          formatter={(value) => <span style={{ marginRight: 12 }}>{value}</span>}
-        />
-        <Bar 
-          dataKey="reuniao" 
-          name="Reunião" 
-          stackId="a" 
-          fill="hsl(0 0% 70%)" 
-          radius={[0, 0, 0, 0]}
-        />
-        <Bar 
-          dataKey="email" 
-          name="E-mail" 
-          stackId="a" 
-          fill="hsl(0 0% 55%)" 
-        />
-        <Bar 
-          dataKey="ligacao" 
-          name="Ligação" 
-          stackId="a" 
-          fill="hsl(0 0% 45%)" 
-        />
-        <Bar 
-          dataKey="whatsapp" 
-          name="WhatsApp" 
-          stackId="a" 
-          fill="hsl(0 0% 35%)" 
-          radius={[3, 3, 0, 0]}
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <div>
+      <ResponsiveContainer width="100%" height={height}>
+        <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+          <XAxis
+            dataKey="period"
+            stroke="hsl(var(--muted-foreground))"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            stroke="hsl(var(--muted-foreground))"
+            fontSize={11}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
+          <Bar 
+            dataKey="reuniao" 
+            name="Reunião" 
+            stackId="a" 
+            fill="hsl(0 0% 70%)" 
+            radius={[0, 0, 0, 0]}
+          />
+          <Bar 
+            dataKey="email" 
+            name="E-mail" 
+            stackId="a" 
+            fill="hsl(0 0% 55%)" 
+          />
+          <Bar 
+            dataKey="ligacao" 
+            name="Ligação" 
+            stackId="a" 
+            fill="hsl(0 0% 45%)" 
+          />
+          <Bar 
+            dataKey="whatsapp" 
+            name="WhatsApp" 
+            stackId="a" 
+            fill="hsl(0 0% 35%)" 
+            radius={[3, 3, 0, 0]}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+      <CustomLegend />
+    </div>
   );
 }
 

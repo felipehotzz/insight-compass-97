@@ -78,7 +78,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const CustomLegend = () => {
-  const maxVisible = 4;
+  const maxVisible = 3;
   const visibleItems = legendItems.slice(0, maxVisible);
   const hiddenItems = legendItems.slice(maxVisible);
   const hiddenCount = hiddenItems.length;
