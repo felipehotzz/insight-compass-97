@@ -77,9 +77,10 @@ export function ActionBreakdownChart({ data, height = 280 }: ActionBreakdownChar
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
         <Legend 
-          wrapperStyle={{ paddingTop: 16 }}
+          wrapperStyle={{ paddingTop: 16, fontSize: 11 }}
           iconType="square"
-          iconSize={10}
+          iconSize={8}
+          formatter={(value) => <span style={{ marginRight: 12 }}>{value}</span>}
         />
         <Bar 
           dataKey="reuniao" 
