@@ -7,6 +7,7 @@ import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons"
 import { CustomerSelector } from "@/components/dashboard/CustomerSelector";
 import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from "@/components/charts/ChannelBreakdownChart";
 import { SupportBreakdownChart, generateOpenedTicketsData, generateClosedTicketsData, generateBacklogData } from "@/components/charts/SupportBreakdownChart";
+import { SimpleLineChart, generateUsersData, generateCollaboratorsData } from "@/components/charts/SimpleLineChart";
 import {
   Mail,
   Phone,
@@ -154,17 +155,13 @@ const CustomerDetail = () => {
             </ChartCard>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <StatCard
-              title="Usuários na Base"
-              value={customer.usage.usersInBase.toLocaleString("pt-BR")}
-              trend={{ value: 5 }}
-            />
-            <StatCard
-              title="Colaboradores Cadastrados"
-              value={customer.usage.registeredCollaborators.toLocaleString("pt-BR")}
-              trend={{ value: 3 }}
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartCard title="Usuários na Base" subtitle="Evolução ao longo do tempo">
+              <SimpleLineChart data={generateUsersData(usageFilter)} />
+            </ChartCard>
+            <ChartCard title="Colaboradores Cadastrados" subtitle="Evolução ao longo do tempo">
+              <SimpleLineChart data={generateCollaboratorsData(usageFilter)} />
+            </ChartCard>
           </div>
         </div>
 
