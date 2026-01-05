@@ -21,7 +21,7 @@ export function Sidebar() {
   const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-60 border-r border-sidebar-border bg-sidebar">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-52 border-r border-sidebar-border bg-sidebar">
       <div className="flex h-full flex-col">
         {/* Logo */}
         <div className="flex h-14 items-center gap-3 border-b border-sidebar-border px-5">

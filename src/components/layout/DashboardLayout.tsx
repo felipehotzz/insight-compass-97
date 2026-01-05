@@ -11,7 +11,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="ml-60">
+      <div className="ml-52">
         <Header title={title} />
         <main className="p-5">
           {children}
