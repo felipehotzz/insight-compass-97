@@ -62,6 +62,75 @@ const getPlanCompositionData = (filter: CompositionFilter) => {
   ];
 };
 
+// Mock data for top/bottom customers by communications
+const getTopCustomersByCommunications = (filter: TimeFilter) => {
+  const data: Record<string, { name: string; value: number }[]> = {
+    day: [
+      { name: "Grendene", value: 1850 },
+      { name: "Syngenta", value: 1620 },
+      { name: "CBMM", value: 1480 },
+      { name: "Alpargatas", value: 1350 },
+      { name: "SESC Nacional", value: 1220 },
+    ],
+    week: [
+      { name: "Grendene", value: 8500 },
+      { name: "Syngenta", value: 7800 },
+      { name: "CBMM", value: 7200 },
+      { name: "Alpargatas", value: 6500 },
+      { name: "SESC Nacional", value: 5900 },
+    ],
+    month: [
+      { name: "Grendene", value: 32500 },
+      { name: "Syngenta", value: 28400 },
+      { name: "CBMM", value: 25800 },
+      { name: "Alpargatas", value: 22100 },
+      { name: "SESC Nacional", value: 19500 },
+    ],
+    quarter: [
+      { name: "Grendene", value: 95000 },
+      { name: "Syngenta", value: 84500 },
+      { name: "CBMM", value: 76200 },
+      { name: "Alpargatas", value: 68900 },
+      { name: "SESC Nacional", value: 61200 },
+    ],
+  };
+  return data[filter] || data.month;
+};
+
+const getBottomCustomersByCommunications = (filter: TimeFilter) => {
+  const data: Record<string, { name: string; value: number }[]> = {
+    day: [
+      { name: "CJ do Brasil", value: 120 },
+      { name: "Caixa Consórcios", value: 185 },
+      { name: "Eucatex", value: 250 },
+      { name: "Softplan", value: 320 },
+      { name: "Metro BH", value: 410 },
+    ],
+    week: [
+      { name: "CJ do Brasil", value: 580 },
+      { name: "Caixa Consórcios", value: 820 },
+      { name: "Eucatex", value: 1100 },
+      { name: "Softplan", value: 1450 },
+      { name: "Metro BH", value: 1850 },
+    ],
+    month: [
+      { name: "CJ do Brasil", value: 2200 },
+      { name: "Caixa Consórcios", value: 3100 },
+      { name: "Eucatex", value: 4200 },
+      { name: "Softplan", value: 5500 },
+      { name: "Metro BH", value: 7100 },
+    ],
+    quarter: [
+      { name: "CJ do Brasil", value: 6800 },
+      { name: "Caixa Consórcios", value: 9500 },
+      { name: "Eucatex", value: 12800 },
+      { name: "Softplan", value: 16500 },
+      { name: "Metro BH", value: 21500 },
+    ],
+  };
+  return data[filter] || data.month;
+};
+
 const customerSeries = [
   { key: "novos", name: "Novos", color: "hsl(142 71% 45%)" },
   { key: "mantidos", name: "Mantidos", color: "hsl(0 0% 55%)" },
@@ -257,12 +326,29 @@ const Customers = () => {
             </ChartCard>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
             <ChartCard title="Usuários na Base" subtitle="Evolução ao longo do tempo">
               <SimpleLineChart data={generateGeneralUsersData(usageFilter)} />
             </ChartCard>
             <ChartCard title="Colaboradores Cadastrados" subtitle="Evolução ao longo do tempo">
               <SimpleLineChart data={generateGeneralCollaboratorsData(usageFilter)} />
+            </ChartCard>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartCard title="Top Clientes" subtitle="Mais comunicados enviados">
+              <HorizontalBarChart
+                data={getTopCustomersByCommunications(usageFilter)}
+                color="hsl(142 71% 45%)"
+                height={200}
+              />
+            </ChartCard>
+            <ChartCard title="Bottom Clientes" subtitle="Menos comunicados enviados">
+              <HorizontalBarChart
+                data={getBottomCustomersByCommunications(usageFilter)}
+                color="hsl(0 84% 60%)"
+                height={200}
+              />
             </ChartCard>
           </div>
         </div>
