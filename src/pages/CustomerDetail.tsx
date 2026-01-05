@@ -5,11 +5,6 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
 import {
-  Building2,
-  Calendar,
-  DollarSign,
-  Clock,
-  CreditCard,
   User,
   Mail,
   Phone,
@@ -31,55 +26,49 @@ const CustomerDetail = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
 
   const customerName = searchParams.get("name") || customerDetail.name;
-  const customer = customerDetail; // In real app, fetch by ID
+  const customer = customerDetail;
 
   return (
     <DashboardLayout title={`Raio-X: ${customerName}`}>
       <div className="space-y-6 animate-fade-in">
-        {/* Customer Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
             title="Valor do Contrato"
             value={formatCurrency(customer.contractValue)}
-            icon={<DollarSign className="h-5 w-5" />}
           />
           <StatCard
             title="Tempo como Cliente"
             value={`${customer.monthsAsCustomer} meses`}
-            icon={<Clock className="h-5 w-5" />}
           />
           <StatCard
             title="LTV Total"
             value={formatCurrency(customer.ltv)}
-            icon={<DollarSign className="h-5 w-5" />}
           />
           <StatCard
             title="Plano Atual"
             value={customer.currentPlan}
-            icon={<CreditCard className="h-5 w-5" />}
           />
           <StatCard
             title="Meses Restantes"
             value={customer.remainingMonths}
-            icon={<Calendar className="h-5 w-5" />}
           />
         </div>
 
         {/* Champions Section */}
         <div>
           <h2 className="section-title mb-4 flex items-center gap-2">
-            <User className="h-5 w-5 text-primary" />
+            <User className="h-4 w-4 text-muted-foreground" />
             Champions (Contatos)
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {customer.champions.map((champion, index) => (
               <div key={index} className="stat-card">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
-                    <User className="h-6 w-6" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-foreground/60">
+                    <User className="h-5 w-5" />
                   </div>
                   <div className="flex-1 space-y-2">
-                    <h3 className="font-semibold text-lg">{champion.name}</h3>
+                    <h3 className="font-medium text-lg">{champion.name}</h3>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Mail className="h-4 w-4" />
                       <span>{champion.email}</span>
@@ -90,7 +79,7 @@ const CustomerDetail = () => {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Linkedin className="h-4 w-4" />
-                      <a href={`https://${champion.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      <a href={`https://${champion.linkedin}`} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
                         {champion.linkedin}
                       </a>
                     </div>
@@ -104,7 +93,7 @@ const CustomerDetail = () => {
         {/* Relationship Section */}
         <div>
           <h2 className="section-title mb-4 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
             Relacionamento
           </h2>
           <div className="flex justify-end mb-4">
@@ -115,22 +104,19 @@ const CustomerDetail = () => {
               title="Reuniões Feitas"
               value="12"
               trend={{ value: 20 }}
-              icon={<Video className="h-5 w-5" />}
             />
             <StatCard
               title="E-mails Proativos"
               value="28"
-              icon={<Mail className="h-5 w-5" />}
             />
           </div>
 
-          {/* Meeting Records */}
           <ChartCard title="Registro de Reuniões">
             <div className="space-y-4">
               {customer.meetings.map((meeting, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 bg-secondary/30 rounded-lg">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
-                    <Video className="h-5 w-5" />
+                <div key={index} className="flex items-start gap-4 p-4 bg-secondary/50 rounded">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground/60">
+                    <Video className="h-4 w-4" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
@@ -138,7 +124,7 @@ const CustomerDetail = () => {
                       <span className="text-sm text-muted-foreground">{meeting.date}</span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">{meeting.notes}</p>
-                    <Button variant="ghost" size="sm" className="mt-2 text-primary" asChild>
+                    <Button variant="ghost" size="sm" className="mt-2 text-muted-foreground hover:text-foreground" asChild>
                       <a href={meeting.link} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Ver gravação
@@ -154,7 +140,7 @@ const CustomerDetail = () => {
         {/* Usage Section */}
         <div>
           <h2 className="section-title mb-4 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
+            <Activity className="h-4 w-4 text-muted-foreground" />
             Utilização
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -163,18 +149,9 @@ const CustomerDetail = () => {
               value={customer.usage.communications.toLocaleString("pt-BR")}
               trend={{ value: 12 }}
             />
-            <StatCard
-              title="% E-mail"
-              value={`${customer.usage.emailPercentage}%`}
-            />
-            <StatCard
-              title="% Teams"
-              value={`${customer.usage.teamsPercentage}%`}
-            />
-            <StatCard
-              title="% WhatsApp"
-              value={`${customer.usage.whatsappPercentage}%`}
-            />
+            <StatCard title="% E-mail" value={`${customer.usage.emailPercentage}%`} />
+            <StatCard title="% Teams" value={`${customer.usage.teamsPercentage}%`} />
+            <StatCard title="% WhatsApp" value={`${customer.usage.whatsappPercentage}%`} />
             <StatCard
               title="Disparos Totais"
               value={customer.usage.totalDispatches.toLocaleString("pt-BR")}
@@ -198,54 +175,54 @@ const CustomerDetail = () => {
         {/* Support Section */}
         <div>
           <h2 className="section-title mb-4 flex items-center gap-2">
-            <Headphones className="h-5 w-5 text-primary" />
+            <Headphones className="h-4 w-4 text-muted-foreground" />
             Suporte
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <ChartCard title="Chamados Abertos">
               <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-secondary/50 rounded-lg">
-                  <p className="text-2xl font-bold">{customer.support.opened.n1}</p>
+                <div className="text-center p-4 bg-secondary rounded">
+                  <p className="text-xl font-normal">{customer.support.opened.n1}</p>
                   <p className="text-xs text-muted-foreground">N1</p>
                 </div>
-                <div className="text-center p-4 bg-secondary/50 rounded-lg">
-                  <p className="text-2xl font-bold">{customer.support.opened.n2}</p>
+                <div className="text-center p-4 bg-secondary rounded">
+                  <p className="text-xl font-normal">{customer.support.opened.n2}</p>
                   <p className="text-xs text-muted-foreground">N2</p>
                 </div>
-                <div className="text-center p-4 bg-secondary/50 rounded-lg">
-                  <p className="text-2xl font-bold">{customer.support.opened.n3}</p>
+                <div className="text-center p-4 bg-secondary rounded">
+                  <p className="text-xl font-normal">{customer.support.opened.n3}</p>
                   <p className="text-xs text-muted-foreground">N3</p>
                 </div>
               </div>
             </ChartCard>
             <ChartCard title="Chamados Fechados">
               <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-success/10 rounded-lg">
-                  <p className="text-2xl font-bold text-success">{customer.support.closed.n1}</p>
+                <div className="text-center p-4 bg-secondary rounded">
+                  <p className="text-xl font-normal">{customer.support.closed.n1}</p>
                   <p className="text-xs text-muted-foreground">N1</p>
                 </div>
-                <div className="text-center p-4 bg-success/10 rounded-lg">
-                  <p className="text-2xl font-bold text-success">{customer.support.closed.n2}</p>
+                <div className="text-center p-4 bg-secondary rounded">
+                  <p className="text-xl font-normal">{customer.support.closed.n2}</p>
                   <p className="text-xs text-muted-foreground">N2</p>
                 </div>
-                <div className="text-center p-4 bg-success/10 rounded-lg">
-                  <p className="text-2xl font-bold text-success">{customer.support.closed.n3}</p>
+                <div className="text-center p-4 bg-secondary rounded">
+                  <p className="text-xl font-normal">{customer.support.closed.n3}</p>
                   <p className="text-xs text-muted-foreground">N3</p>
                 </div>
               </div>
             </ChartCard>
             <ChartCard title="Backlog">
               <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-warning/10 rounded-lg">
-                  <p className="text-2xl font-bold text-warning">{customer.support.backlog.n1}</p>
+                <div className="text-center p-4 bg-secondary rounded">
+                  <p className="text-xl font-normal">{customer.support.backlog.n1}</p>
                   <p className="text-xs text-muted-foreground">N1</p>
                 </div>
-                <div className="text-center p-4 bg-warning/10 rounded-lg">
-                  <p className="text-2xl font-bold text-warning">{customer.support.backlog.n2}</p>
+                <div className="text-center p-4 bg-secondary rounded">
+                  <p className="text-xl font-normal">{customer.support.backlog.n2}</p>
                   <p className="text-xs text-muted-foreground">N2</p>
                 </div>
-                <div className="text-center p-4 bg-warning/10 rounded-lg">
-                  <p className="text-2xl font-bold text-warning">{customer.support.backlog.n3}</p>
+                <div className="text-center p-4 bg-secondary rounded">
+                  <p className="text-xl font-normal">{customer.support.backlog.n3}</p>
                   <p className="text-xs text-muted-foreground">N3</p>
                 </div>
               </div>
