@@ -39,7 +39,7 @@ const CustomerDetail = () => {
   };
 
   return (
-    <DashboardLayout title="Raio-X Cliente">
+    <DashboardLayout title="">
       <div className="space-y-6 animate-fade-in">
         {/* Customer selector and action button */}
         <div className="flex items-center justify-between">
