@@ -11,10 +11,10 @@ import {
 } from "@/data/mockData";
 
 const formatCurrency = (value: number) =>
-  `R$ ${(value / 1000).toFixed(0)}K`;
+  `${(value / 1000).toFixed(0)}K`;
 
 const formatCurrencyFull = (value: number) =>
-  `R$ ${value.toLocaleString("pt-BR")}`;
+  value.toLocaleString("pt-BR");
 
 const Index = () => {
   const currentARR = arrData[arrData.length - 1].value;
@@ -33,7 +33,7 @@ const Index = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            title="ARR"
+            title="ARR (R$)"
             value={formatCurrencyFull(currentARR)}
             trend={{ value: Number((((currentARR - prevARR) / prevARR) * 100).toFixed(1)) }}
           />
@@ -48,18 +48,18 @@ const Index = () => {
             trend={{ value: currentGrossMargin - prevGrossMargin }}
           />
           <StatCard
-            title="Net Income"
+            title="Net Income (R$)"
             value={formatCurrencyFull(currentNetIncome)}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatCard
-            title="Cash Flow - Início do Período"
+            title="Cash Flow - Início do Período (R$)"
             value={formatCurrencyFull(2500000)}
           />
           <StatCard
-            title="Cash Flow - Fim do Período"
+            title="Cash Flow - Fim do Período (R$)"
             value={formatCurrencyFull(2850000)}
             trend={{ value: 14 }}
           />

@@ -16,7 +16,7 @@ import {
 } from "@/data/mockData";
 
 const formatCurrency = (value: number) =>
-  `R$ ${value.toLocaleString("pt-BR")}`;
+  value.toLocaleString("pt-BR");
 
 const pipelineSeries = [
   { key: "pipeline", name: "Pipeline", color: "hsl(0 0% 70%)" },
@@ -53,19 +53,19 @@ const Growth = () => {
             value="47"
           />
           <StatCard
-            title="Pipeline Gerado"
+            title="Pipeline Gerado (R$)"
             value={formatCurrency(850000)}
             trend={{ value: 15 }}
           />
           <StatCard
-            title="Pipeline Total"
+            title="Pipeline Total (R$)"
             value={formatCurrency(2150000)}
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="stat-card">
-            <p className="stat-label">Forecast Commit</p>
+            <p className="stat-label">Forecast Commit (R$)</p>
             <p className="stat-value">{formatCurrency(427464)}</p>
             <div className="mt-4">
               <p className="text-sm text-muted-foreground mb-2">Oportunidades:</p>
@@ -80,7 +80,7 @@ const Growth = () => {
           </div>
 
           <div className="stat-card">
-            <p className="stat-label">Forecast Best Case</p>
+            <p className="stat-label">Forecast Best Case (R$)</p>
             <p className="stat-value">{formatCurrency(705900)}</p>
             <div className="mt-4">
               <p className="text-sm text-muted-foreground mb-2">Oportunidades:</p>
@@ -99,7 +99,7 @@ const Growth = () => {
           <ChartCard title="Negócios em Andamento por Fase" subtitle="Quantidade">
             <FunnelChart data={funnelData} />
           </ChartCard>
-          <ChartCard title="Valor em Andamento por Fase" subtitle="R$">
+          <ChartCard title="Valor em Andamento por Fase (R$)">
             <FunnelChart
               data={funnelValueData}
               formatValue={formatCurrency}
@@ -108,14 +108,14 @@ const Growth = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Previsão de Fechamento por Categoria" subtitle="Por mês">
+          <ChartCard title="Previsão de Fechamento por Categoria (R$)" subtitle="Por mês">
             <StackedBarChart
               data={pipelineByMonth}
               series={pipelineSeries}
               formatValue={formatCurrency}
             />
           </ChartCard>
-          <ChartCard title="Ranking de Oportunidades por Valor">
+          <ChartCard title="Ranking de Oportunidades por Valor (R$)">
             <HorizontalBarChart
               data={opportunitiesByValue}
               formatValue={formatCurrency}
