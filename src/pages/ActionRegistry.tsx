@@ -116,8 +116,9 @@ const ActionRegistry = () => {
   });
 
   return (
-    <DashboardLayout title="Registro de Ações">
+    <DashboardLayout title="">
       <div className="space-y-6 animate-fade-in">
+        <h1 className="text-2xl font-semibold text-foreground">Registro de Ações</h1>
         {/* Header with filters and add button */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full sm:w-auto">
