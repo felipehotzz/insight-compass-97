@@ -1,33 +1,29 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { MonthlyLineChart } from "@/components/charts/MonthlyLineChart";
-import { StackedBarChart } from "@/components/charts/StackedBarChart";
 import { useLatestFinancialMetrics, formatMonthLabel } from "@/hooks/useFinancialMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  arrData,
-  clientsData,
-} from "@/data/mockData";
 
 const formatCurrency = (value: number) =>
   `${(value / 1000).toFixed(0)}K`;
 
-const arrSeries = [
-  { key: "churn", name: "Churn", color: "hsl(var(--color-danger))" },
-  { key: "mantido", name: "ARR Mantido", color: "hsl(var(--color-overview))" },
-  { key: "novo", name: "Novo ARR", color: "hsl(var(--color-growth))" },
-];
-
-const clientsSeries = [
-  { key: "churn", name: "Churn", color: "hsl(var(--color-danger))" },
-  { key: "mantido", name: "Mantidos", color: "hsl(var(--color-overview))" },
-  { key: "novo", name: "Novos", color: "hsl(var(--color-growth))" },
-];
+const formatMillions = (value: number) =>
+  `${(value / 1000000).toFixed(1)}M`;
 
 const Index = () => {
   const { data: metrics, isLoading } = useLatestFinancialMetrics(12);
 
   // Transform metrics for charts
+  const arrData = metrics?.map((m) => ({
+    month: formatMonthLabel(m.period_date),
+    value: m.arr ?? 0,
+  })) || [];
+
+  const mrrData = metrics?.map((m) => ({
+    month: formatMonthLabel(m.period_date),
+    value: m.mrr ?? 0,
+  })) || [];
+
   const grossMarginData = metrics?.map((m) => ({
     month: formatMonthLabel(m.period_date),
     value: m.gross_profit_margin ?? 0,
@@ -41,11 +37,6 @@ const Index = () => {
   const employeesData = metrics?.map((m) => ({
     month: formatMonthLabel(m.period_date),
     value: m.employees_count ?? 0,
-  })) || [];
-
-  const mrrData = metrics?.map((m) => ({
-    month: formatMonthLabel(m.period_date),
-    value: m.mrr ?? 0,
   })) || [];
 
   const ebitdaData = metrics?.map((m) => ({
@@ -77,21 +68,24 @@ const Index = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ChartCard title="ARR" subtitle="Evolução mensal">
-                <StackedBarChart
+              <ChartCard 
+                title="ARR" 
+                subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
+              >
+                <MonthlyLineChart
                   data={arrData}
-                  series={arrSeries}
-                  height={300}
-                  xAxisKey="month"
-                  formatValue={formatCurrency}
+                  formatValue={formatMillions}
+                  color="hsl(var(--color-growth))"
                 />
               </ChartCard>
-              <ChartCard title="Nº de Clientes" subtitle="Evolução mensal">
-                <StackedBarChart
-                  data={clientsData}
-                  series={clientsSeries}
-                  height={300}
-                  xAxisKey="month"
+              <ChartCard 
+                title="MRR" 
+                subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
+              >
+                <MonthlyLineChart
+                  data={mrrData}
+                  formatValue={formatCurrency}
+                  color="hsl(var(--color-growth))"
                 />
               </ChartCard>
             </div>
@@ -103,7 +97,7 @@ const Index = () => {
               >
                 <MonthlyLineChart
                   data={grossMarginData}
-                  formatValue={(v) => `${v.toFixed(1)}%`}
+                  formatValue={(v) => `${v.toFixed(0)}%`}
                   color="hsl(var(--color-overview))"
                 />
               </ChartCard>
@@ -121,16 +115,6 @@ const Index = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ChartCard 
-                title="MRR" 
-                subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
-              >
-                <MonthlyLineChart
-                  data={mrrData}
-                  formatValue={formatCurrency}
-                  color="hsl(var(--color-growth))"
-                />
-              </ChartCard>
-              <ChartCard 
                 title="EBITDA" 
                 subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
               >
@@ -140,26 +124,26 @@ const Index = () => {
                   color="hsl(var(--color-growth))"
                 />
               </ChartCard>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ChartCard 
-                title="Nº de Colaboradores" 
-                subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
-              >
-                <MonthlyLineChart data={employeesData} color="hsl(var(--color-overview))" />
-              </ChartCard>
               <ChartCard 
                 title="Saldo em Caixa" 
                 subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
               >
                 <MonthlyLineChart
                   data={cashBalanceData}
-                  formatValue={formatCurrency}
+                  formatValue={formatMillions}
                   color="hsl(var(--color-growth))"
                 />
               </ChartCard>
             </div>
+
+            {hasRealData && employeesData.some(d => d.value > 0) && (
+              <ChartCard 
+                title="Nº de Colaboradores" 
+                subtitle="Dados reais da DRE"
+              >
+                <MonthlyLineChart data={employeesData} color="hsl(var(--color-overview))" />
+              </ChartCard>
+            )}
           </>
         )}
       </div>
