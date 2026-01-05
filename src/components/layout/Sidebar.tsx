@@ -13,7 +13,7 @@ import logoImg from "@/assets/logo-comunica.png";
 const navigation = [
   { name: "Visão Geral", href: "/", icon: BarChart3 },
   { name: "Pipeline", href: "/growth", icon: TrendingUp },
-  { name: "Presença", href: "/presence", icon: Share2 },
+  { name: "Growth", href: "/presence", icon: Share2 },
   { name: "Clientes", href: "/customers", icon: Users },
   { name: "Raio-X", href: "/customer-detail", icon: UserCircle },
   { name: "Ações", href: "/actions", icon: ClipboardList },
@@ -55,7 +55,7 @@ export function Sidebar() {
               <Search className="h-4 w-4" />
               <span className="text-sm">Busca</span>
             </div>
-            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 group-hover:inline-flex">
+            <kbd className="pointer-events-none h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-60 inline-flex">
               <span className="text-xs">⌘</span>K
             </kbd>
           </button>
