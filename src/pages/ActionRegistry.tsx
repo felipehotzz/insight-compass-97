@@ -164,6 +164,11 @@ const ActionRegistry = () => {
           </Button>
         </div>
 
+        {/* Counter */}
+        <p className="text-sm text-muted-foreground">
+          {mockActions.length} ações registradas
+        </p>
+
         {/* Actions list */}
         <div className="glass-card divide-y divide-border">
           {filteredActions.length === 0 ? (
