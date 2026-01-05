@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
 import { HorizontalBarChart } from "@/components/charts/HorizontalBarChart";
 import { SimpleBarChart } from "@/components/charts/SimpleBarChart";
 import { StackedBarChart } from "@/components/charts/StackedBarChart";
-import { Calendar, Headphones, MessageSquare, Activity, Users } from "lucide-react";
+import { ChannelBreakdownChart, generateGeneralChannelData, generateGeneralDispatchData } from "@/components/charts/ChannelBreakdownChart";
+import { SupportBreakdownChart, generateGeneralOpenedTicketsData, generateGeneralClosedTicketsData, generateGeneralBacklogData } from "@/components/charts/SupportBreakdownChart";
+import { SimpleLineChart, generateGeneralUsersData, generateGeneralCollaboratorsData } from "@/components/charts/SimpleLineChart";
+import { Calendar, Headphones, MessageSquare, Activity } from "lucide-react";
 import {
-  customersByProduct,
   customersByPlan,
   customersByCS,
   renewals,
-  supportTickets,
   ticketsByType,
   ticketsByCustomer,
 } from "@/data/mockData";
@@ -75,10 +75,10 @@ const planSeries = [
 ];
 
 const Customers = () => {
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
   const [compositionFilter, setCompositionFilter] = useState<CompositionFilter>("month");
+  const [usageFilter, setUsageFilter] = useState<TimeFilter>("month");
+  const [supportFilter, setSupportFilter] = useState<TimeFilter>("month");
 
-  const totalClients = 60;
   const customerCompositionData = getCustomerCompositionData(compositionFilter);
   const planCompositionData = getPlanCompositionData(compositionFilter);
 
@@ -238,121 +238,53 @@ const Customers = () => {
           </div>
         </div>
 
-        {/* Relationship Section */}
-        <div>
-          <h2 className="section-title mb-4 flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            Relacionamento
-          </h2>
-          <div className="flex justify-end mb-4">
-            <FilterButtons value={timeFilter} onChange={setTimeFilter} />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatCard
-              title="Reuniões Feitas"
-              value="145"
-              trend={{ value: 12 }}
-            />
-            <StatCard
-              title="Média por Cliente"
-              value="2.4"
-            />
-            <StatCard
-              title="Média por CS"
-              value="48.3"
-            />
-          </div>
-        </div>
-
         {/* Usage Section */}
         <div>
-          <h2 className="section-title mb-4 flex items-center gap-2">
-            <Activity className="h-4 w-4 text-muted-foreground" />
-            Utilização (Geral)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <StatCard
-              title="Comunicados Enviados"
-              value="45.200"
-              trend={{ value: 15 }}
-            />
-            <StatCard title="% E-mail" value="45%" />
-            <StatCard title="% Teams" value="35%" />
-            <StatCard title="% WhatsApp" value="20%" />
-            <StatCard
-              title="Disparos Totais"
-              value="128.500"
-              trend={{ value: 8 }}
-            />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-title flex items-center gap-2">
+              <Activity className="h-4 w-4 text-muted-foreground" />
+              Utilização (Geral)
+            </h2>
+            <FilterButtons value={usageFilter} onChange={setUsageFilter} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <StatCard
-              title="Usuários na Base"
-              value="156.000"
-              trend={{ value: 5 }}
-            />
-            <StatCard
-              title="Colaboradores Cadastrados"
-              value="98.500"
-              trend={{ value: 3 }}
-            />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
+            <ChartCard title="Comunicados Enviados" subtitle="Por canal">
+              <ChannelBreakdownChart data={generateGeneralChannelData(usageFilter)} />
+            </ChartCard>
+            <ChartCard title="Disparos Totais" subtitle="Por canal">
+              <ChannelBreakdownChart data={generateGeneralDispatchData(usageFilter)} />
+            </ChartCard>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChartCard title="Usuários na Base" subtitle="Evolução ao longo do tempo">
+              <SimpleLineChart data={generateGeneralUsersData(usageFilter)} />
+            </ChartCard>
+            <ChartCard title="Colaboradores Cadastrados" subtitle="Evolução ao longo do tempo">
+              <SimpleLineChart data={generateGeneralCollaboratorsData(usageFilter)} />
+            </ChartCard>
           </div>
         </div>
 
         {/* Support Section */}
         <div>
-          <h2 className="section-title mb-4 flex items-center gap-2">
-            <Headphones className="h-4 w-4 text-muted-foreground" />
-            Suporte
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-title flex items-center gap-2">
+              <Headphones className="h-4 w-4 text-muted-foreground" />
+              Suporte
+            </h2>
+            <FilterButtons value={supportFilter} onChange={setSupportFilter} />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ChartCard title="Chamados Abertos">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{supportTickets.opened.n1}</p>
-                  <p className="text-xs text-muted-foreground">N1</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{supportTickets.opened.n2}</p>
-                  <p className="text-xs text-muted-foreground">N2</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{supportTickets.opened.n3}</p>
-                  <p className="text-xs text-muted-foreground">N3</p>
-                </div>
-              </div>
+            <ChartCard title="Chamados Abertos" subtitle="Por nível">
+              <SupportBreakdownChart data={generateGeneralOpenedTicketsData(supportFilter)} />
             </ChartCard>
-            <ChartCard title="Chamados Fechados">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{supportTickets.closed.n1}</p>
-                  <p className="text-xs text-muted-foreground">N1</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{supportTickets.closed.n2}</p>
-                  <p className="text-xs text-muted-foreground">N2</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{supportTickets.closed.n3}</p>
-                  <p className="text-xs text-muted-foreground">N3</p>
-                </div>
-              </div>
+            <ChartCard title="Chamados Fechados" subtitle="Por nível">
+              <SupportBreakdownChart data={generateGeneralClosedTicketsData(supportFilter)} />
             </ChartCard>
-            <ChartCard title="Backlog">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{supportTickets.backlog.n1}</p>
-                  <p className="text-xs text-muted-foreground">N1</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{supportTickets.backlog.n2}</p>
-                  <p className="text-xs text-muted-foreground">N2</p>
-                </div>
-                <div className="text-center p-4 bg-secondary rounded">
-                  <p className="text-xl font-normal">{supportTickets.backlog.n3}</p>
-                  <p className="text-xs text-muted-foreground">N3</p>
-                </div>
-              </div>
+            <ChartCard title="Backlog" subtitle="Por nível">
+              <SupportBreakdownChart data={generateGeneralBacklogData(supportFilter)} />
             </ChartCard>
           </div>
         </div>

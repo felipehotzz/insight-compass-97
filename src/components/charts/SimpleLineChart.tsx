@@ -166,3 +166,72 @@ export function generateMeetingsData(filter: string): SimpleLineData[] {
 
   return baseData[filter] || baseData.month;
 }
+
+// Aggregate data generators for all customers view (General)
+export function generateGeneralUsersData(filter: string): SimpleLineData[] {
+  const baseData: Record<string, SimpleLineData[]> = {
+    day: [
+      { period: "Seg", value: 155400 },
+      { period: "Ter", value: 155550 },
+      { period: "Qua", value: 155700 },
+      { period: "Qui", value: 155850 },
+      { period: "Sex", value: 156000 },
+    ],
+    week: [
+      { period: "Sem 1", value: 151500 },
+      { period: "Sem 2", value: 153000 },
+      { period: "Sem 3", value: 154500 },
+      { period: "Sem 4", value: 156000 },
+    ],
+    month: [
+      { period: "Jul", value: 144000 },
+      { period: "Ago", value: 147000 },
+      { period: "Set", value: 150000 },
+      { period: "Out", value: 151500 },
+      { period: "Nov", value: 153600 },
+      { period: "Dez", value: 156000 },
+    ],
+    quarter: [
+      { period: "Q1", value: 126000 },
+      { period: "Q2", value: 138000 },
+      { period: "Q3", value: 148500 },
+      { period: "Q4", value: 156000 },
+    ],
+  };
+
+  return baseData[filter] || baseData.month;
+}
+
+export function generateGeneralCollaboratorsData(filter: string): SimpleLineData[] {
+  const baseData: Record<string, SimpleLineData[]> = {
+    day: [
+      { period: "Seg", value: 98100 },
+      { period: "Ter", value: 98200 },
+      { period: "Qua", value: 98300 },
+      { period: "Qui", value: 98400 },
+      { period: "Sex", value: 98500 },
+    ],
+    week: [
+      { period: "Sem 1", value: 96000 },
+      { period: "Sem 2", value: 96800 },
+      { period: "Sem 3", value: 97650 },
+      { period: "Sem 4", value: 98500 },
+    ],
+    month: [
+      { period: "Jul", value: 90000 },
+      { period: "Ago", value: 92400 },
+      { period: "Set", value: 94500 },
+      { period: "Out", value: 96000 },
+      { period: "Nov", value: 97200 },
+      { period: "Dez", value: 98500 },
+    ],
+    quarter: [
+      { period: "Q1", value: 80000 },
+      { period: "Q2", value: 87000 },
+      { period: "Q3", value: 93500 },
+      { period: "Q4", value: 98500 },
+    ],
+  };
+
+  return baseData[filter] || baseData.month;
+}
