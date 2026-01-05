@@ -29,7 +29,7 @@ const Index = () => {
   return (
     <DashboardLayout title="">
       <div className="space-y-6 animate-fade-in">
-        <h1 className="text-2xl font-semibold text-foreground">Visão Geral</h1>
+        <h1 className="text-xl text-foreground">Visão Geral</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartCard title="ARR" subtitle="Evolução mensal">
