@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, MoreHorizontal } from "lucide-react";
+import { Search, MoreHorizontal, Mail, Clock, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -222,6 +222,39 @@ export function UsersSettings() {
     }
   };
 
+  const handleCancelInvite = async (invitationId: string) => {
+    try {
+      const { error } = await supabase
+        .from("invitations")
+        .delete()
+        .eq("id", invitationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Convite cancelado",
+        description: "O convite foi removido com sucesso",
+      });
+
+      fetchInvitations();
+    } catch (error) {
+      console.error("Error canceling invitation:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível cancelar o convite",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -253,7 +286,7 @@ export function UsersSettings() {
             value="invitations"
             className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2"
           >
-            Convites
+            Convites {invitations.length > 0 && `(${invitations.length})`}
           </TabsTrigger>
           <TabsTrigger
             value="collaborators"
@@ -326,83 +359,152 @@ export function UsersSettings() {
         </DialogContent>
       </Dialog>
 
-      {/* Users Table */}
-      <div className="border border-border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-secondary/30">
-              <TableHead className="font-medium">Nome</TableHead>
-              <TableHead className="font-medium">E-mail</TableHead>
-              <TableHead className="font-medium">Perfil</TableHead>
-              <TableHead className="w-12"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8">
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                  </div>
-                </TableCell>
+      {/* Content based on active tab */}
+      {activeTab === "invitations" ? (
+        /* Invitations Table */
+        <div className="border border-border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-secondary/30">
+                <TableHead className="font-medium">E-mail</TableHead>
+                <TableHead className="font-medium">Perfil</TableHead>
+                <TableHead className="font-medium">Enviado em</TableHead>
+                <TableHead className="font-medium">Expira em</TableHead>
+                <TableHead className="w-12"></TableHead>
               </TableRow>
-            ) : filteredUsers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                  Nenhum usuário encontrado
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary/20 text-primary text-xs">
-                          {getInitials(user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <p className="font-medium text-sm">{user.name}</p>
+            </TableHeader>
+            <TableBody>
+              {invitations.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2">
+                      <Mail className="h-8 w-8 text-muted-foreground/50" />
+                      <p>Nenhum convite pendente</p>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">{user.email}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{roleLabels[user.role] || user.role}</span>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "admin")}>
-                          Tornar Admin
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "editor")}>
-                          Tornar Editor
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "viewer")}>
-                          Tornar Visualizador
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "customer_success")}>
-                          Tornar Customer Success
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "growth")}>
-                          Tornar Growth
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                </TableRow>
+              ) : (
+                invitations.map((invitation) => (
+                  <TableRow key={invitation.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-yellow-500/20 text-yellow-600 text-xs">
+                            <Mail className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">{invitation.email}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{roleLabels[invitation.role] || invitation.role}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {formatDate(invitation.created_at)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {formatDate(invitation.expires_at)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => handleCancelInvite(invitation.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        /* Users Table */
+        <div className="border border-border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-secondary/30">
+                <TableHead className="font-medium">Nome</TableHead>
+                <TableHead className="font-medium">E-mail</TableHead>
+                <TableHead className="font-medium">Perfil</TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    Nenhum usuário encontrado
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                            {getInitials(user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <p className="font-medium text-sm">{user.name}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">{user.email}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{roleLabels[user.role] || user.role}</span>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "admin")}>
+                            Tornar Admin
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "editor")}>
+                            Tornar Editor
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "viewer")}>
+                            Tornar Visualizador
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "customer_success")}>
+                            Tornar Customer Success
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleChangeRole(user.user_id, "growth")}>
+                            Tornar Growth
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
