@@ -77,7 +77,7 @@ function parsePercentage(value: string | undefined | null): number | null {
   return isNegative ? -result : result
 }
 
-// Parse date from column header like "jan/22", "fev/23", etc.
+// Parse date from column header like "jan./22", "fev./23", "jan/22", etc.
 function parseMonthYear(header: string): string | null {
   const months: Record<string, string> = {
     'jan': '01', 'fev': '02', 'mar': '03', 'abr': '04',
@@ -85,7 +85,8 @@ function parseMonthYear(header: string): string | null {
     'set': '09', 'out': '10', 'nov': '11', 'dez': '12'
   }
   
-  const match = header.toLowerCase().match(/^(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\/(\d{2})$/)
+  // Match formats: "jan./22", "jan/22", "jan.22"
+  const match = header.toLowerCase().match(/^(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)\.?\/(\d{2})$/)
   if (!match) return null
   
   const month = months[match[1]]
@@ -94,31 +95,59 @@ function parseMonthYear(header: string): string | null {
   return `${year}-${month}-01`
 }
 
-// Map row names to fields
+// Map row names to fields (normalized - lowercase, no special chars at start/end)
 const fieldMapping: Record<string, string> = {
   'mrr': 'mrr',
   'arr': 'arr',
+  // Revenue
+  'gross revenue': 'gross_revenue',
   'receita bruta': 'gross_revenue',
+  'recurring revenue': 'recurring_revenue',
   'receita recorrente': 'recurring_revenue',
+  'non-recurring revenue': 'non_recurring_revenue',
   'receita não recorrente': 'non_recurring_revenue',
+  'revenue taxes': 'revenue_taxes',
   'impostos sobre receita': 'revenue_taxes',
+  'net revenue': 'net_revenue',
   'receita liquida': 'net_revenue',
   'receita líquida': 'net_revenue',
+  // Cost
+  'cost of services': 'cost_of_services',
   'custo dos serviços prestados': 'cost_of_services',
+  '% cos': 'cost_of_services', // skip this one - it's percentage
+  // Gross Profit
+  'gross profit': 'gross_profit',
   'lucro bruto': 'gross_profit',
+  '% gross profit margin': 'gross_profit_margin',
   'margem bruta (%)': 'gross_profit_margin',
+  // Overhead
+  'overhead': 'overhead_sga',
   'overhead sga': 'overhead_sga',
+  'sales & marketing expenses': 'sales_marketing_expenses',
+  'sales & marketing expenses (cac)': 'sales_marketing_expenses',
   'despesas de vendas e marketing': 'sales_marketing_expenses',
+  'general & administrative expenses': 'ga_expenses',
   'despesas gerais e administrativas': 'ga_expenses',
+  // EBITDA
   'ebitda': 'ebitda',
+  '% ebitda margin': 'ebitda_margin',
   'margem ebitda (%)': 'ebitda_margin',
+  // EBIT
   'ebit': 'ebit',
+  'ebit (operating income)': 'ebit',
+  // Net Income
+  'net income': 'net_income',
   'lucro líquido': 'net_income',
   'lucro liquido': 'net_income',
+  // Cash Flow
+  'cash flow from operations': 'cash_flow_operations',
   'fcf de operações': 'cash_flow_operations',
   'fcf de operacoes': 'cash_flow_operations',
   'free cash flow': 'free_cash_flow',
+  'free cash flow (real)': 'free_cash_flow',
+  'cash balance': 'cash_balance',
   'saldo em caixa': 'cash_balance',
+  // Counts
   'nº de clientes ativos': 'customers_count',
   'n de clientes ativos': 'customers_count',
   'numero de clientes ativos': 'customers_count',
@@ -191,23 +220,37 @@ Deno.serve(async (req) => {
       })
     }
 
-    // First line is headers with month columns
-    const headers = lines[0].split(',').map((h: string) => h.trim())
-    console.log('Headers found:', headers)
-    
-    // Find month columns (skip first column which is the row name)
+    // Find the header row (the one that contains month names like "jan./22")
+    // It might not be the first row - try first few rows
+    let headerRowIndex = -1
+    let headers: string[] = []
     const monthColumns: { index: number; date: string }[] = []
-    for (let i = 1; i < headers.length; i++) {
-      const date = parseMonthYear(headers[i])
-      if (date) {
-        monthColumns.push({ index: i, date })
+    
+    for (let rowIdx = 0; rowIdx < Math.min(5, lines.length); rowIdx++) {
+      const potentialHeaders = lines[rowIdx].split(',').map((h: string) => h.trim())
+      const tempMonthCols: { index: number; date: string }[] = []
+      
+      for (let i = 0; i < potentialHeaders.length; i++) {
+        const date = parseMonthYear(potentialHeaders[i])
+        if (date) {
+          tempMonthCols.push({ index: i, date })
+        }
+      }
+      
+      if (tempMonthCols.length > 0) {
+        headerRowIndex = rowIdx
+        headers = potentialHeaders
+        monthColumns.push(...tempMonthCols)
+        break
       }
     }
     
+    console.log('Header row found at index:', headerRowIndex)
+    console.log('Headers sample:', headers.slice(0, 10))
     console.log('Month columns found:', monthColumns.length)
     
     if (monthColumns.length === 0) {
-      return new Response(JSON.stringify({ error: 'No valid month columns found (expected format: jan/22, fev/23, etc.)' }), {
+      return new Response(JSON.stringify({ error: 'No valid month columns found (expected format: jan./22, fev/23, etc.)' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -219,12 +262,20 @@ Deno.serve(async (req) => {
       monthlyData[col.date] = { period_date: col.date }
     }
 
-    // Process each data row
-    for (let i = 1; i < lines.length; i++) {
+    // Process each data row (after header row)
+    for (let i = headerRowIndex + 1; i < lines.length; i++) {
       const cells = lines[i].split(',').map((c: string) => c.trim())
-      const rowName = cells[0]?.toLowerCase().trim()
+      
+      // The metric name could be in column 0 or column 1 (some CSVs have empty first column)
+      let rowName = cells[0]?.toLowerCase().trim()
+      if (!rowName && cells[1]) {
+        rowName = cells[1].toLowerCase().trim()
+      }
       
       if (!rowName) continue
+      
+      // Remove leading/trailing special chars like (=), (-), (+)
+      rowName = rowName.replace(/^[\(\)=\-\+\s]+/, '').replace(/[\(\)=\-\+\s]+$/, '').trim()
       
       const field = fieldMapping[rowName]
       if (!field) {
