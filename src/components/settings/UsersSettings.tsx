@@ -133,8 +133,7 @@ export function UsersSettings() {
           />
         </div>
         <Button size="sm">
-          <UserPlus className="h-4 w-4 mr-2" />
-          Convidar membro
+          Convidar
         </Button>
       </div>
 
