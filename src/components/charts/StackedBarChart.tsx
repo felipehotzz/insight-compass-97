@@ -59,7 +59,7 @@ export function StackedBarChart({
             border: "1px solid hsl(var(--border))",
             borderRadius: "8px",
           }}
-          formatter={(value: number) => [formatValue(value), ""]}
+          formatter={(value: number, name: string) => [formatValue(value), name]}
         />
         <Legend 
           wrapperStyle={{
