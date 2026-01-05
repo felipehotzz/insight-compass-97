@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -17,8 +18,6 @@ import {
   Phone,
   MessageSquare,
   Search,
-  ExternalLink,
-  Calendar,
 } from "lucide-react";
 
 const actionTypes = [
@@ -39,65 +38,59 @@ const customers = [
 const mockActions = [
   {
     id: 1,
-    type: "meeting",
+    type: "Reunião",
+    theme: "Renovação",
     title: "Revisão Trimestral",
     description: "Discussão sobre expansão do contrato",
     customer: "Grendene",
-    date: "2025-12-15",
-    link: "https://meet.google.com/abc-123",
-  },
-  {
-    id: 2,
-    type: "email",
-    title: "Follow-up proposta comercial",
-    description: "Envio de proposta atualizada com novos valores",
-    customer: "Ambev",
     date: "2025-12-14",
   },
   {
-    id: 3,
-    type: "call",
-    title: "Alinhamento de expectativas",
-    description: "Ligação para discutir próximos passos",
-    customer: "CBMM",
-    date: "2025-12-13",
-  },
-  {
-    id: 4,
-    type: "meeting",
+    id: 2,
+    type: "Reunião",
+    theme: "Onboarding",
     title: "Onboarding Novos Usuários",
     description: "Treinamento realizado com sucesso",
     customer: "Grendene",
-    date: "2025-11-20",
-    link: "https://meet.google.com/xyz-456",
+    date: "2025-11-19",
+  },
+  {
+    id: 3,
+    type: "E-mail",
+    theme: "Suporte / Dúvidas",
+    title: "Suporte Técnico",
+    description: "Resolução de dúvidas técnicas",
+    customer: "Ambev",
+    date: "2025-11-09",
+  },
+  {
+    id: 4,
+    type: "Reunião",
+    theme: "Relacionamento",
+    title: "Alinhamento Mensal",
+    description: "Alinhamento de metas e expectativas",
+    customer: "CBMM",
+    date: "2025-10-24",
   },
   {
     id: 5,
-    type: "whatsapp",
-    title: "Confirmação de reunião",
-    description: "Confirmação da data e horário da próxima reunião",
+    type: "E-mail",
+    theme: "Expansão",
+    title: "Proposta Expansão",
+    description: "Envio de proposta de expansão",
     customer: "Localiza",
-    date: "2025-12-12",
+    date: "2025-10-14",
   },
   {
     id: 6,
-    type: "email",
-    title: "Envio de relatório mensal",
-    description: "Relatório de performance do mês de novembro",
+    type: "Ligação",
+    theme: "Suporte / Dúvidas",
+    title: "Follow-up Suporte",
+    description: "Acompanhamento de chamado",
     customer: "Natura",
-    date: "2025-12-10",
+    date: "2025-10-10",
   },
 ];
-
-const getActionIcon = (type: string) => {
-  const actionType = actionTypes.find((a) => a.id === type);
-  return actionType?.icon || Video;
-};
-
-const getActionLabel = (type: string) => {
-  const actionType = actionTypes.find((a) => a.id === type);
-  return actionType?.label || "Ação";
-};
 
 const ActionRegistry = () => {
   const navigate = useNavigate();
@@ -119,6 +112,7 @@ const ActionRegistry = () => {
     <DashboardLayout title="">
       <div className="space-y-6 animate-fade-in">
         <h1 className="text-2xl font-semibold text-foreground">Registro de Ações</h1>
+        
         {/* Header with filters and add button */}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full sm:w-auto">
@@ -138,7 +132,7 @@ const ActionRegistry = () => {
               <SelectContent>
                 <SelectItem value="all">Todos os tipos</SelectItem>
                 {actionTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id}>
+                  <SelectItem key={type.id} value={type.label}>
                     {type.label}
                   </SelectItem>
                 ))}
@@ -167,64 +161,43 @@ const ActionRegistry = () => {
 
         {/* Counter */}
         <p className="text-sm text-muted-foreground">
-          {mockActions.length} ações registradas
+          {filteredActions.length} ações registradas
         </p>
 
-        {/* Actions list */}
-        <div className="glass-card divide-y divide-border">
-          {filteredActions.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              Nenhuma ação encontrada
+        {/* Actions list - same style as CustomerDetail */}
+        <div className="glass-card p-5">
+          <div className="space-y-0">
+            <div className="grid grid-cols-5 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+              <span>Ação</span>
+              <span>Cliente</span>
+              <span>Tipo</span>
+              <span>Tema</span>
+              <span className="text-right">Data</span>
             </div>
-          ) : (
-            filteredActions.map((action) => {
-              const Icon = getActionIcon(action.type);
-              return (
-                <div
-                  key={action.id}
-                  className="flex items-start gap-4 p-4 hover:bg-secondary/30 transition-colors cursor-pointer"
-                  onClick={() => navigate(`/actions/new?edit=${action.id}`)}
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground/60 shrink-0">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h4 className="font-medium">{action.title}</h4>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          {action.description}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        {action.link && (
-                          <a
-                            href={action.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-foreground transition-colors"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary">
-                        {getActionLabel(action.type)}
-                      </span>
-                      <span>{action.customer}</span>
-                      <span className="inline-flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {action.date}
-                      </span>
-                    </div>
-                  </div>
+            <div className="divide-y divide-border">
+              {filteredActions.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  Nenhuma ação encontrada
                 </div>
-              );
-            })
-          )}
+              ) : (
+                filteredActions.map((action) => (
+                  <div 
+                    key={action.id} 
+                    className="grid grid-cols-5 gap-4 px-2 py-3 cursor-pointer hover:bg-secondary/30 transition-colors"
+                    onClick={() => navigate(`/actions/new?edit=${action.id}`)}
+                  >
+                    <span className="text-sm font-medium truncate">{action.title}</span>
+                    <span className="text-sm text-muted-foreground truncate">{action.customer}</span>
+                    <Badge variant="outline" className="w-fit text-xs">{action.type}</Badge>
+                    <Badge variant="secondary" className="w-fit text-xs">{action.theme}</Badge>
+                    <span className="text-sm text-muted-foreground text-right">
+                      {new Date(action.date).toLocaleDateString("pt-BR")}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>
