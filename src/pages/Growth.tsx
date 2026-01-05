@@ -172,31 +172,150 @@ const ForecastTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-// Sparkline data for each metric
-const conversionsHistory = [
-  { value: 120 }, { value: 135 }, { value: 128 }, { value: 142 }, 
-  { value: 138 }, { value: 145 }, { value: 156 }
-];
+// Historical data by time period
+const metricsData = {
+  day: {
+    conversions: [
+      { name: "Seg", value: 18 }, { name: "Ter", value: 22 }, { name: "Qua", value: 25 },
+      { name: "Qui", value: 20 }, { name: "Sex", value: 28 }, { name: "Sáb", value: 12 }, { name: "Dom", value: 8 }
+    ],
+    opportunitiesCreated: [
+      { name: "Seg", value: 4 }, { name: "Ter", value: 6 }, { name: "Qua", value: 5 },
+      { name: "Qui", value: 7 }, { name: "Sex", value: 8 }, { name: "Sáb", value: 2 }, { name: "Dom", value: 0 }
+    ],
+    opportunitiesOpen: [
+      { name: "Seg", value: 42 }, { name: "Ter", value: 44 }, { name: "Qua", value: 45 },
+      { name: "Qui", value: 43 }, { name: "Sex", value: 47 }, { name: "Sáb", value: 47 }, { name: "Dom", value: 47 }
+    ],
+    pipelineGenerated: [
+      { name: "Seg", value: 120000 }, { name: "Ter", value: 180000 }, { name: "Qua", value: 95000 },
+      { name: "Qui", value: 210000 }, { name: "Sex", value: 245000 }, { name: "Sáb", value: 0 }, { name: "Dom", value: 0 }
+    ],
+    pipelineTotal: [
+      { name: "Seg", value: 1950000 }, { name: "Ter", value: 2010000 }, { name: "Qua", value: 2050000 },
+      { name: "Qui", value: 2080000 }, { name: "Sex", value: 2150000 }, { name: "Sáb", value: 2150000 }, { name: "Dom", value: 2150000 }
+    ]
+  },
+  week: {
+    conversions: [
+      { name: "Sem 1", value: 32 }, { name: "Sem 2", value: 38 }, { name: "Sem 3", value: 42 },
+      { name: "Sem 4", value: 44 }
+    ],
+    opportunitiesCreated: [
+      { name: "Sem 1", value: 6 }, { name: "Sem 2", value: 8 }, { name: "Sem 3", value: 9 },
+      { name: "Sem 4", value: 9 }
+    ],
+    opportunitiesOpen: [
+      { name: "Sem 1", value: 38 }, { name: "Sem 2", value: 42 }, { name: "Sem 3", value: 45 },
+      { name: "Sem 4", value: 47 }
+    ],
+    pipelineGenerated: [
+      { name: "Sem 1", value: 180000 }, { name: "Sem 2", value: 220000 }, { name: "Sem 3", value: 210000 },
+      { name: "Sem 4", value: 240000 }
+    ],
+    pipelineTotal: [
+      { name: "Sem 1", value: 1780000 }, { name: "Sem 2", value: 1920000 }, { name: "Sem 3", value: 2010000 },
+      { name: "Sem 4", value: 2150000 }
+    ]
+  },
+  month: {
+    conversions: [
+      { name: "Jul", value: 120 }, { name: "Ago", value: 135 }, { name: "Set", value: 128 },
+      { name: "Out", value: 142 }, { name: "Nov", value: 145 }, { name: "Dez", value: 156 }
+    ],
+    opportunitiesCreated: [
+      { name: "Jul", value: 22 }, { name: "Ago", value: 28 }, { name: "Set", value: 25 },
+      { name: "Out", value: 30 }, { name: "Nov", value: 27 }, { name: "Dez", value: 32 }
+    ],
+    opportunitiesOpen: [
+      { name: "Jul", value: 38 }, { name: "Ago", value: 42 }, { name: "Set", value: 45 },
+      { name: "Out", value: 40 }, { name: "Nov", value: 44 }, { name: "Dez", value: 47 }
+    ],
+    pipelineGenerated: [
+      { name: "Jul", value: 620000 }, { name: "Ago", value: 710000 }, { name: "Set", value: 680000 },
+      { name: "Out", value: 750000 }, { name: "Nov", value: 820000 }, { name: "Dez", value: 850000 }
+    ],
+    pipelineTotal: [
+      { name: "Jul", value: 1650000 }, { name: "Ago", value: 1780000 }, { name: "Set", value: 1850000 },
+      { name: "Out", value: 1920000 }, { name: "Nov", value: 2080000 }, { name: "Dez", value: 2150000 }
+    ]
+  },
+  quarter: {
+    conversions: [
+      { name: "Q1 2025", value: 380 }, { name: "Q2 2025", value: 420 }, { name: "Q3 2025", value: 405 },
+      { name: "Q4 2025", value: 443 }
+    ],
+    opportunitiesCreated: [
+      { name: "Q1 2025", value: 68 }, { name: "Q2 2025", value: 82 }, { name: "Q3 2025", value: 75 },
+      { name: "Q4 2025", value: 89 }
+    ],
+    opportunitiesOpen: [
+      { name: "Q1 2025", value: 35 }, { name: "Q2 2025", value: 38 }, { name: "Q3 2025", value: 42 },
+      { name: "Q4 2025", value: 47 }
+    ],
+    pipelineGenerated: [
+      { name: "Q1 2025", value: 1850000 }, { name: "Q2 2025", value: 2100000 }, { name: "Q3 2025", value: 2010000 },
+      { name: "Q4 2025", value: 2420000 }
+    ],
+    pipelineTotal: [
+      { name: "Q1 2025", value: 1420000 }, { name: "Q2 2025", value: 1650000 }, { name: "Q3 2025", value: 1850000 },
+      { name: "Q4 2025", value: 2150000 }
+    ]
+  }
+};
 
-const opportunitiesCreatedHistory = [
-  { value: 22 }, { value: 28 }, { value: 25 }, { value: 30 }, 
-  { value: 27 }, { value: 35 }, { value: 32 }
-];
+interface MetricChartCardProps {
+  title: string;
+  data: { name: string; value: number }[];
+  formatValue?: (value: number) => string;
+  color?: string;
+  currentValue: string;
+  trend?: { value: number };
+}
 
-const opportunitiesOpenHistory = [
-  { value: 38 }, { value: 42 }, { value: 45 }, { value: 40 }, 
-  { value: 44 }, { value: 49 }, { value: 47 }
-];
-
-const pipelineGeneratedHistory = [
-  { value: 620000 }, { value: 710000 }, { value: 680000 }, { value: 750000 }, 
-  { value: 790000 }, { value: 820000 }, { value: 850000 }
-];
-
-const pipelineTotalHistory = [
-  { value: 1650000 }, { value: 1780000 }, { value: 1850000 }, { value: 1920000 }, 
-  { value: 2010000 }, { value: 2080000 }, { value: 2150000 }
-];
+const MetricChartCard = ({ title, data, formatValue, color = "hsl(var(--primary))", currentValue, trend }: MetricChartCardProps) => {
+  return (
+    <div className="glass-card p-4">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{title}</p>
+        {trend && (
+          <span className="text-xs text-muted-foreground">
+            {trend.value > 0 ? "+" : ""}{trend.value}%
+          </span>
+        )}
+      </div>
+      <p className="text-2xl font-semibold mb-3">{currentValue}</p>
+      <div className="h-32">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+            <XAxis 
+              dataKey="name" 
+              stroke="hsl(var(--muted-foreground))" 
+              fontSize={10} 
+              tickLine={false} 
+              axisLine={false}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--popover))', 
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+                fontSize: '12px'
+              }}
+              formatter={(value: number) => [formatValue ? formatValue(value) : value, '']}
+              labelStyle={{ color: 'hsl(var(--foreground))' }}
+            />
+            <Bar 
+              dataKey="value" 
+              fill={color} 
+              radius={[3, 3, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
 
 const Growth = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
@@ -204,6 +323,8 @@ const Growth = () => {
 
   const totalCommit = forecastByMonth.reduce((sum, m) => sum + m.commit, 0);
   const totalBestCase = forecastByMonth.reduce((sum, m) => sum + m.bestCase, 0);
+  
+  const currentData = metricsData[timeFilter];
 
   const handleBarClick = (data: any) => {
     if (data && data.activePayload) {
@@ -222,34 +343,41 @@ const Growth = () => {
           <FilterButtons value={timeFilter} onChange={setTimeFilter} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <StatCard
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <MetricChartCard
             title="Conversões Forms"
-            value="156"
+            data={currentData.conversions}
+            currentValue="156"
             trend={{ value: 12 }}
-            sparklineData={conversionsHistory}
+            color="hsl(200 70% 50%)"
           />
-          <StatCard
+          <MetricChartCard
             title="Oportunidades Criadas"
-            value="32"
+            data={currentData.opportunitiesCreated}
+            currentValue="32"
             trend={{ value: 8 }}
-            sparklineData={opportunitiesCreatedHistory}
+            color="hsl(142 71% 45%)"
           />
-          <StatCard
+          <MetricChartCard
             title="Oportunidades Abertas"
-            value="47"
-            sparklineData={opportunitiesOpenHistory}
+            data={currentData.opportunitiesOpen}
+            currentValue="47"
+            color="hsl(38 92% 50%)"
           />
-          <StatCard
+          <MetricChartCard
             title="Pipeline Gerado (R$)"
-            value={formatCurrency(850000)}
+            data={currentData.pipelineGenerated}
+            formatValue={(v) => `R$ ${formatCurrency(v)}`}
+            currentValue={formatCurrency(850000)}
             trend={{ value: 15 }}
-            sparklineData={pipelineGeneratedHistory}
+            color="hsl(280 70% 55%)"
           />
-          <StatCard
+          <MetricChartCard
             title="Pipeline Total (R$)"
-            value={formatCurrency(2150000)}
-            sparklineData={pipelineTotalHistory}
+            data={currentData.pipelineTotal}
+            formatValue={(v) => `R$ ${formatCurrency(v)}`}
+            currentValue={formatCurrency(2150000)}
+            color="hsl(var(--primary))"
           />
         </div>
 
