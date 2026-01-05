@@ -17,7 +17,7 @@ import {
 } from "@/data/mockData";
 
 const formatCurrency = (value: number) =>
-  `R$ ${value.toLocaleString("pt-BR")}`;
+  value.toLocaleString("pt-BR");
 
 const Customers = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
@@ -72,7 +72,7 @@ const Customers = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="$ por Plano">
+          <ChartCard title="$ por Plano (R$)">
             <HorizontalBarChart
               data={customersByPlan.map(p => ({ name: p.name, value: p.amount }))}
               formatValue={formatCurrency}
@@ -80,7 +80,7 @@ const Customers = () => {
               height={200}
             />
           </ChartCard>
-          <ChartCard title="$ por CS">
+          <ChartCard title="$ por CS (R$)">
             <HorizontalBarChart
               data={customersByCS.map(c => ({ name: c.name, value: c.amount }))}
               formatValue={formatCurrency}
@@ -104,7 +104,7 @@ const Customers = () => {
                   <span className="text-xl font-normal">{renewals.next30.total}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Valor</span>
+                  <span className="text-muted-foreground text-sm">Valor (R$)</span>
                   <span className="text-lg font-normal">{formatCurrency(renewals.next30.value)}</span>
                 </div>
                 <div className="h-px bg-border" />
@@ -127,7 +127,7 @@ const Customers = () => {
                   <span className="text-xl font-normal">{renewals.next90.total}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Valor</span>
+                  <span className="text-muted-foreground text-sm">Valor (R$)</span>
                   <span className="text-lg font-normal">{formatCurrency(renewals.next90.value)}</span>
                 </div>
                 <div className="h-px bg-border" />
@@ -150,7 +150,7 @@ const Customers = () => {
                   <span className="text-xl font-normal">{renewals.next180.total}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Valor</span>
+                  <span className="text-muted-foreground text-sm">Valor (R$)</span>
                   <span className="text-lg font-normal">{formatCurrency(renewals.next180.value)}</span>
                 </div>
                 <div className="h-px bg-border" />

@@ -19,7 +19,7 @@ import { customerDetail } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 
 const formatCurrency = (value: number) =>
-  `R$ ${value.toLocaleString("pt-BR")}`;
+  value.toLocaleString("pt-BR");
 
 const CustomerDetail = () => {
   const [searchParams] = useSearchParams();
@@ -33,7 +33,7 @@ const CustomerDetail = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
-            title="Valor do Contrato"
+            title="Valor do Contrato (R$)"
             value={formatCurrency(customer.contractValue)}
           />
           <StatCard
@@ -41,7 +41,7 @@ const CustomerDetail = () => {
             value={`${customer.monthsAsCustomer} meses`}
           />
           <StatCard
-            title="LTV Total"
+            title="LTV Total (R$)"
             value={formatCurrency(customer.ltv)}
           />
           <StatCard
