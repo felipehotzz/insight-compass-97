@@ -10,6 +10,31 @@ interface FinancialRow {
   [key: string]: string | number | null | undefined
 }
 
+// Parse CSV line respecting quoted values (handles commas inside quotes)
+function parseCSVLine(line: string): string[] {
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim())
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  
+  // Don't forget the last field
+  result.push(current.trim())
+  
+  return result
+}
+
 // Parse number handling BR format (1.234,56) and US format (1,234.56)
 // Also handles negative values in parentheses like (1.234,56)
 function parseNumber(value: string | undefined | null): number | null {
@@ -120,11 +145,14 @@ const fieldMapping: Record<string, string> = {
   'lucro bruto': 'gross_profit',
   '% gross profit margin': 'gross_profit_margin',
   'margem bruta (%)': 'gross_profit_margin',
-  // Overhead
+  // Overhead - handle truncated names from CSV parsing
   'overhead': 'overhead_sga',
   'overhead sga': 'overhead_sga',
+  'overhead (sg&a)': 'overhead_sga',
+  'overhead (sg&a': 'overhead_sga', // truncated
   'sales & marketing expenses': 'sales_marketing_expenses',
   'sales & marketing expenses (cac)': 'sales_marketing_expenses',
+  'sales & marketing expenses (cac': 'sales_marketing_expenses', // truncated
   'despesas de vendas e marketing': 'sales_marketing_expenses',
   'general & administrative expenses': 'ga_expenses',
   'despesas gerais e administrativas': 'ga_expenses',
@@ -135,6 +163,7 @@ const fieldMapping: Record<string, string> = {
   // EBIT
   'ebit': 'ebit',
   'ebit (operating income)': 'ebit',
+  'ebit (operating income': 'ebit', // truncated
   // Net Income
   'net income': 'net_income',
   'lucro líquido': 'net_income',
@@ -145,6 +174,7 @@ const fieldMapping: Record<string, string> = {
   'fcf de operacoes': 'cash_flow_operations',
   'free cash flow': 'free_cash_flow',
   'free cash flow (real)': 'free_cash_flow',
+  'free cash flow (real': 'free_cash_flow', // truncated
   'cash balance': 'cash_balance',
   'saldo em caixa': 'cash_balance',
   // Counts
@@ -227,7 +257,7 @@ Deno.serve(async (req) => {
     const monthColumns: { index: number; date: string }[] = []
     
     for (let rowIdx = 0; rowIdx < Math.min(5, lines.length); rowIdx++) {
-      const potentialHeaders = lines[rowIdx].split(',').map((h: string) => h.trim())
+      const potentialHeaders = parseCSVLine(lines[rowIdx])
       const tempMonthCols: { index: number; date: string }[] = []
       
       for (let i = 0; i < potentialHeaders.length; i++) {
@@ -264,7 +294,7 @@ Deno.serve(async (req) => {
 
     // Process each data row (after header row)
     for (let i = headerRowIndex + 1; i < lines.length; i++) {
-      const cells = lines[i].split(',').map((c: string) => c.trim())
+      const cells = parseCSVLine(lines[i])
       
       // The metric name could be in column 0 or column 1 (some CSVs have empty first column)
       let rowName = cells[0]?.toLowerCase().trim()
