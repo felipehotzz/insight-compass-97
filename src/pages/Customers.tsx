@@ -663,10 +663,10 @@ const Customers = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
             <ChartCard title="Comunicados Enviados" subtitle="Por canal">
-              <ChannelBreakdownChart data={generateGeneralChannelData(usageFilter)} />
+              <ChannelBreakdownChart data={generateGeneralChannelData(usageFilter)} showAverage />
             </ChartCard>
             <ChartCard title="Disparos Totais" subtitle="Por canal">
-              <ChannelBreakdownChart data={generateGeneralDispatchData(usageFilter)} />
+              <ChannelBreakdownChart data={generateGeneralDispatchData(usageFilter)} showAverage />
             </ChartCard>
           </div>
 
