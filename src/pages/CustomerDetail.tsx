@@ -7,7 +7,8 @@ import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons"
 import { CustomerSelector } from "@/components/dashboard/CustomerSelector";
 import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from "@/components/charts/ChannelBreakdownChart";
 import { SupportBreakdownChart, generateOpenedTicketsData, generateClosedTicketsData, generateBacklogData } from "@/components/charts/SupportBreakdownChart";
-import { SimpleLineChart, generateUsersData, generateCollaboratorsData, generateMeetingsData } from "@/components/charts/SimpleLineChart";
+import { SimpleLineChart, generateUsersData, generateCollaboratorsData } from "@/components/charts/SimpleLineChart";
+import { ActionBreakdownChart, generateActionsData } from "@/components/charts/ActionBreakdownChart";
 import {
   Mail,
   Phone,
@@ -117,8 +118,8 @@ const CustomerDetail = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <ChartCard title="Reuniões Feitas" subtitle="Evolução ao longo do tempo">
-              <SimpleLineChart data={generateMeetingsData(timeFilter)} />
+            <ChartCard title="Ações Feitas" subtitle="Por tipo de ação">
+              <ActionBreakdownChart data={generateActionsData(timeFilter)} />
             </ChartCard>
             <div className="glass-card p-5">
               <div className="flex items-center justify-between mb-3">
