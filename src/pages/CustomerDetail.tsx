@@ -50,7 +50,7 @@ const CustomerDetail = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
-            title="Valor do Contrato (R$)"
+            title="R$ Contrato"
             value={formatCurrency(customer.contractValue)}
           />
           <StatCard
@@ -58,7 +58,7 @@ const CustomerDetail = () => {
             value={formatCurrency(customer.ltv)}
           />
           <StatCard
-            title="Tempo como Cliente"
+            title="Tempo Ativo"
             value={`${customer.monthsAsCustomer} meses`}
           />
           <StatCard
