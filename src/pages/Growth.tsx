@@ -172,6 +172,32 @@ const ForecastTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+// Sparkline data for each metric
+const conversionsHistory = [
+  { value: 120 }, { value: 135 }, { value: 128 }, { value: 142 }, 
+  { value: 138 }, { value: 145 }, { value: 156 }
+];
+
+const opportunitiesCreatedHistory = [
+  { value: 22 }, { value: 28 }, { value: 25 }, { value: 30 }, 
+  { value: 27 }, { value: 35 }, { value: 32 }
+];
+
+const opportunitiesOpenHistory = [
+  { value: 38 }, { value: 42 }, { value: 45 }, { value: 40 }, 
+  { value: 44 }, { value: 49 }, { value: 47 }
+];
+
+const pipelineGeneratedHistory = [
+  { value: 620000 }, { value: 710000 }, { value: 680000 }, { value: 750000 }, 
+  { value: 790000 }, { value: 820000 }, { value: 850000 }
+];
+
+const pipelineTotalHistory = [
+  { value: 1650000 }, { value: 1780000 }, { value: 1850000 }, { value: 1920000 }, 
+  { value: 2010000 }, { value: 2080000 }, { value: 2150000 }
+];
+
 const Growth = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
   const [selectedMonth, setSelectedMonth] = useState<typeof forecastByMonth[0] | null>(null);
@@ -201,24 +227,29 @@ const Growth = () => {
             title="Conversões Forms"
             value="156"
             trend={{ value: 12 }}
+            sparklineData={conversionsHistory}
           />
           <StatCard
             title="Oportunidades Criadas"
             value="32"
             trend={{ value: 8 }}
+            sparklineData={opportunitiesCreatedHistory}
           />
           <StatCard
             title="Oportunidades Abertas"
             value="47"
+            sparklineData={opportunitiesOpenHistory}
           />
           <StatCard
             title="Pipeline Gerado (R$)"
             value={formatCurrency(850000)}
             trend={{ value: 15 }}
+            sparklineData={pipelineGeneratedHistory}
           />
           <StatCard
             title="Pipeline Total (R$)"
             value={formatCurrency(2150000)}
+            sparklineData={pipelineTotalHistory}
           />
         </div>
 
