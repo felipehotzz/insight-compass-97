@@ -22,6 +22,7 @@ import {
   Tag,
   Users,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -30,6 +31,7 @@ const actionTypes = [
   { id: "email", label: "E-mail", icon: Mail },
   { id: "call", label: "Ligação", icon: Phone },
   { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
+  { id: "renewal", label: "Renovação", icon: RefreshCw },
 ];
 
 const customers = [
