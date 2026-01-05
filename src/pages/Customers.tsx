@@ -507,10 +507,9 @@ const Customers = () => {
                     {/* Em tratativa section */}
                     {ongoingRenewals.length > 0 && (
                       <>
-                        <div className="px-4 py-2 bg-secondary/50 border-y border-border">
-                          <Badge variant="secondary" className="text-xs">
-                            {ongoingRenewals.length} Em tratativa
-                          </Badge>
+                        <div className="px-4 py-3 bg-primary/10 border-l-4 border-l-primary">
+                          <span className="text-sm font-semibold text-primary">Em tratativa</span>
+                          <span className="ml-2 text-xs text-muted-foreground">({ongoingRenewals.length})</span>
                         </div>
                         <div className="divide-y divide-border">
                           {ongoingRenewals.map((renewal) => (
@@ -532,10 +531,9 @@ const Customers = () => {
                     {/* Não iniciado section */}
                     {notStartedRenewals.length > 0 && (
                       <>
-                        <div className="px-4 py-2 bg-secondary/50 border-y border-border">
-                          <Badge variant="outline" className="text-xs">
-                            {notStartedRenewals.length} Não iniciado
-                          </Badge>
+                        <div className="px-4 py-3 bg-muted/50 border-l-4 border-l-muted-foreground">
+                          <span className="text-sm font-semibold text-muted-foreground">Não iniciado</span>
+                          <span className="ml-2 text-xs text-muted-foreground">({notStartedRenewals.length})</span>
                         </div>
                         <div className="divide-y divide-border">
                           {notStartedRenewals.map((renewal) => (
