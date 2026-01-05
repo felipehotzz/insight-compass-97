@@ -144,7 +144,7 @@ const Customers = () => {
                 height={280}
               />
             </ChartCard>
-            <ChartCard title="Evolução por Plano">
+            <ChartCard title="Nº de Clientes por Plano">
               <StackedBarChart
                 data={planCompositionData}
                 series={planSeries}
@@ -154,18 +154,11 @@ const Customers = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartCard title="Clientes por Produto">
             <SimpleBarChart
               data={customersByProduct}
               color="hsl(0 0% 65%)"
-              height={220}
-            />
-          </ChartCard>
-          <ChartCard title="Clientes por Plano">
-            <SimpleBarChart
-              data={customersByPlan}
-              color="hsl(0 0% 55%)"
               height={220}
             />
           </ChartCard>
