@@ -85,27 +85,6 @@ const Customers = () => {
   return (
     <DashboardLayout title="Clientes">
       <div className="space-y-6 animate-fade-in">
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <StatCard
-            title="Total de Clientes"
-            value={totalClients}
-            trend={{ value: 7 }}
-          />
-          <StatCard
-            title="Por Produto"
-            value={customersByProduct.length + " produtos"}
-          />
-          <StatCard
-            title="Por Plano"
-            value={customersByPlan.length + " planos"}
-          />
-          <StatCard
-            title="Por CS"
-            value={customersByCS.length + " CSs"}
-          />
-        </div>
-
         {/* Customer Composition Charts */}
         <div>
           <h2 className="section-title mb-4 flex items-center gap-2">
