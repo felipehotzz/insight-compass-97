@@ -132,3 +132,37 @@ export function generateCollaboratorsData(filter: string): SimpleLineData[] {
 
   return baseData[filter] || baseData.month;
 }
+
+export function generateMeetingsData(filter: string): SimpleLineData[] {
+  const baseData: Record<string, SimpleLineData[]> = {
+    day: [
+      { period: "Seg", value: 2 },
+      { period: "Ter", value: 3 },
+      { period: "Qua", value: 1 },
+      { period: "Qui", value: 2 },
+      { period: "Sex", value: 4 },
+    ],
+    week: [
+      { period: "Sem 1", value: 8 },
+      { period: "Sem 2", value: 10 },
+      { period: "Sem 3", value: 9 },
+      { period: "Sem 4", value: 12 },
+    ],
+    month: [
+      { period: "Jul", value: 8 },
+      { period: "Ago", value: 10 },
+      { period: "Set", value: 9 },
+      { period: "Out", value: 11 },
+      { period: "Nov", value: 10 },
+      { period: "Dez", value: 12 },
+    ],
+    quarter: [
+      { period: "Q1", value: 28 },
+      { period: "Q2", value: 32 },
+      { period: "Q3", value: 35 },
+      { period: "Q4", value: 39 },
+    ],
+  };
+
+  return baseData[filter] || baseData.month;
+}

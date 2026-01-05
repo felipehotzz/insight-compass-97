@@ -7,7 +7,7 @@ import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons"
 import { CustomerSelector } from "@/components/dashboard/CustomerSelector";
 import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from "@/components/charts/ChannelBreakdownChart";
 import { SupportBreakdownChart, generateOpenedTicketsData, generateClosedTicketsData, generateBacklogData } from "@/components/charts/SupportBreakdownChart";
-import { SimpleLineChart, generateUsersData, generateCollaboratorsData } from "@/components/charts/SimpleLineChart";
+import { SimpleLineChart, generateUsersData, generateCollaboratorsData, generateMeetingsData } from "@/components/charts/SimpleLineChart";
 import {
   Mail,
   Phone,
@@ -97,46 +97,40 @@ const CustomerDetail = () => {
 
         {/* Relationship Section */}
         <div>
-          <h2 className="section-title mb-4">Relacionamento</h2>
-          <div className="flex justify-end mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-title">Relacionamento</h2>
             <FilterButtons value={timeFilter} onChange={setTimeFilter} />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <StatCard
-              title="Reuniões Feitas"
-              value="12"
-              trend={{ value: 20 }}
-            />
-            <StatCard
-              title="E-mails Proativos"
-              value="28"
-            />
-          </div>
-
-          <ChartCard title="Registro de Reuniões">
-            <div className="space-y-4">
-              {customer.meetings.map((meeting, index) => (
-                <div key={index} className="flex items-start gap-4 p-4 bg-secondary/50 rounded">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-foreground/60">
-                    <Video className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{meeting.title}</h4>
-                      <span className="text-sm text-muted-foreground">{meeting.date}</span>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <ChartCard title="Reuniões Feitas" subtitle="Evolução ao longo do tempo">
+              <SimpleLineChart data={generateMeetingsData(timeFilter)} />
+            </ChartCard>
+            <ChartCard title="Registro de Reuniões" subtitle="Últimas reuniões">
+              <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
+                {customer.meetings.map((meeting, index) => (
+                  <div key={index} className="flex items-center gap-3 p-2 bg-secondary/30 rounded hover:bg-secondary/50 transition-colors">
+                    <Video className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="text-sm font-medium truncate">{meeting.title}</h4>
+                        <span className="text-xs text-muted-foreground shrink-0">{meeting.date}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{meeting.notes}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{meeting.notes}</p>
-                    <Button variant="ghost" size="sm" className="mt-2 text-muted-foreground hover:text-foreground" asChild>
-                      <a href={meeting.link} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Ver gravação
-                      </a>
-                    </Button>
+                    <a 
+                      href={meeting.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
                   </div>
-                </div>
-              ))}
-            </div>
-          </ChartCard>
+                ))}
+              </div>
+            </ChartCard>
+          </div>
         </div>
 
         {/* Usage Section */}
