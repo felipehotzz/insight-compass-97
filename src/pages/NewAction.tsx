@@ -22,7 +22,14 @@ import {
   Tag,
   Users,
   X,
+  FolderOpen,
   RefreshCw,
+  TrendingUp,
+  UserPlus,
+  Shield,
+  HelpCircle,
+  Wrench,
+  Heart,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -31,7 +38,16 @@ const actionTypes = [
   { id: "email", label: "E-mail", icon: Mail },
   { id: "call", label: "Ligação", icon: Phone },
   { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
-  { id: "renewal", label: "Renovação", icon: RefreshCw },
+];
+
+const categories = [
+  { id: "renovacao", label: "Renovação", icon: RefreshCw },
+  { id: "expansao", label: "Expansão", icon: TrendingUp },
+  { id: "onboarding", label: "Onboarding", icon: UserPlus },
+  { id: "contencao", label: "Contenção", icon: Shield },
+  { id: "suporte", label: "Suporte / Dúvidas", icon: HelpCircle },
+  { id: "tecnica", label: "Técnica", icon: Wrench },
+  { id: "relacionamento", label: "Relacionamento", icon: Heart },
 ];
 
 const customers = [
@@ -57,6 +73,7 @@ const NewAction = () => {
 
   const [customer, setCustomer] = useState(preselectedCustomer);
   const [actionType, setActionType] = useState("");
+  const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [content, setContent] = useState("");
@@ -155,6 +172,28 @@ const NewAction = () => {
                     <div className="flex items-center gap-2">
                       <type.icon className="h-4 w-4" />
                       {type.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-3 group">
+            <div className="flex items-center gap-2 text-muted-foreground w-28">
+              <FolderOpen className="h-4 w-4" />
+              <span>Categoria</span>
+            </div>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-auto min-w-[160px] border-none bg-transparent hover:bg-secondary/50 h-8 px-2">
+                <SelectValue placeholder="Selecionar..." />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    <div className="flex items-center gap-2">
+                      <cat.icon className="h-4 w-4" />
+                      {cat.label}
                     </div>
                   </SelectItem>
                 ))}
