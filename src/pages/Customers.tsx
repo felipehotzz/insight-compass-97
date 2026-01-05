@@ -191,9 +191,21 @@ const Customers = () => {
   const [usageFilter, setUsageFilter] = useState<TimeFilter>("month");
   const [supportFilter, setSupportFilter] = useState<TimeFilter>("month");
   const [renewalsOpen, setRenewalsOpen] = useState(false);
+  const [renewalsPeriod, setRenewalsPeriod] = useState<"30" | "90" | "180">("30");
 
   const customerCompositionData = getCustomerCompositionData(compositionFilter);
   const planCompositionData = getPlanCompositionData(compositionFilter);
+
+  // Filter renewals by period
+  const filteredRenewals = renewalsList.filter(r => {
+    if (renewalsPeriod === "30") return r.period === "30";
+    if (renewalsPeriod === "90") return r.period === "30" || r.period === "90";
+    return true; // 180 shows all
+  });
+
+  // Group by status
+  const ongoingRenewals = filteredRenewals.filter(r => r.status === "ongoing");
+  const notStartedRenewals = filteredRenewals.filter(r => r.status === "not_started");
 
   return (
     <DashboardLayout title="">
@@ -274,29 +286,55 @@ const Customers = () => {
 
         {/* Renewals Section */}
         <div>
-          <h2 className="section-title mb-4 flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            Renovações
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="section-title flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              Renovações
+            </h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setRenewalsPeriod("30")}
+                className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                  renewalsPeriod === "30"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                30 dias
+              </button>
+              <button
+                onClick={() => setRenewalsPeriod("90")}
+                className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                  renewalsPeriod === "90"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                90 dias
+              </button>
+              <button
+                onClick={() => setRenewalsPeriod("180")}
+                className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                  renewalsPeriod === "180"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                180 dias
+              </button>
+            </div>
+          </div>
           <div className="glass-card">
             <Collapsible open={renewalsOpen} onOpenChange={setRenewalsOpen}>
               <CollapsibleTrigger className="w-full">
                 <div className="flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors rounded-t">
                   <div className="flex items-center gap-4">
-                    <span className="text-sm font-medium">{renewalsList.length} renovações pendentes</span>
+                    <span className="text-sm font-medium">{filteredRenewals.length} renovações pendentes</span>
                     <span className="text-sm text-muted-foreground">
-                      R$ {formatCurrency(renewalsList.reduce((sum, r) => sum + r.contractValue, 0))} em contratos
+                      R$ {formatCurrency(filteredRenewals.reduce((sum, r) => sum + r.contractValue, 0))} em contratos
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className="flex gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {renewalsList.filter(r => r.status === "ongoing").length} Em tratativa
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {renewalsList.filter(r => r.status === "not_started").length} Não iniciado
-                      </Badge>
-                    </div>
                     {renewalsOpen ? (
                       <ChevronUp className="h-4 w-4 text-muted-foreground" />
                     ) : (
@@ -308,33 +346,62 @@ const Customers = () => {
               <CollapsibleContent>
                 <div className="border-t border-border">
                   {/* Header */}
-                  <div className="grid grid-cols-4 gap-4 px-4 py-2 bg-secondary/30 text-xs font-medium text-muted-foreground uppercase">
+                  <div className="grid grid-cols-3 gap-4 px-4 py-2 bg-secondary/30 text-xs font-medium text-muted-foreground uppercase">
                     <span>Cliente</span>
                     <span>Valor do Contrato</span>
                     <span>Data de Renovação</span>
-                    <span>Status</span>
                   </div>
-                  {/* List */}
-                  <div className="divide-y divide-border max-h-96 overflow-y-auto">
-                    {renewalsList.map((renewal) => (
-                      <div 
-                        key={renewal.id} 
-                        className="grid grid-cols-4 gap-4 px-4 py-3 hover:bg-secondary/20 transition-colors items-center"
-                      >
-                        <span className="text-sm font-medium">{renewal.customer}</span>
-                        <span className="text-sm">R$ {formatCurrency(renewal.contractValue)}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(renewal.renewalDate).toLocaleDateString("pt-BR")}
-                        </span>
-                        <div>
-                          {renewal.status === "ongoing" ? (
-                            <Badge variant="secondary" className="text-xs">Em tratativa</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">Não iniciado</Badge>
-                          )}
+                  {/* List grouped by status */}
+                  <div className="max-h-[500px] overflow-y-auto">
+                    {/* Em tratativa section */}
+                    {ongoingRenewals.length > 0 && (
+                      <>
+                        <div className="px-4 py-2 bg-secondary/50 border-y border-border">
+                          <Badge variant="secondary" className="text-xs">
+                            {ongoingRenewals.length} Em tratativa
+                          </Badge>
                         </div>
-                      </div>
-                    ))}
+                        <div className="divide-y divide-border">
+                          {ongoingRenewals.map((renewal) => (
+                            <div 
+                              key={renewal.id} 
+                              className="grid grid-cols-3 gap-4 px-4 py-3 hover:bg-secondary/20 transition-colors items-center"
+                            >
+                              <span className="text-sm font-medium">{renewal.customer}</span>
+                              <span className="text-sm">R$ {formatCurrency(renewal.contractValue)}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {new Date(renewal.renewalDate).toLocaleDateString("pt-BR")}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Não iniciado section */}
+                    {notStartedRenewals.length > 0 && (
+                      <>
+                        <div className="px-4 py-2 bg-secondary/50 border-y border-border">
+                          <Badge variant="outline" className="text-xs">
+                            {notStartedRenewals.length} Não iniciado
+                          </Badge>
+                        </div>
+                        <div className="divide-y divide-border">
+                          {notStartedRenewals.map((renewal) => (
+                            <div 
+                              key={renewal.id} 
+                              className="grid grid-cols-3 gap-4 px-4 py-3 hover:bg-secondary/20 transition-colors items-center"
+                            >
+                              <span className="text-sm font-medium">{renewal.customer}</span>
+                              <span className="text-sm">R$ {formatCurrency(renewal.contractValue)}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {new Date(renewal.renewalDate).toLocaleDateString("pt-BR")}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </CollapsibleContent>
