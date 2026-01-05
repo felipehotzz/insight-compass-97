@@ -53,12 +53,12 @@ const CustomerDetail = () => {
             value={formatCurrency(customer.contractValue)}
           />
           <StatCard
-            title="Tempo como Cliente"
-            value={`${customer.monthsAsCustomer} meses`}
-          />
-          <StatCard
             title="LTV Total (R$)"
             value={formatCurrency(customer.ltv)}
+          />
+          <StatCard
+            title="Tempo como Cliente"
+            value={`${customer.monthsAsCustomer} meses`}
           />
           <StatCard
             title="Plano Atual"
