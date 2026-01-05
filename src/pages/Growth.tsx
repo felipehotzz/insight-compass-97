@@ -343,20 +343,13 @@ const Growth = () => {
           <FilterButtons value={timeFilter} onChange={setTimeFilter} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricChartCard
             title="Conversões Forms"
             data={currentData.conversions}
             currentValue="156"
             trend={{ value: 12 }}
             color="hsl(200 70% 50%)"
-          />
-          <MetricChartCard
-            title="Oportunidades Criadas"
-            data={currentData.opportunitiesCreated}
-            currentValue="32"
-            trend={{ value: 8 }}
-            color="hsl(142 71% 45%)"
           />
           <MetricChartCard
             title="Oportunidades Abertas"
