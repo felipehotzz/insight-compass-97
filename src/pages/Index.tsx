@@ -1,6 +1,7 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { MonthlyLineChart } from "@/components/charts/MonthlyLineChart";
+import { StackedBarChart } from "@/components/charts/StackedBarChart";
 import {
   arrData,
   clientsData,
@@ -12,6 +13,18 @@ import {
 const formatCurrency = (value: number) =>
   `${(value / 1000).toFixed(0)}K`;
 
+const arrSeries = [
+  { key: "novo", name: "Novo ARR", color: "hsl(var(--color-success))" },
+  { key: "mantido", name: "ARR Mantido", color: "hsl(var(--color-overview))" },
+  { key: "churn", name: "Churn", color: "hsl(var(--color-danger))" },
+];
+
+const clientsSeries = [
+  { key: "novo", name: "Novos", color: "hsl(var(--color-success))" },
+  { key: "mantido", name: "Mantidos", color: "hsl(var(--color-overview))" },
+  { key: "churn", name: "Churn", color: "hsl(var(--color-danger))" },
+];
+
 const Index = () => {
   return (
     <DashboardLayout title="">
@@ -20,18 +33,20 @@ const Index = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartCard title="ARR" subtitle="Evolução mensal">
-            <MonthlyLineChart
+            <StackedBarChart
               data={arrData}
+              series={arrSeries}
+              height={300}
+              xAxisKey="month"
               formatValue={formatCurrency}
-              previousDataKey="previousValue"
-              color="hsl(var(--color-overview))"
             />
           </ChartCard>
           <ChartCard title="Nº de Clientes" subtitle="Evolução mensal">
-            <MonthlyLineChart
+            <StackedBarChart
               data={clientsData}
-              previousDataKey="previousValue"
-              color="hsl(var(--color-overview))"
+              series={clientsSeries}
+              height={300}
+              xAxisKey="month"
             />
           </ChartCard>
         </div>

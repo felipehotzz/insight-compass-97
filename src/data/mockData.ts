@@ -1,20 +1,20 @@
 // General Metrics Data
 export const arrData = [
-  { month: "Jul", value: 1200000, previousValue: 1100000 },
-  { month: "Ago", value: 1280000, previousValue: 1150000 },
-  { month: "Set", value: 1350000, previousValue: 1200000 },
-  { month: "Out", value: 1420000, previousValue: 1280000 },
-  { month: "Nov", value: 1500000, previousValue: 1350000 },
-  { month: "Dez", value: 1580000, previousValue: 1400000 },
+  { month: "Jul", mantido: 1050000, novo: 180000, churn: -30000 },
+  { month: "Ago", mantido: 1100000, novo: 210000, churn: -30000 },
+  { month: "Set", mantido: 1180000, novo: 200000, churn: -30000 },
+  { month: "Out", mantido: 1250000, novo: 200000, churn: -30000 },
+  { month: "Nov", mantido: 1320000, novo: 210000, churn: -30000 },
+  { month: "Dez", mantido: 1380000, novo: 230000, churn: -30000 },
 ];
 
 export const clientsData = [
-  { month: "Jul", value: 42, previousValue: 38 },
-  { month: "Ago", value: 45, previousValue: 40 },
-  { month: "Set", value: 48, previousValue: 42 },
-  { month: "Out", value: 52, previousValue: 45 },
-  { month: "Nov", value: 56, previousValue: 48 },
-  { month: "Dez", value: 60, previousValue: 52 },
+  { month: "Jul", mantido: 38, novo: 5, churn: -1 },
+  { month: "Ago", mantido: 41, novo: 5, churn: -1 },
+  { month: "Set", mantido: 44, novo: 5, churn: -1 },
+  { month: "Out", mantido: 47, novo: 6, churn: -1 },
+  { month: "Nov", mantido: 51, novo: 6, churn: -1 },
+  { month: "Dez", mantido: 55, novo: 6, churn: -1 },
 ];
 
 export const grossMarginData = [
