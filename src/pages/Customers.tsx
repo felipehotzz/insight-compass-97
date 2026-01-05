@@ -8,11 +8,16 @@ import { StackedBarChart } from "@/components/charts/StackedBarChart";
 import { ChannelBreakdownChart, generateGeneralChannelData, generateGeneralDispatchData } from "@/components/charts/ChannelBreakdownChart";
 import { SupportBreakdownChart, generateGeneralOpenedTicketsData, generateGeneralClosedTicketsData, generateGeneralBacklogData } from "@/components/charts/SupportBreakdownChart";
 import { SimpleLineChart, generateGeneralUsersData, generateGeneralCollaboratorsData } from "@/components/charts/SimpleLineChart";
-import { Calendar, Headphones, MessageSquare, Activity } from "lucide-react";
+import { Calendar, Headphones, Activity, ChevronDown, ChevronUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   customersByPlan,
   customersByCS,
-  renewals,
   ticketsByType,
   ticketsByCustomer,
 } from "@/data/mockData";
@@ -131,6 +136,44 @@ const getBottomCustomersByCommunications = (filter: TimeFilter) => {
   return data[filter] || data.month;
 };
 
+// Mock data for renewals list
+type RenewalStatus = "ongoing" | "not_started";
+
+interface RenewalItem {
+  id: number;
+  customer: string;
+  contractValue: number;
+  renewalDate: string;
+  status: RenewalStatus;
+  period: "30" | "90" | "180";
+}
+
+const renewalsList: RenewalItem[] = [
+  // Next 30 days
+  { id: 1, customer: "Grendene", contractValue: 45000, renewalDate: "2026-01-20", status: "ongoing", period: "30" },
+  { id: 2, customer: "Syngenta", contractValue: 38000, renewalDate: "2026-01-25", status: "ongoing", period: "30" },
+  { id: 3, customer: "CBMM", contractValue: 32000, renewalDate: "2026-01-28", status: "not_started", period: "30" },
+  { id: 4, customer: "Alpargatas", contractValue: 28000, renewalDate: "2026-02-01", status: "ongoing", period: "30" },
+  { id: 5, customer: "SESC Nacional", contractValue: 22000, renewalDate: "2026-02-03", status: "not_started", period: "30" },
+  { id: 6, customer: "Metro BH", contractValue: 15000, renewalDate: "2026-02-05", status: "not_started", period: "30" },
+  // Next 90 days
+  { id: 7, customer: "Softplan", contractValue: 52000, renewalDate: "2026-02-15", status: "ongoing", period: "90" },
+  { id: 8, customer: "Eucatex", contractValue: 41000, renewalDate: "2026-02-28", status: "ongoing", period: "90" },
+  { id: 9, customer: "Caixa Consórcios", contractValue: 35000, renewalDate: "2026-03-10", status: "not_started", period: "90" },
+  { id: 10, customer: "CJ do Brasil", contractValue: 29000, renewalDate: "2026-03-20", status: "ongoing", period: "90" },
+  { id: 11, customer: "TechCorp", contractValue: 48000, renewalDate: "2026-03-25", status: "not_started", period: "90" },
+  { id: 12, customer: "InnovateBR", contractValue: 36000, renewalDate: "2026-04-01", status: "not_started", period: "90" },
+  { id: 13, customer: "DataSolutions", contractValue: 42000, renewalDate: "2026-04-05", status: "ongoing", period: "90" },
+  // Next 180 days
+  { id: 14, customer: "CloudBR", contractValue: 55000, renewalDate: "2026-04-20", status: "ongoing", period: "180" },
+  { id: 15, customer: "FinanceHub", contractValue: 62000, renewalDate: "2026-05-01", status: "not_started", period: "180" },
+  { id: 16, customer: "RetailMax", contractValue: 38000, renewalDate: "2026-05-15", status: "ongoing", period: "180" },
+  { id: 17, customer: "LogisTech", contractValue: 44000, renewalDate: "2026-05-28", status: "not_started", period: "180" },
+  { id: 18, customer: "HealthPlus", contractValue: 51000, renewalDate: "2026-06-10", status: "ongoing", period: "180" },
+  { id: 19, customer: "EduTech", contractValue: 33000, renewalDate: "2026-06-20", status: "not_started", period: "180" },
+  { id: 20, customer: "AgriSmart", contractValue: 47000, renewalDate: "2026-06-30", status: "ongoing", period: "180" },
+];
+
 const customerSeries = [
   { key: "novos", name: "Novos", color: "hsl(142 71% 45%)" },
   { key: "mantidos", name: "Mantidos", color: "hsl(0 0% 55%)" },
@@ -147,6 +190,7 @@ const Customers = () => {
   const [compositionFilter, setCompositionFilter] = useState<CompositionFilter>("month");
   const [usageFilter, setUsageFilter] = useState<TimeFilter>("month");
   const [supportFilter, setSupportFilter] = useState<TimeFilter>("month");
+  const [renewalsOpen, setRenewalsOpen] = useState(false);
 
   const customerCompositionData = getCustomerCompositionData(compositionFilter);
   const planCompositionData = getPlanCompositionData(compositionFilter);
@@ -234,76 +278,67 @@ const Customers = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
             Renovações
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ChartCard title="Próximos 30 dias">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Total</span>
-                  <span className="text-xl font-normal">{renewals.next30.total}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Valor (R$)</span>
-                  <span className="text-lg font-normal">{formatCurrency(renewals.next30.value)}</span>
-                </div>
-                <div className="h-px bg-border" />
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-secondary rounded">
-                    <p className="text-xl font-normal">{renewals.next30.inProgress}</p>
-                    <p className="text-xs text-muted-foreground">Em tratativa</p>
+          <div className="glass-card">
+            <Collapsible open={renewalsOpen} onOpenChange={setRenewalsOpen}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors rounded-t">
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-medium">{renewalsList.length} renovações pendentes</span>
+                    <span className="text-sm text-muted-foreground">
+                      R$ {formatCurrency(renewalsList.reduce((sum, r) => sum + r.contractValue, 0))} em contratos
+                    </span>
                   </div>
-                  <div className="text-center p-3 bg-secondary rounded">
-                    <p className="text-xl font-normal">{renewals.next30.notStarted}</p>
-                    <p className="text-xs text-muted-foreground">Não iniciado</p>
-                  </div>
-                </div>
-              </div>
-            </ChartCard>
-            <ChartCard title="Próximos 90 dias">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Total</span>
-                  <span className="text-xl font-normal">{renewals.next90.total}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Valor (R$)</span>
-                  <span className="text-lg font-normal">{formatCurrency(renewals.next90.value)}</span>
-                </div>
-                <div className="h-px bg-border" />
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-secondary rounded">
-                    <p className="text-xl font-normal">{renewals.next90.inProgress}</p>
-                    <p className="text-xs text-muted-foreground">Em tratativa</p>
-                  </div>
-                  <div className="text-center p-3 bg-secondary rounded">
-                    <p className="text-xl font-normal">{renewals.next90.notStarted}</p>
-                    <p className="text-xs text-muted-foreground">Não iniciado</p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {renewalsList.filter(r => r.status === "ongoing").length} Em tratativa
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {renewalsList.filter(r => r.status === "not_started").length} Não iniciado
+                      </Badge>
+                    </div>
+                    {renewalsOpen ? (
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
                   </div>
                 </div>
-              </div>
-            </ChartCard>
-            <ChartCard title="Próximos 180 dias">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Total</span>
-                  <span className="text-xl font-normal">{renewals.next180.total}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-sm">Valor (R$)</span>
-                  <span className="text-lg font-normal">{formatCurrency(renewals.next180.value)}</span>
-                </div>
-                <div className="h-px bg-border" />
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-secondary rounded">
-                    <p className="text-xl font-normal">{renewals.next180.inProgress}</p>
-                    <p className="text-xs text-muted-foreground">Em tratativa</p>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="border-t border-border">
+                  {/* Header */}
+                  <div className="grid grid-cols-4 gap-4 px-4 py-2 bg-secondary/30 text-xs font-medium text-muted-foreground uppercase">
+                    <span>Cliente</span>
+                    <span>Valor do Contrato</span>
+                    <span>Data de Renovação</span>
+                    <span>Status</span>
                   </div>
-                  <div className="text-center p-3 bg-secondary rounded">
-                    <p className="text-xl font-normal">{renewals.next180.notStarted}</p>
-                    <p className="text-xs text-muted-foreground">Não iniciado</p>
+                  {/* List */}
+                  <div className="divide-y divide-border max-h-96 overflow-y-auto">
+                    {renewalsList.map((renewal) => (
+                      <div 
+                        key={renewal.id} 
+                        className="grid grid-cols-4 gap-4 px-4 py-3 hover:bg-secondary/20 transition-colors items-center"
+                      >
+                        <span className="text-sm font-medium">{renewal.customer}</span>
+                        <span className="text-sm">R$ {formatCurrency(renewal.contractValue)}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(renewal.renewalDate).toLocaleDateString("pt-BR")}
+                        </span>
+                        <div>
+                          {renewal.status === "ongoing" ? (
+                            <Badge variant="secondary" className="text-xs">Em tratativa</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">Não iniciado</Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            </ChartCard>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         </div>
 
