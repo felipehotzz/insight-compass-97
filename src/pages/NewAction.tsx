@@ -17,12 +17,9 @@ import {
   Mail,
   Phone,
   MessageSquare,
-  Save,
-  Link as LinkIcon,
-  FileText,
-  Type,
-  List,
-  Image,
+  Calendar,
+  Building2,
+  Tag,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -64,7 +61,6 @@ const NewAction = () => {
       return;
     }
 
-    // Mock save - would connect to backend
     toast({
       title: "Ação salva",
       description: "A ação foi registrada com sucesso.",
@@ -72,154 +68,99 @@ const NewAction = () => {
     navigate("/actions");
   };
 
-  const getActionTypeIcon = () => {
-    const type = actionTypes.find((t) => t.id === actionType);
-    return type ? <type.icon className="h-5 w-5" /> : null;
-  };
-
   return (
     <DashboardLayout title="Nova Ação">
-      <div className="animate-fade-in">
-        {/* Top bar */}
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
+      <div className="animate-fade-in max-w-3xl mx-auto py-8">
+        {/* Minimal top bar */}
+        <div className="flex items-center justify-between mb-12">
+          <button
             onClick={() => navigate("/actions")}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 inline mr-1" />
             Voltar
-          </Button>
-          <Button onClick={handleSave} disabled={!isValid}>
-            <Save className="h-4 w-4 mr-2" />
-            Salvar Ação
+          </button>
+          <Button size="sm" onClick={handleSave} disabled={!isValid}>
+            Salvar
           </Button>
         </div>
 
-        {/* Main content area */}
-        <div className="max-w-3xl mx-auto">
-          {/* Required fields header */}
-          <div className="glass-card p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Cliente *
-                </label>
-                <Select value={customer} onValueChange={setCustomer}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => (
-                      <SelectItem key={c.id} value={c.name}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* Title input - Notion style */}
+        <input
+          type="text"
+          placeholder="Sem título"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full text-4xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/40 mb-8"
+        />
 
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Tipo de Ação *
-                </label>
-                <Select value={actionType} onValueChange={setActionType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {actionTypes.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
-                        <div className="flex items-center gap-2">
-                          <type.icon className="h-4 w-4" />
-                          {type.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Título *
-                </label>
-                <Input
-                  placeholder="Ex: Reunião de alinhamento trimestral"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="text-lg font-medium"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Data *
-                </label>
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-end">
-                {actionType && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    {getActionTypeIcon()}
-                    <span className="text-sm">
-                      {actionTypes.find((t) => t.id === actionType)?.label}
-                    </span>
-                  </div>
-                )}
-              </div>
+        {/* Properties row - inline like Notion */}
+        <div className="space-y-3 mb-8 text-sm">
+          <div className="flex items-center gap-3 group">
+            <div className="flex items-center gap-2 text-muted-foreground w-28">
+              <Building2 className="h-4 w-4" />
+              <span>Cliente</span>
             </div>
+            <Select value={customer} onValueChange={setCustomer}>
+              <SelectTrigger className="w-auto min-w-[160px] border-none bg-transparent hover:bg-secondary/50 h-8 px-2">
+                <SelectValue placeholder="Selecionar..." />
+              </SelectTrigger>
+              <SelectContent>
+                {customers.map((c) => (
+                  <SelectItem key={c.id} value={c.name}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Notion-like content area */}
-          <div className="glass-card p-6">
-            <div className="mb-4">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
-                Conteúdo
-              </p>
-              
-              {/* Toolbar */}
-              <div className="flex items-center gap-1 pb-4 border-b border-border mb-4">
-                <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                  <Type className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                  <LinkIcon className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                  <Image className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground">
-                  <FileText className="h-4 w-4" />
-                </Button>
-              </div>
+          <div className="flex items-center gap-3 group">
+            <div className="flex items-center gap-2 text-muted-foreground w-28">
+              <Tag className="h-4 w-4" />
+              <span>Tipo</span>
             </div>
+            <Select value={actionType} onValueChange={setActionType}>
+              <SelectTrigger className="w-auto min-w-[160px] border-none bg-transparent hover:bg-secondary/50 h-8 px-2">
+                <SelectValue placeholder="Selecionar..." />
+              </SelectTrigger>
+              <SelectContent>
+                {actionTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    <div className="flex items-center gap-2">
+                      <type.icon className="h-4 w-4" />
+                      {type.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            {/* Content editor */}
-            <Textarea
-              placeholder="Comece a escrever aqui...
-
-Você pode adicionar:
-• Notas da reunião ou conversa
-• Links importantes
-• Transcrição de áudio/vídeo
-• Próximos passos acordados
-• Qualquer informação relevante"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="min-h-[400px] resize-none border-0 p-0 focus-visible:ring-0 text-base leading-relaxed placeholder:text-muted-foreground/50"
+          <div className="flex items-center gap-3 group">
+            <div className="flex items-center gap-2 text-muted-foreground w-28">
+              <Calendar className="h-4 w-4" />
+              <span>Data</span>
+            </div>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-auto border-none bg-transparent hover:bg-secondary/50 h-8 px-2"
             />
           </div>
         </div>
+
+        {/* Divider */}
+        <div className="border-t border-border my-6" />
+
+        {/* Content area - clean like Notion */}
+        <Textarea
+          placeholder="Comece a escrever aqui..."
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="w-full min-h-[50vh] resize-none border-none bg-transparent p-0 focus-visible:ring-0 text-base leading-relaxed placeholder:text-muted-foreground/40"
+        />
       </div>
     </DashboardLayout>
   );
