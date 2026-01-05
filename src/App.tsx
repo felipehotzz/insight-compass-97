@@ -23,8 +23,8 @@ function AppContent() {
       <GlobalSearch open={open} onOpenChange={setOpen} />
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/growth" element={<Growth />} />
-        <Route path="/presence" element={<Presence />} />
+        <Route path="/pipeline" element={<Growth />} />
+        <Route path="/growth" element={<Presence />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/customer-detail" element={<CustomerDetail />} />
         <Route path="/actions" element={<ActionRegistry />} />
