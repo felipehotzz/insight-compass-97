@@ -628,12 +628,12 @@ const Customers = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartCard title="Volume por Tipo de Chamado">
-            <div className="space-y-0">
+            <div className="flex flex-col h-[320px]">
               <div className="grid grid-cols-2 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
                 <span>Tipo</span>
                 <span className="text-right">Quantidade</span>
               </div>
-              <div className="divide-y divide-border max-h-[280px] overflow-y-auto">
+              <div className="divide-y divide-border flex-1 overflow-y-auto">
                 {[...ticketsByType].sort((a, b) => b.value - a.value).map((ticket) => (
                   <div key={ticket.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
                     <span className="text-sm font-medium">{ticket.name}</span>
@@ -641,19 +641,19 @@ const Customers = () => {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20">
+              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20 mt-auto">
                 <span className="text-sm font-medium">Total</span>
                 <span className="text-sm font-medium text-right">{ticketsByType.reduce((sum, t) => sum + t.value, 0)}</span>
               </div>
             </div>
           </ChartCard>
           <ChartCard title="Chamados por Cliente">
-            <div className="space-y-0">
+            <div className="flex flex-col h-[320px]">
               <div className="grid grid-cols-2 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
                 <span>Cliente</span>
                 <span className="text-right">Chamados</span>
               </div>
-              <div className="divide-y divide-border max-h-[280px] overflow-y-auto">
+              <div className="divide-y divide-border flex-1 overflow-y-auto">
                 {[...ticketsByCustomer].sort((a, b) => b.value - a.value).map((customer) => (
                   <div key={customer.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
                     <span className="text-sm font-medium">{customer.name}</span>
@@ -661,7 +661,7 @@ const Customers = () => {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20">
+              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20 mt-auto">
                 <span className="text-sm font-medium">Total</span>
                 <span className="text-sm font-medium text-right">{ticketsByCustomer.reduce((sum, c) => sum + c.value, 0)}</span>
               </div>
