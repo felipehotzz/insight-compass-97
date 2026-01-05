@@ -5,6 +5,7 @@ import {
   Share2,
   Users,
   UserCircle,
+  ClipboardList,
 } from "lucide-react";
 
 const navigation = [
@@ -13,6 +14,7 @@ const navigation = [
   { name: "Presença & Mídias", href: "/presence", icon: Share2 },
   { name: "Clientes", href: "/customers", icon: Users },
   { name: "Raio-X Cliente", href: "/customer-detail", icon: UserCircle },
+  { name: "Registro de Ações", href: "/actions", icon: ClipboardList },
 ];
 
 export function Sidebar() {
