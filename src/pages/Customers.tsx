@@ -331,15 +331,15 @@ const customersByCSDetails: Record<string, { name: string; plan: string; contrac
 };
 
 const customerSeries = [
-  { key: "novos", name: "Novos", color: "hsl(142 71% 45%)" },
-  { key: "mantidos", name: "Mantidos", color: "hsl(0 0% 55%)" },
-  { key: "churn", name: "Churn", color: "hsl(0 84% 60%)" },
+  { key: "novos", name: "Novos", color: "hsl(var(--color-success))" },
+  { key: "mantidos", name: "Mantidos", color: "hsl(var(--color-customers))" },
+  { key: "churn", name: "Churn", color: "hsl(var(--color-danger))" },
 ];
 
 const planSeries = [
-  { key: "starter", name: "Starter", color: "hsl(0 0% 45%)" },
-  { key: "pro", name: "Pro", color: "hsl(0 0% 60%)" },
-  { key: "enterprise", name: "Enterprise", color: "hsl(0 0% 75%)" },
+  { key: "starter", name: "Starter", color: "hsl(var(--color-customers-alt))" },
+  { key: "pro", name: "Pro", color: "hsl(var(--color-customers))" },
+  { key: "enterprise", name: "Enterprise", color: "hsl(var(--color-growth-alt))" },
 ];
 
 const Customers = () => {
@@ -703,14 +703,14 @@ const Customers = () => {
             <ChartCard title="Top Clientes" subtitle="Mais comunicados enviados">
               <HorizontalBarChart
                 data={getTopCustomersByCommunications(usageFilter)}
-                color="hsl(142 71% 45%)"
+                color="hsl(var(--color-usage))"
                 height={200}
               />
             </ChartCard>
             <ChartCard title="Bottom Clientes" subtitle="Menos comunicados enviados">
               <HorizontalBarChart
                 data={getBottomCustomersByCommunications(usageFilter)}
-                color="hsl(0 84% 60%)"
+                color="hsl(var(--color-danger))"
                 height={200}
               />
             </ChartCard>

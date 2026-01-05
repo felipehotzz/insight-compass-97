@@ -85,20 +85,20 @@ export function SupportBreakdownChart({ data, height = 280 }: SupportBreakdownCh
           dataKey="n1" 
           name="N1" 
           stackId="a" 
-          fill="hsl(0 0% 70%)" 
+          fill="hsl(var(--color-support))" 
           radius={[0, 0, 0, 0]}
         />
         <Bar 
           dataKey="n2" 
           name="N2" 
           stackId="a" 
-          fill="hsl(0 0% 50%)" 
+          fill="hsl(var(--color-growth-alt))" 
         />
         <Bar 
           dataKey="n3" 
           name="N3" 
           stackId="a" 
-          fill="hsl(0 0% 35%)" 
+          fill="hsl(var(--color-danger))" 
           radius={[3, 3, 0, 0]}
         />
       </BarChart>
