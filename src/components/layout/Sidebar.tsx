@@ -12,8 +12,8 @@ import logoImg from "@/assets/logo-comunica.png";
 
 const navigation = [
   { name: "Visão Geral", href: "/", icon: BarChart3 },
-  { name: "Pipeline", href: "/growth", icon: TrendingUp },
-  { name: "Growth", href: "/presence", icon: Share2 },
+  { name: "Pipeline", href: "/pipeline", icon: TrendingUp },
+  { name: "Growth", href: "/growth", icon: Share2 },
   { name: "Clientes", href: "/customers", icon: Users },
   { name: "Raio-X", href: "/customer-detail", icon: UserCircle },
   { name: "Ações", href: "/actions", icon: ClipboardList },
