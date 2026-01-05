@@ -60,11 +60,14 @@ export function UsersSettings() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("editor");
   const [users, setUsers] = useState<UserWithRole[]>([]);
+  const [invitations, setInvitations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [inviteLoading, setInviteLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchUsers();
+    fetchInvitations();
   }, []);
 
   const fetchUsers = async () => {
@@ -102,6 +105,21 @@ export function UsersSettings() {
     }
   };
 
+  const fetchInvitations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("invitations")
+        .select("*")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setInvitations(data || []);
+    } catch (error) {
+      console.error("Error fetching invitations:", error);
+    }
+  };
+
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -109,16 +127,74 @@ export function UsersSettings() {
     return matchesSearch;
   });
 
-  const handleInvite = () => {
-    // TODO: Implement invite logic with edge function
-    console.log("Inviting:", inviteEmail, "with role:", inviteRole);
-    toast({
-      title: "Convite enviado",
-      description: `Convite enviado para ${inviteEmail}`,
-    });
-    setInviteEmail("");
-    setInviteRole("editor");
-    setIsInviteModalOpen(false);
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite pelo menos um e-mail",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setInviteLoading(true);
+
+    try {
+      const emails = inviteEmail.split(",").map((e) => e.trim()).filter((e) => e);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para enviar convites",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await supabase.functions.invoke("send-invite", {
+        body: {
+          emails,
+          role: inviteRole,
+          invitedBy: session.user.id,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      const { results } = response.data;
+      
+      const sent = results.filter((r: any) => r.status === "sent").length;
+      const alreadyInvited = results.filter((r: any) => r.status === "already_invited").length;
+      const alreadyRegistered = results.filter((r: any) => r.status === "already_registered").length;
+
+      let description = "";
+      if (sent > 0) description += `${sent} convite(s) enviado(s). `;
+      if (alreadyInvited > 0) description += `${alreadyInvited} já convidado(s). `;
+      if (alreadyRegistered > 0) description += `${alreadyRegistered} já cadastrado(s).`;
+
+      toast({
+        title: sent > 0 ? "Convites enviados!" : "Atenção",
+        description: description || "Nenhum convite foi enviado",
+        variant: sent > 0 ? "default" : "destructive",
+      });
+
+      setInviteEmail("");
+      setInviteRole("editor");
+      setIsInviteModalOpen(false);
+      fetchInvitations();
+    } catch (error: any) {
+      console.error("Error sending invites:", error);
+      toast({
+        title: "Erro ao enviar convites",
+        description: error.message || "Tente novamente mais tarde",
+        variant: "destructive",
+      });
+    } finally {
+      setInviteLoading(false);
+    }
   };
 
   const handleChangeRole = async (userId: string, newRole: string) => {
@@ -240,11 +316,11 @@ export function UsersSettings() {
             </div>
           </div>
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setIsInviteModalOpen(false)}>
+            <Button variant="outline" onClick={() => setIsInviteModalOpen(false)} disabled={inviteLoading}>
               Cancelar
             </Button>
-            <Button onClick={handleInvite}>
-              Convidar
+            <Button onClick={handleInvite} disabled={inviteLoading}>
+              {inviteLoading ? "Enviando..." : "Convidar"}
             </Button>
           </div>
         </DialogContent>
