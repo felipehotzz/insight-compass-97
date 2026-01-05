@@ -1,14 +1,7 @@
 import { useState } from "react";
-import { Search, Download, UserPlus, MoreHorizontal } from "lucide-react";
+import { Search, UserPlus, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -77,15 +70,13 @@ const mockUsers = [
 
 export function UsersSettings() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
 
   const filteredUsers = mockUsers.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter;
-    return matchesSearch && matchesRole;
+    return matchesSearch;
   });
 
   const getInitials = (name: string) => {
@@ -132,38 +123,19 @@ export function UsersSettings() {
 
       {/* Filters and Actions */}
       <div className="flex items-center justify-between gap-4 mb-4">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Todos os papéis" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os papéis</SelectItem>
-              <SelectItem value="owner">Owner</SelectItem>
-              <SelectItem value="colaborador">Colaborador</SelectItem>
-              <SelectItem value="viewer">Viewer</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
-          </Button>
-          <Button size="sm">
-            <UserPlus className="h-4 w-4 mr-2" />
-            Convidar membro
-          </Button>
-        </div>
+        <Button size="sm">
+          <UserPlus className="h-4 w-4 mr-2" />
+          Convidar membro
+        </Button>
       </div>
 
       {/* Users Table */}
