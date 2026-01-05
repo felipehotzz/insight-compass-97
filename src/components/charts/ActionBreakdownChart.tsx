@@ -29,10 +29,10 @@ interface ActionBreakdownChartProps {
 }
 
 const legendItems = [
-  { name: "Reunião", color: "hsl(0 0% 70%)" },
-  { name: "E-mail", color: "hsl(0 0% 55%)" },
-  { name: "Ligação", color: "hsl(0 0% 45%)" },
-  { name: "WhatsApp", color: "hsl(0 0% 35%)" },
+  { name: "Reunião", color: "hsl(var(--color-growth))" },
+  { name: "E-mail", color: "hsl(var(--color-overview))" },
+  { name: "Ligação", color: "hsl(var(--color-community))" },
+  { name: "WhatsApp", color: "hsl(var(--color-success))" },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -138,26 +138,26 @@ export function ActionBreakdownChart({ data, height = 280 }: ActionBreakdownChar
             dataKey="reuniao" 
             name="Reunião" 
             stackId="a" 
-            fill="hsl(0 0% 70%)" 
+            fill="hsl(var(--color-growth))" 
             radius={[0, 0, 0, 0]}
           />
           <Bar 
             dataKey="email" 
             name="E-mail" 
             stackId="a" 
-            fill="hsl(0 0% 55%)" 
+            fill="hsl(var(--color-overview))" 
           />
           <Bar 
             dataKey="ligacao" 
             name="Ligação" 
             stackId="a" 
-            fill="hsl(0 0% 45%)" 
+            fill="hsl(var(--color-community))" 
           />
           <Bar 
             dataKey="whatsapp" 
             name="WhatsApp" 
             stackId="a" 
-            fill="hsl(0 0% 35%)" 
+            fill="hsl(var(--color-success))" 
             radius={[3, 3, 0, 0]}
           />
         </BarChart>
