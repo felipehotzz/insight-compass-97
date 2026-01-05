@@ -154,22 +154,13 @@ const Customers = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Clientes por Produto">
-            <SimpleBarChart
-              data={customersByProduct}
-              color="hsl(0 0% 65%)"
-              height={220}
-            />
-          </ChartCard>
-          <ChartCard title="Clientes por CS">
-            <SimpleBarChart
-              data={customersByCS}
-              color="hsl(0 0% 50%)"
-              height={220}
-            />
-          </ChartCard>
-        </div>
+        <ChartCard title="Clientes por CS">
+          <SimpleBarChart
+            data={customersByCS}
+            color="hsl(0 0% 50%)"
+            height={220}
+          />
+        </ChartCard>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChartCard title="$ por Plano (R$)">
