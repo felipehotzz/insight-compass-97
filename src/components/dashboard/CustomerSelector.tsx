@@ -43,7 +43,7 @@ export function CustomerSelector({ currentCustomerName, currentCustomerLogo }: C
               </span>
             )}
           </div>
-          <h1 className="page-title">Raio-X: {currentCustomerName}</h1>
+          <h1 className="page-title">{currentCustomerName}</h1>
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </button>
       </PopoverTrigger>
