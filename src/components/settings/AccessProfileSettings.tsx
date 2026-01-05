@@ -22,6 +22,8 @@ const roles = [
   { id: "admin", name: "Admin" },
   { id: "editor", name: "Editor" },
   { id: "viewer", name: "Visualizador" },
+  { id: "customer-success", name: "Customer Success" },
+  { id: "growth", name: "Growth" },
 ];
 
 // Mock initial permissions (all enabled for admin, some for others)
@@ -47,6 +49,22 @@ const initialPermissions: Record<string, Record<string, boolean>> = {
     "pipeline": false,
     "growth": false,
     "clientes": true,
+    "raio-x": false,
+    "acoes": false,
+  },
+  "customer-success": {
+    "visao-geral": true,
+    "pipeline": false,
+    "growth": false,
+    "clientes": true,
+    "raio-x": true,
+    "acoes": true,
+  },
+  growth: {
+    "visao-geral": true,
+    "pipeline": true,
+    "growth": true,
+    "clientes": false,
     "raio-x": false,
     "acoes": false,
   },
