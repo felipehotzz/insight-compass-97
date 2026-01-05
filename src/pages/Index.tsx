@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartCard } from "@/components/dashboard/ChartCard";
 import { MonthlyLineChart } from "@/components/charts/MonthlyLineChart";
-import { useLatestFinancialMetrics, formatMonthLabel } from "@/hooks/useFinancialMetrics";
+import { PeriodSelector, PeriodPreset, getDateRangeFromPreset } from "@/components/dashboard/PeriodSelector";
+import { useFinancialMetricsByDateRange, formatMonthLabel } from "@/hooks/useFinancialMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const formatCurrency = (value: number) =>
@@ -11,7 +13,17 @@ const formatMillions = (value: number) =>
   `${(value / 1000000).toFixed(1)}M`;
 
 const Index = () => {
-  const { data: metrics, isLoading } = useLatestFinancialMetrics(12);
+  const [periodPreset, setPeriodPreset] = useState<PeriodPreset>("12m");
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
+
+  const { startDate, endDate } = getDateRangeFromPreset(
+    periodPreset,
+    customStartDate,
+    customEndDate
+  );
+
+  const { data: metrics, isLoading } = useFinancialMetricsByDateRange(startDate, endDate);
 
   // Transform metrics for charts
   const arrData = metrics?.map((m) => ({
@@ -51,10 +63,26 @@ const Index = () => {
 
   const hasRealData = metrics && metrics.length > 0;
 
+  const handleCustomDateChange = (start: Date | undefined, end: Date | undefined) => {
+    setCustomStartDate(start);
+    setCustomEndDate(end);
+  };
+
   return (
     <DashboardLayout title="">
       <div className="space-y-6 animate-fade-in">
-        <h1 className="text-xl text-foreground">Visão Geral</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-xl text-foreground">Visão Geral</h1>
+          <PeriodSelector
+            value={periodPreset}
+            onChange={setPeriodPreset}
+            customStartDate={customStartDate}
+            customEndDate={customEndDate}
+            onCustomDateChange={handleCustomDateChange}
+            minDate={new Date("2022-01-01")}
+            maxDate={new Date()}
+          />
+        </div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -70,7 +98,7 @@ const Index = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ChartCard 
                 title="ARR" 
-                subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
+                subtitle={hasRealData ? `${metrics.length} meses • Dados reais da DRE` : "Dados de exemplo"}
               >
                 <MonthlyLineChart
                   data={arrData}
@@ -80,7 +108,7 @@ const Index = () => {
               </ChartCard>
               <ChartCard 
                 title="MRR" 
-                subtitle={hasRealData ? "Dados reais da DRE" : "Dados de exemplo"}
+                subtitle={hasRealData ? `${metrics.length} meses • Dados reais da DRE` : "Dados de exemplo"}
               >
                 <MonthlyLineChart
                   data={mrrData}
