@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { NotionEditor } from "@/components/editor/NotionEditor";
 import {
   Select,
   SelectContent,
@@ -224,13 +224,8 @@ const NewAction = () => {
         {/* Divider */}
         <div className="border-t border-border my-6" />
 
-        {/* Content area - clean like Notion */}
-        <Textarea
-          placeholder="Comece a escrever aqui..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="w-full min-h-[50vh] resize-none border-none bg-transparent p-0 focus-visible:ring-0 text-base leading-relaxed placeholder:text-muted-foreground/40"
-        />
+        {/* Content area - Notion-style editor */}
+        <NotionEditor onChange={(blocks) => console.log(blocks)} />
       </div>
     </DashboardLayout>
   );
