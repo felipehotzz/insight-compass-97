@@ -39,7 +39,12 @@ const Presence = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ChartCard title="Visitantes" subtitle="Evolução mensal">
-              <MonthlyLineChart data={visitorsMonthlyData} />
+              <MonthlyLineChart 
+                data={visitorsMonthlyData} 
+                secondaryDataKey="conversions"
+                secondaryLabel="Conversões"
+                useSecondaryYAxis
+              />
             </ChartCard>
             <ChartCard title="Blog Posts" subtitle="Evolução mensal">
               <MonthlyLineChart data={blogPostsMonthlyData} />

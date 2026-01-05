@@ -121,12 +121,12 @@ export const emailMetrics = {
 
 // Presence Monthly Data for Charts
 export const visitorsMonthlyData = [
-  { month: "Jul", value: 18000, previousValue: 15000 },
-  { month: "Ago", value: 19500, previousValue: 16200 },
-  { month: "Set", value: 21000, previousValue: 17500 },
-  { month: "Out", value: 22500, previousValue: 18800 },
-  { month: "Nov", value: 24000, previousValue: 20000 },
-  { month: "Dez", value: 25000, previousValue: 21500 },
+  { month: "Jul", value: 18000, conversions: 180 },
+  { month: "Ago", value: 19500, conversions: 210 },
+  { month: "Set", value: 21000, conversions: 245 },
+  { month: "Out", value: 22500, conversions: 280 },
+  { month: "Nov", value: 24000, conversions: 310 },
+  { month: "Dez", value: 25000, conversions: 350 },
 ];
 
 export const blogPostsMonthlyData = [
