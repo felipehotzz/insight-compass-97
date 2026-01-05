@@ -68,6 +68,33 @@ export function useLatestFinancialMetrics(months: number = 12) {
   });
 }
 
+export function useFinancialMetricsByDateRange(
+  startDate: Date | null,
+  endDate: Date | null
+) {
+  return useQuery({
+    queryKey: ["financial-metrics-range", startDate?.toISOString(), endDate?.toISOString()],
+    queryFn: async () => {
+      let query = supabase
+        .from("financial_metrics")
+        .select("*")
+        .order("period_date", { ascending: true });
+
+      if (startDate) {
+        query = query.gte("period_date", startDate.toISOString().split("T")[0]);
+      }
+      if (endDate) {
+        query = query.lte("period_date", endDate.toISOString().split("T")[0]);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      return data as FinancialMetric[];
+    },
+  });
+}
+
 // Format month from date to display format (e.g., "2024-01-01" -> "Jan/24")
 export function formatMonthLabel(dateStr: string): string {
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
