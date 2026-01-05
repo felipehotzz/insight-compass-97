@@ -142,6 +142,84 @@ const getBottomCustomersByCommunications = (filter: TimeFilter) => {
   return data[filter] || data.month;
 };
 
+// Mock data for tickets by type based on filter
+const getTicketsByType = (filter: TimeFilter) => {
+  const data: Record<string, { name: string; value: number }[]> = {
+    day: [
+      { name: "In App", value: 3 },
+      { name: "Solicitação de Relatório", value: 2 },
+      { name: "Bounce", value: 1 },
+      { name: "Bug", value: 1 },
+      { name: "Colaborador sem acesso", value: 1 },
+      { name: "Dúvidas de Utilização", value: 1 },
+      { name: "Inclusão de Logo", value: 0 },
+    ],
+    week: [
+      { name: "In App", value: 14 },
+      { name: "Solicitação de Relatório", value: 7 },
+      { name: "Bounce", value: 5 },
+      { name: "Bug", value: 3 },
+      { name: "Colaborador sem acesso", value: 4 },
+      { name: "Dúvidas de Utilização", value: 4 },
+      { name: "Inclusão de Logo", value: 2 },
+    ],
+    month: [
+      { name: "In App", value: 52 },
+      { name: "Solicitação de Relatório", value: 28 },
+      { name: "Bounce", value: 18 },
+      { name: "Bug", value: 12 },
+      { name: "Colaborador sem acesso", value: 15 },
+      { name: "Dúvidas de Utilização", value: 16 },
+      { name: "Inclusão de Logo", value: 8 },
+    ],
+    quarter: [
+      { name: "In App", value: 156 },
+      { name: "Solicitação de Relatório", value: 84 },
+      { name: "Bounce", value: 54 },
+      { name: "Bug", value: 36 },
+      { name: "Colaborador sem acesso", value: 45 },
+      { name: "Dúvidas de Utilização", value: 48 },
+      { name: "Inclusão de Logo", value: 24 },
+    ],
+  };
+  return data[filter] || data.month;
+};
+
+// Mock data for tickets by customer based on filter
+const getTicketsByCustomer = (filter: TimeFilter) => {
+  const data: Record<string, { name: string; value: number }[]> = {
+    day: [
+      { name: "In App", value: 3 },
+      { name: "Comunica.In", value: 2 },
+      { name: "Jeffrey Group", value: 1 },
+      { name: "Alpargatas", value: 1 },
+      { name: "Mercedes Benz", value: 1 },
+    ],
+    week: [
+      { name: "In App", value: 14 },
+      { name: "Comunica.In", value: 12 },
+      { name: "Jeffrey Group", value: 7 },
+      { name: "Alpargatas", value: 4 },
+      { name: "Mercedes Benz", value: 3 },
+    ],
+    month: [
+      { name: "In App", value: 52 },
+      { name: "Comunica.In", value: 45 },
+      { name: "Jeffrey Group", value: 28 },
+      { name: "Alpargatas", value: 16 },
+      { name: "Mercedes Benz", value: 12 },
+    ],
+    quarter: [
+      { name: "In App", value: 156 },
+      { name: "Comunica.In", value: 135 },
+      { name: "Jeffrey Group", value: 84 },
+      { name: "Alpargatas", value: 48 },
+      { name: "Mercedes Benz", value: 36 },
+    ],
+  };
+  return data[filter] || data.month;
+};
+
 // Mock data for renewals list
 type RenewalStatus = "ongoing" | "not_started";
 
@@ -634,7 +712,7 @@ const Customers = () => {
                 <span className="text-right">Quantidade</span>
               </div>
               <div className="divide-y divide-border flex-1 overflow-y-auto">
-                {[...ticketsByType].sort((a, b) => b.value - a.value).map((ticket) => (
+                {getTicketsByType(supportFilter).sort((a, b) => b.value - a.value).map((ticket) => (
                   <div key={ticket.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
                     <span className="text-sm font-medium">{ticket.name}</span>
                     <span className="text-sm text-right">{ticket.value}</span>
@@ -643,7 +721,7 @@ const Customers = () => {
               </div>
               <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20 mt-auto">
                 <span className="text-sm font-medium">Total</span>
-                <span className="text-sm font-medium text-right">{ticketsByType.reduce((sum, t) => sum + t.value, 0)}</span>
+                <span className="text-sm font-medium text-right">{getTicketsByType(supportFilter).reduce((sum, t) => sum + t.value, 0)}</span>
               </div>
             </div>
           </ChartCard>
@@ -654,7 +732,7 @@ const Customers = () => {
                 <span className="text-right">Chamados</span>
               </div>
               <div className="divide-y divide-border flex-1 overflow-y-auto">
-                {[...ticketsByCustomer].sort((a, b) => b.value - a.value).map((customer) => (
+                {getTicketsByCustomer(supportFilter).sort((a, b) => b.value - a.value).map((customer) => (
                   <div key={customer.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
                     <span className="text-sm font-medium">{customer.name}</span>
                     <span className="text-sm text-right">{customer.value}</span>
@@ -663,7 +741,7 @@ const Customers = () => {
               </div>
               <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20 mt-auto">
                 <span className="text-sm font-medium">Total</span>
-                <span className="text-sm font-medium text-right">{ticketsByCustomer.reduce((sum, c) => sum + c.value, 0)}</span>
+                <span className="text-sm font-medium text-right">{getTicketsByCustomer(supportFilter).reduce((sum, c) => sum + c.value, 0)}</span>
               </div>
             </div>
           </ChartCard>
