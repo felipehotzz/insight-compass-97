@@ -11,7 +11,6 @@ import {
 } from "recharts";
 
 interface StackedBarData {
-  name: string;
   [key: string]: string | number;
 }
 
@@ -28,6 +27,7 @@ interface StackedBarChartProps {
   height?: number;
   showTotalLine?: boolean;
   totalLabel?: string;
+  xAxisKey?: string;
 }
 
 // Custom tooltip to show total at the end
@@ -83,6 +83,7 @@ export function StackedBarChart({
   height = 350,
   showTotalLine = false,
   totalLabel = "Total",
+  xAxisKey = "name",
 }: StackedBarChartProps) {
   // Add total to each data point for the line
   const dataWithTotal = data.map(item => {
@@ -95,7 +96,7 @@ export function StackedBarChart({
       <ComposedChart data={dataWithTotal} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
         <XAxis
-          dataKey="name"
+          dataKey={xAxisKey}
           stroke="hsl(var(--muted-foreground))"
           fontSize={11}
           tickLine={false}
