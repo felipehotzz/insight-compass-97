@@ -89,13 +89,16 @@ export function AccessProfileSettings() {
   const [activeRole, setActiveRole] = useState("admin");
 
   const togglePermission = (pageId: string) => {
-    setPermissions((prev) => ({
-      ...prev,
-      [activeRole]: {
-        ...prev[activeRole],
-        [pageId]: !prev[activeRole][pageId],
-      },
-    }));
+    setPermissions((prev) => {
+      const currentRolePermissions = prev[activeRole] || {};
+      return {
+        ...prev,
+        [activeRole]: {
+          ...currentRolePermissions,
+          [pageId]: !currentRolePermissions[pageId],
+        },
+      };
+    });
   };
 
   return (
