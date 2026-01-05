@@ -87,10 +87,6 @@ const Customers = () => {
       <div className="space-y-6 animate-fade-in">
         {/* Customer Composition Charts */}
         <div>
-          <h2 className="section-title mb-4 flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            Composição da Carteira
-          </h2>
           <div className="flex justify-end mb-4">
             <div className="flex gap-2">
               <button
