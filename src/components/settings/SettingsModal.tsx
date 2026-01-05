@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Users, Settings, Shield, Bell, KeyRound } from "lucide-react";
 import { UsersSettings } from "./UsersSettings";
 import { AccessProfileSettings } from "./AccessProfileSettings";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface SettingsModalProps {
   open: boolean;
@@ -10,15 +11,21 @@ interface SettingsModalProps {
 }
 
 const settingsNavigation = [
-  { id: "users", name: "Usuários", icon: Users },
-  { id: "access", name: "Perfil de Acesso", icon: KeyRound },
-  { id: "general", name: "Geral", icon: Settings },
-  { id: "security", name: "Segurança", icon: Shield },
-  { id: "notifications", name: "Notificações", icon: Bell },
+  { id: "users", name: "Usuários", icon: Users, permission: null },
+  { id: "access", name: "Perfil de Acesso", icon: KeyRound, permission: "perfis_acesso" as const },
+  { id: "general", name: "Geral", icon: Settings, permission: null },
+  { id: "security", name: "Segurança", icon: Shield, permission: null },
+  { id: "notifications", name: "Notificações", icon: Bell, permission: null },
 ];
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const [activeSection, setActiveSection] = useState("users");
+  const { canView } = usePermissions();
+
+  const filteredNavigation = settingsNavigation.filter((item) => {
+    if (!item.permission) return true;
+    return canView(item.permission);
+  });
 
   const renderContent = () => {
     switch (activeSection) {
@@ -62,7 +69,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               Configurações
             </h3>
             <nav className="space-y-1">
-              {settingsNavigation.map((item) => {
+              {filteredNavigation.map((item) => {
                 const isActive = activeSection === item.id;
                 return (
                   <button
