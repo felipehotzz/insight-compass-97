@@ -2,3 +2,6 @@ project_id = "kqqavolxhrhfcwruzcyh"
 
 [functions.send-invite]
 verify_jwt = false
+
+[functions.import-financial-data]
+verify_jwt = false

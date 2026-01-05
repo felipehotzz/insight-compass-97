@@ -59,6 +59,93 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_metrics: {
+        Row: {
+          arr: number | null
+          cash_balance: number | null
+          cash_flow_operations: number | null
+          cost_of_services: number | null
+          created_at: string
+          customers_count: number | null
+          ebit: number | null
+          ebitda: number | null
+          ebitda_margin: number | null
+          employees_count: number | null
+          free_cash_flow: number | null
+          ga_expenses: number | null
+          gross_profit: number | null
+          gross_profit_margin: number | null
+          gross_revenue: number | null
+          id: string
+          mrr: number | null
+          net_income: number | null
+          net_revenue: number | null
+          non_recurring_revenue: number | null
+          overhead_sga: number | null
+          period_date: string
+          recurring_revenue: number | null
+          revenue_taxes: number | null
+          sales_marketing_expenses: number | null
+          updated_at: string
+        }
+        Insert: {
+          arr?: number | null
+          cash_balance?: number | null
+          cash_flow_operations?: number | null
+          cost_of_services?: number | null
+          created_at?: string
+          customers_count?: number | null
+          ebit?: number | null
+          ebitda?: number | null
+          ebitda_margin?: number | null
+          employees_count?: number | null
+          free_cash_flow?: number | null
+          ga_expenses?: number | null
+          gross_profit?: number | null
+          gross_profit_margin?: number | null
+          gross_revenue?: number | null
+          id?: string
+          mrr?: number | null
+          net_income?: number | null
+          net_revenue?: number | null
+          non_recurring_revenue?: number | null
+          overhead_sga?: number | null
+          period_date: string
+          recurring_revenue?: number | null
+          revenue_taxes?: number | null
+          sales_marketing_expenses?: number | null
+          updated_at?: string
+        }
+        Update: {
+          arr?: number | null
+          cash_balance?: number | null
+          cash_flow_operations?: number | null
+          cost_of_services?: number | null
+          created_at?: string
+          customers_count?: number | null
+          ebit?: number | null
+          ebitda?: number | null
+          ebitda_margin?: number | null
+          employees_count?: number | null
+          free_cash_flow?: number | null
+          ga_expenses?: number | null
+          gross_profit?: number | null
+          gross_profit_margin?: number | null
+          gross_revenue?: number | null
+          id?: string
+          mrr?: number | null
+          net_income?: number | null
+          net_revenue?: number | null
+          non_recurring_revenue?: number | null
+          overhead_sga?: number | null
+          period_date?: string
+          recurring_revenue?: number | null
+          revenue_taxes?: number | null
+          sales_marketing_expenses?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           created_at: string
