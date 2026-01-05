@@ -107,7 +107,12 @@ const CustomerDetail = () => {
               <SimpleLineChart data={generateMeetingsData(timeFilter)} />
             </ChartCard>
             <div className="glass-card p-5">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Registro de Reuniões</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Registro de Ações</h3>
+                <a href="/actions" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                  Ver todos →
+                </a>
+              </div>
               <div className="divide-y divide-border">
                 {customer.meetings.map((meeting, index) => (
                   <div key={index} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
