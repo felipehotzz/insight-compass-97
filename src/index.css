@@ -36,14 +36,19 @@
     --warning: 0 0% 60%;
 
     /* Section colors - organized by page/section */
-    --color-overview: 142 71% 45%;      /* Green - Visão Geral */
+    --color-overview: 142 71% 45%;       /* Green - Visão Geral */
     --color-growth: 200 70% 50%;         /* Blue - Growth */
     --color-growth-alt: 280 70% 55%;     /* Purple - Growth secondary */
     --color-growth-accent: 38 92% 50%;   /* Orange/Amber - Growth accent */
     --color-presence: 173 80% 40%;       /* Teal - Presença */
     --color-linkedin: 210 90% 55%;       /* LinkedIn Blue */
     --color-community: 45 93% 47%;       /* Yellow/Gold - Community */
+    --color-customers: 262 83% 58%;      /* Purple - Clientes */
+    --color-customers-alt: 199 89% 48%;  /* Cyan - Clientes secondary */
+    --color-usage: 173 80% 40%;          /* Teal - Utilização */
+    --color-support: 38 92% 50%;         /* Amber - Suporte */
     --color-success: 142 71% 45%;        /* Green - Success/Commit */
+    --color-danger: 0 84% 60%;           /* Red - Danger/Churn */
     --color-neutral: 0 0% 50%;           /* Neutral gray */
 
 

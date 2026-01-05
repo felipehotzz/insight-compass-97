@@ -66,6 +66,12 @@ export default {
           presence: "hsl(var(--color-presence))",
           linkedin: "hsl(var(--color-linkedin))",
           community: "hsl(var(--color-community))",
+          customers: "hsl(var(--color-customers))",
+          "customers-alt": "hsl(var(--color-customers-alt))",
+          usage: "hsl(var(--color-usage))",
+          support: "hsl(var(--color-support))",
+          success: "hsl(var(--color-success))",
+          danger: "hsl(var(--color-danger))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

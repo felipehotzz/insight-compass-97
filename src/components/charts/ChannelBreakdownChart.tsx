@@ -103,7 +103,7 @@ export function ChannelBreakdownChart({ data, height = 280, showAverage = false 
         {showAverage && (
           <ReferenceLine 
             y={averageTotal} 
-            stroke="hsl(142 71% 45%)" 
+            stroke="hsl(var(--color-success))" 
             strokeDasharray="5 5" 
             strokeWidth={2}
             isFront={true}
@@ -113,20 +113,20 @@ export function ChannelBreakdownChart({ data, height = 280, showAverage = false 
           dataKey="email" 
           name="E-mail" 
           stackId="a" 
-          fill="hsl(0 0% 70%)" 
+          fill="hsl(var(--color-usage))" 
           radius={[0, 0, 0, 0]}
         />
         <Bar 
           dataKey="teams" 
           name="Teams" 
           stackId="a" 
-          fill="hsl(0 0% 50%)" 
+          fill="hsl(var(--color-customers))" 
         />
         <Bar 
           dataKey="whatsapp" 
           name="WhatsApp" 
           stackId="a" 
-          fill="hsl(0 0% 35%)" 
+          fill="hsl(var(--color-success))" 
           radius={[3, 3, 0, 0]}
         />
       </BarChart>

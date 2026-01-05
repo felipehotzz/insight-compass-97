@@ -31,7 +31,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function SimpleLineChart({ data, height = 200, color = "hsl(0 0% 60%)" }: SimpleLineChartProps) {
+export function SimpleLineChart({ data, height = 200, color = "hsl(var(--color-usage))" }: SimpleLineChartProps) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
