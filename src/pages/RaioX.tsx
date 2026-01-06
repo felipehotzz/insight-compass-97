@@ -297,6 +297,35 @@ const RaioX = () => {
     return customers[0];
   }, [customers, selectedCustomerId]);
 
+  // Keyboard shortcuts for navigating between customers (Ctrl+J next, Ctrl+K previous)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if user is typing in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (!customers || customers.length === 0) return;
+
+      const currentIndex = customers.findIndex(c => c.id === selectedCustomer?.id);
+
+      if (e.ctrlKey && e.key === "j") {
+        e.preventDefault();
+        // Next customer
+        const nextIndex = (currentIndex + 1) % customers.length;
+        setSelectedCustomerId(customers[nextIndex].id);
+      } else if (e.ctrlKey && e.key === "k") {
+        e.preventDefault();
+        // Previous customer
+        const prevIndex = currentIndex <= 0 ? customers.length - 1 : currentIndex - 1;
+        setSelectedCustomerId(customers[prevIndex].id);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [customers, selectedCustomer]);
+
   // Fetch contracts for selected customer
   const { data: contracts } = useQuery({
     queryKey: ["customer-contracts-raiox", selectedCustomer?.id],
