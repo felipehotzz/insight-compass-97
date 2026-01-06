@@ -308,7 +308,6 @@ export default function CustomersDatabase() {
               <TableRow className="bg-muted/50">
                 <TableHead className="w-10"></TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>CNPJ</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">MRR Atual</TableHead>
                 <TableHead className="text-right">LTV Total</TableHead>
@@ -319,7 +318,7 @@ export default function CustomersDatabase() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     <div className="flex items-center justify-center gap-2 text-muted-foreground">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                       Carregando...
@@ -328,7 +327,7 @@ export default function CustomersDatabase() {
                 </TableRow>
               ) : filteredCustomers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Nenhum cliente encontrado
                   </TableCell>
                 </TableRow>
@@ -357,12 +356,8 @@ export default function CustomersDatabase() {
                           </CollapsibleTrigger>
                         </TableCell>
                         <TableCell>
-                          <div>
-                            <p className="font-medium">{customer.nome_fantasia}</p>
-                            <p className="text-xs text-muted-foreground">{customer.razao_social}</p>
-                          </div>
+                          <p className="font-medium">{customer.nome_fantasia}</p>
                         </TableCell>
-                        <TableCell className="font-mono text-sm">{customer.cnpj}</TableCell>
                         <TableCell>
                           <Badge
                             variant={customer.status === "ativo" ? "default" : "secondary"}
@@ -392,7 +387,7 @@ export default function CustomersDatabase() {
 
                       <CollapsibleContent asChild>
                         <TableRow className="bg-muted/20">
-                          <TableCell colSpan={8} className="p-0">
+                          <TableCell colSpan={7} className="p-0">
                             <div className="p-4 space-y-3">
                               <div className="flex items-center justify-between">
                                 <h4 className="font-medium text-sm">
