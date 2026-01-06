@@ -30,7 +30,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2, Check, ChevronDown, ChevronRight, Archive, Building2, ArchiveX, MoreHorizontal } from "lucide-react";
+import { ExternalLink, RefreshCw, Users, Eye, Mail, Loader2, Check, ChevronDown, ChevronRight, Archive, Building2, ArchiveX, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { IntercomThreadView } from "@/components/email/IntercomThreadView";
 
 interface UnlinkedTicket {
   id: string;
@@ -311,11 +312,6 @@ export default function UnlinkedTickets() {
     };
     const config = variants[status] || { variant: "outline" as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const stripHtml = (html: string | null) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
   };
 
   // Separate tickets: with email (excluding internal and archived), internal (@comunica.in), without email, and archived
@@ -734,13 +730,13 @@ export default function UnlinkedTickets() {
 
       {/* View Ticket Dialog */}
       <Dialog open={!!viewingTicket} onOpenChange={(open) => !open && setViewingTicket(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
+        <DialogContent className="max-w-2xl max-h-[85vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-primary" />
+              <Mail className="h-5 w-5 text-primary" />
               {viewingTicket?.subject || "Conversa"}
             </DialogTitle>
-            <DialogDescription className="flex items-center gap-2">
+            <DialogDescription className="flex items-center gap-2 flex-wrap">
               <span>{viewingTicket?.from_name}</span>
               {viewingTicket?.from_email && (
                 <>
@@ -749,46 +745,15 @@ export default function UnlinkedTickets() {
                 </>
               )}
               <span className="text-muted-foreground">•</span>
-              {viewingTicket && format(new Date(viewingTicket.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+              {viewingTicket && format(new Date(viewingTicket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="h-[400px] pr-4">
-            {loadingConversation ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : conversationDetail?.messages?.length ? (
-              <div className="space-y-4">
-                {conversationDetail.messages.map((message, index) => (
-                  <div
-                    key={message.id || index}
-                    className={`p-4 rounded-lg ${
-                      message.author_type === "user" || message.author_type === "lead"
-                        ? "bg-secondary/50 ml-0 mr-8"
-                        : "bg-primary/10 ml-8 mr-0"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">
-                        {message.author_name || (message.author_type === "admin" ? "Suporte" : "Cliente")}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(message.created_at), "dd/MM/yy HH:mm")}
-                      </span>
-                    </div>
-                    <p className="text-sm text-foreground/90 whitespace-pre-wrap">
-                      {stripHtml(message.body)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <MessageCircle className="h-8 w-8 mb-2 opacity-50" />
-                <p>Nenhuma mensagem encontrada</p>
-              </div>
-            )}
+          <ScrollArea className="h-[500px] pr-4">
+            <IntercomThreadView 
+              messages={conversationDetail?.messages || []} 
+              loading={loadingConversation}
+            />
           </ScrollArea>
 
           <DialogFooter>
