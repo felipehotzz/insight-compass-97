@@ -14,11 +14,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { format, subDays, subWeeks, subMonths, subQuarters } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useMemo } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, User, Headphones, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
+
 interface SupportTicketsSectionProps {
   customerId: string;
   filter: TimeFilter;
@@ -27,6 +35,7 @@ interface SupportTicketsSectionProps {
 
 interface Ticket {
   id: string;
+  intercom_conversation_id: string;
   from_email: string | null;
   from_name: string | null;
   subject: string | null;
@@ -35,6 +44,14 @@ interface Ticket {
   created_at: string;
   closed_at: string | null;
   assignee_name: string | null;
+}
+
+interface Message {
+  id: string;
+  author_type: string;
+  author_name: string | null;
+  body: string | null;
+  created_at: string;
 }
 
 interface SupportData {
@@ -112,7 +129,9 @@ const getPriorityColor = (priority: string | null) => {
 export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: SupportTicketsSectionProps) => {
   const queryClient = useQueryClient();
   const startDate = getDateRange(filter);
-
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [conversationMessages, setConversationMessages] = useState<Message[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   // Sync ALL tickets from Intercom (not filtered by customer)
   const syncMutation = useMutation({
     mutationFn: async () => {
@@ -131,6 +150,26 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
       toast.error("Erro ao sincronizar: " + error.message);
     },
   });
+
+  // Fetch conversation messages from Intercom
+  const fetchConversation = async (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setIsLoadingMessages(true);
+    setConversationMessages([]);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("get-intercom-conversation", {
+        body: { conversationId: ticket.intercom_conversation_id },
+      });
+      if (error) throw error;
+      setConversationMessages(data.conversation?.messages || []);
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      toast.error("Erro ao carregar mensagens");
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
 
   // Fetch tickets for this customer
   const { data: tickets, isLoading } = useQuery({
@@ -290,7 +329,11 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
               </TableHeader>
               <TableBody>
                 {latestTickets.map((ticket) => (
-                  <TableRow key={ticket.id}>
+                  <TableRow 
+                    key={ticket.id} 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => fetchConversation(ticket)}
+                  >
                     <TableCell className="text-sm font-medium max-w-[200px] truncate">
                       {ticket.subject || "(Sem assunto)"}
                     </TableCell>
@@ -324,6 +367,81 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
           )}
         </CardContent>
       </Card>
+
+      {/* Conversation Modal */}
+      <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              {selectedTicket?.subject || "Conversa"}
+            </DialogTitle>
+            <div className="flex items-center gap-2 pt-2">
+              <Badge className={getStatusColor(selectedTicket?.status || "")}>
+                {getStatusLabel(selectedTicket?.status || "")}
+              </Badge>
+              <Badge className={getPriorityColor(selectedTicket?.priority)}>
+                {selectedTicket?.priority?.toUpperCase() || "N2"}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {selectedTicket?.from_name || selectedTicket?.from_email}
+              </span>
+            </div>
+          </DialogHeader>
+
+          <ScrollArea className="h-[50vh] pr-4">
+            {isLoadingMessages ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">Carregando mensagens...</span>
+              </div>
+            ) : conversationMessages.length > 0 ? (
+              <div className="space-y-4">
+                {conversationMessages.map((msg) => (
+                  <div 
+                    key={msg.id}
+                    className={`flex gap-3 ${msg.author_type === "admin" || msg.author_type === "bot" ? "flex-row-reverse" : ""}`}
+                  >
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                      msg.author_type === "admin" || msg.author_type === "bot" 
+                        ? "bg-primary/20" 
+                        : "bg-muted"
+                    }`}>
+                      {msg.author_type === "admin" || msg.author_type === "bot" ? (
+                        <Headphones className="h-4 w-4 text-primary" />
+                      ) : (
+                        <User className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className={`flex-1 max-w-[80%] ${msg.author_type === "admin" || msg.author_type === "bot" ? "text-right" : ""}`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium">
+                          {msg.author_name || (msg.author_type === "admin" ? "Suporte" : "Cliente")}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(msg.created_at)}
+                        </span>
+                      </div>
+                      <div 
+                        className={`text-sm p-3 rounded-lg ${
+                          msg.author_type === "admin" || msg.author_type === "bot"
+                            ? "bg-primary/10 text-foreground" 
+                            : "bg-muted text-foreground"
+                        }`}
+                        dangerouslySetInnerHTML={{ __html: msg.body || "" }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">
+                Nenhuma mensagem encontrada
+              </p>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

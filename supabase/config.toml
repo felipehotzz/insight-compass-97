@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.sync-intercom-tickets]
 verify_jwt = false
+
+[functions.get-intercom-conversation]
+verify_jwt = false
