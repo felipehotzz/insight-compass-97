@@ -109,14 +109,6 @@ export default function Auth() {
       <div className="w-full max-w-md p-8 space-y-6">
         <div className="flex flex-col items-center space-y-2">
           <img src={logo} alt="Comunica.in" className="h-10" />
-          <h1 className="text-2xl font-bold">
-            {isLogin ? "Entrar" : "Criar conta"}
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            {isLogin
-              ? "Entre com seu e-mail e senha"
-              : "Preencha os dados para criar sua conta"}
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -164,17 +156,6 @@ export default function Auth() {
           </Button>
         </form>
 
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {isLogin
-              ? "Não tem conta? Criar conta"
-              : "Já tem conta? Entrar"}
-          </button>
-        </div>
       </div>
     </div>
   );
