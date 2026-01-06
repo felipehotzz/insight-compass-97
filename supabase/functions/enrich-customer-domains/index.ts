@@ -13,12 +13,22 @@ interface SearchResult {
 
 function extractDomain(url: string): string {
   try {
-    const urlObj = new URL(url);
-    let domain = urlObj.hostname;
+    // Handle URLs that don't have protocol
+    let urlToParse = url.trim();
+    if (!urlToParse.startsWith("http://") && !urlToParse.startsWith("https://")) {
+      urlToParse = `https://${urlToParse}`;
+    }
     
-    // Remove www. prefix if present
-    if (domain.startsWith("www.")) {
-      domain = domain.substring(4);
+    const urlObj = new URL(urlToParse);
+    let domain = urlObj.hostname.toLowerCase();
+    
+    // Remove common prefixes (www, www2, ri, ir, etc.)
+    const prefixesToRemove = ["www.", "www2.", "www3.", "ri.", "ir.", "m.", "mobile."];
+    for (const prefix of prefixesToRemove) {
+      if (domain.startsWith(prefix)) {
+        domain = domain.substring(prefix.length);
+        break;
+      }
     }
     
     return domain;
@@ -67,6 +77,50 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Cleanup mode - fix existing domains format
+    if (mode === "cleanup") {
+      const { data: existingDomains, error: domainsError } = await supabase
+        .from("customer_domains")
+        .select("id, domain");
+
+      if (domainsError) {
+        throw new Error(`Failed to fetch domains: ${domainsError.message}`);
+      }
+
+      let updated = 0;
+      let skipped = 0;
+
+      for (const domainRecord of existingDomains || []) {
+        const cleanedDomain = extractDomain(domainRecord.domain);
+        
+        if (cleanedDomain && cleanedDomain !== domainRecord.domain) {
+          const { error: updateError } = await supabase
+            .from("customer_domains")
+            .update({ domain: cleanedDomain })
+            .eq("id", domainRecord.id);
+
+          if (!updateError) {
+            updated++;
+            console.log(`Updated: ${domainRecord.domain} -> ${cleanedDomain}`);
+          }
+        } else {
+          skipped++;
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          results: { 
+            total: existingDomains?.length || 0, 
+            updated, 
+            skipped 
+          } 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Batch mode - get all customers without domains
