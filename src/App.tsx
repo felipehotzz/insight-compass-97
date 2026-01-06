@@ -14,6 +14,7 @@ import ActionRegistry from "./pages/ActionRegistry";
 import NewAction from "./pages/NewAction";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import UnlinkedTickets from "./pages/UnlinkedTickets";
 import { GlobalSearch, useGlobalSearch } from "./components/search/GlobalSearch";
 import { useNewActionShortcut } from "./hooks/useNewActionShortcut";
 import { useAuth } from "./hooks/useAuth";
@@ -57,6 +58,7 @@ function AppContent() {
         <Route path="/customer-detail" element={<ProtectedRoute><CustomerDetail /></ProtectedRoute>} />
         <Route path="/actions" element={<ProtectedRoute><ActionRegistry /></ProtectedRoute>} />
         <Route path="/actions/new" element={<ProtectedRoute><NewAction /></ProtectedRoute>} />
+        <Route path="/tickets/unlinked" element={<ProtectedRoute><UnlinkedTickets /></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
