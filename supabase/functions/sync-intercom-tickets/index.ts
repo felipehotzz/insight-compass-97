@@ -159,17 +159,43 @@ Deno.serve(async (req) => {
       let fromEmail: string | null = null;
       let fromName: string | null = null;
 
-      // Check contacts in the full conversation
+      // Try multiple sources for contact info
+      // 1. Check contacts object
       if (fullConv.contacts?.contacts?.length) {
         const firstContact = fullConv.contacts.contacts[0];
-        fromEmail = firstContact.email || null;
-        fromName = firstContact.name || null;
-        console.log(`Conversation ${conv.id} - Contact: ${fromName} <${fromEmail}>`);
-      } else if (fullConv.source?.author?.type === "user" || fullConv.source?.author?.type === "lead") {
+        // If contact has id but no email, fetch contact details
+        if (firstContact.id && !firstContact.email) {
+          const contactResponse = await fetch(`https://api.intercom.io/contacts/${firstContact.id}`, {
+            headers: {
+              Authorization: `Bearer ${intercomToken}`,
+              Accept: "application/json",
+              "Intercom-Version": "2.11",
+            },
+          });
+          if (contactResponse.ok) {
+            const contactData = await contactResponse.json();
+            fromEmail = contactData.email || null;
+            fromName = contactData.name || null;
+          }
+        } else {
+          fromEmail = firstContact.email || null;
+          fromName = firstContact.name || null;
+        }
+      }
+      
+      // 2. Check source author
+      if (!fromEmail && fullConv.source?.author) {
         fromEmail = fullConv.source.author.email || null;
         fromName = fullConv.source.author.name || null;
-        console.log(`Conversation ${conv.id} - Source author: ${fromName} <${fromEmail}>`);
       }
+
+      // 3. Check conversation_message for from info
+      if (!fromEmail && fullConv.conversation_message?.author) {
+        fromEmail = fullConv.conversation_message.author.email || null;
+        fromName = fullConv.conversation_message.author.name || null;
+      }
+
+      console.log(`Conversation ${conv.id} - Contact: ${fromName} <${fromEmail}>`);
 
       // Find customer by domain
       let foundCustomerId: string | null = null;
