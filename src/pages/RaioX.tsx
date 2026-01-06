@@ -55,7 +55,7 @@ import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from
 import { SupportBreakdownChart, generateOpenedTicketsData, generateClosedTicketsData, generateBacklogData } from "@/components/charts/SupportBreakdownChart";
 import { SimpleLineChart, generateUsersData, generateCollaboratorsData } from "@/components/charts/SimpleLineChart";
 import type { TimeFilter } from "@/components/dashboard/FilterButtons";
-import { Plus, ChevronDown, ChevronRight, Mail, Phone, Linkedin, Copy, ArrowRight, Pencil, Check, X } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Mail, Phone, Linkedin, Copy, ArrowRight, Pencil, Check, X, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -265,6 +265,7 @@ const RaioX = () => {
   const [contractForm, setContractForm] = useState<NewContractForm>(initialContractForm);
   const [isChampionDialogOpen, setIsChampionDialogOpen] = useState(false);
   const [championForm, setChampionForm] = useState<NewChampionForm>(initialChampionForm);
+  const [editingChampionId, setEditingChampionId] = useState<string | null>(null);
 
   // Sync URL param with state
   useEffect(() => {
@@ -516,10 +517,53 @@ const RaioX = () => {
       queryClient.invalidateQueries({ queryKey: ["customer-champions", selectedCustomer?.id] });
       setIsChampionDialogOpen(false);
       setChampionForm(initialChampionForm);
-      toast.success("Contato adicionado com sucesso");
+      setEditingChampionId(null);
+      toast.success(editingChampionId ? "Contato atualizado com sucesso" : "Contato adicionado com sucesso");
     },
     onError: (error) => {
-      toast.error("Erro ao adicionar contato: " + error.message);
+      toast.error("Erro ao salvar contato: " + error.message);
+    },
+  });
+
+  // Update champion mutation
+  const updateChampionMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: NewChampionForm }) => {
+      const { error } = await supabase
+        .from("champions")
+        .update({
+          name: data.name,
+          email: data.email || null,
+          phone: data.phone || null,
+          linkedin: data.linkedin || null,
+          role: data.role || null,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customer-champions", selectedCustomer?.id] });
+      setIsChampionDialogOpen(false);
+      setChampionForm(initialChampionForm);
+      setEditingChampionId(null);
+      toast.success("Contato atualizado com sucesso");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar contato: " + error.message);
+    },
+  });
+
+  // Delete champion mutation
+  const deleteChampionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("champions").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customer-champions", selectedCustomer?.id] });
+      toast.success("Contato removido com sucesso");
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover contato: " + error.message);
     },
   });
 
@@ -563,7 +607,35 @@ const RaioX = () => {
       toast.error("Nome é obrigatório");
       return;
     }
-    createChampionMutation.mutate(championForm);
+    if (editingChampionId) {
+      updateChampionMutation.mutate({ id: editingChampionId, data: championForm });
+    } else {
+      createChampionMutation.mutate(championForm);
+    }
+  };
+
+  const handleEditChampion = (champion: Champion) => {
+    setChampionForm({
+      name: champion.name,
+      email: champion.email || "",
+      phone: champion.phone || "",
+      linkedin: champion.linkedin || "",
+      role: champion.role || "",
+    });
+    setEditingChampionId(champion.id);
+    setIsChampionDialogOpen(true);
+  };
+
+  const handleDeleteChampion = (id: string) => {
+    if (window.confirm("Tem certeza que deseja remover este contato?")) {
+      deleteChampionMutation.mutate(id);
+    }
+  };
+
+  const handleCloseChampionDialog = () => {
+    setIsChampionDialogOpen(false);
+    setChampionForm(initialChampionForm);
+    setEditingChampionId(null);
   };
 
   const handleCopyEmail = (email: string) => {
@@ -1027,16 +1099,22 @@ const RaioX = () => {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium">Champions (Contatos)</h3>
-                    <Dialog open={isChampionDialogOpen} onOpenChange={setIsChampionDialogOpen}>
+                    <Dialog open={isChampionDialogOpen} onOpenChange={(open) => {
+                      if (!open) handleCloseChampionDialog();
+                      else setIsChampionDialogOpen(true);
+                    }}>
                       <DialogTrigger asChild>
-                        <Button size="sm" className="gap-2">
+                        <Button size="sm" className="gap-2" onClick={() => {
+                          setChampionForm(initialChampionForm);
+                          setEditingChampionId(null);
+                        }}>
                           <Plus className="h-4 w-4" />
                           Novo Contato
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-lg">
                         <DialogHeader>
-                          <DialogTitle>Novo Contato</DialogTitle>
+                          <DialogTitle>{editingChampionId ? "Editar Contato" : "Novo Contato"}</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleCreateChampion} className="space-y-4">
                           <div className="space-y-3">
@@ -1084,11 +1162,11 @@ const RaioX = () => {
                             </div>
                           </div>
                           <div className="flex justify-end gap-2 pt-4">
-                            <Button type="button" variant="outline" onClick={() => setIsChampionDialogOpen(false)}>
+                            <Button type="button" variant="outline" onClick={handleCloseChampionDialog}>
                               Cancelar
                             </Button>
-                            <Button type="submit" disabled={createChampionMutation.isPending}>
-                              {createChampionMutation.isPending ? "Salvando..." : "Salvar"}
+                            <Button type="submit" disabled={createChampionMutation.isPending || updateChampionMutation.isPending}>
+                              {(createChampionMutation.isPending || updateChampionMutation.isPending) ? "Salvando..." : "Salvar"}
                             </Button>
                           </div>
                         </form>
@@ -1148,6 +1226,22 @@ const RaioX = () => {
                                       </a>
                                     </Button>
                                   )}
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8"
+                                    onClick={() => handleEditChampion(champion)}
+                                  >
+                                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                    onClick={() => handleDeleteChampion(champion.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               </TableCell>
                             </TableRow>
