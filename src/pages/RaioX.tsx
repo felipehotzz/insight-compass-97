@@ -168,6 +168,13 @@ const calculateMonthsBetween = (startDate: string | null, endDate: string | null
   return Math.max(0, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30)));
 };
 
+const calculateMonthsRemaining = (endDate: string | null): number => {
+  if (!endDate) return 0;
+  const now = new Date();
+  const end = new Date(endDate);
+  return Math.max(0, Math.floor((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+};
+
 interface NewContractForm {
   id_financeiro: string;
   id_contrato: string;
@@ -341,11 +348,12 @@ const RaioX = () => {
     const latestContract = activeContracts
       .sort((a, b) => new Date(b.vigencia_inicial || 0).getTime() - new Date(a.vigencia_inicial || 0).getTime())[0];
     
-    const planoAtual = latestContract ? "Enterprise" : "-"; // Mock plan name
+    // Get plan from tipo_documento field
+    const planoAtual = latestContract?.tipo_documento || "-";
     
-    // Calculate remaining months
+    // Calculate remaining months from today to contract end
     const mesesRestantes = latestContract?.vigencia_final
-      ? Math.max(0, calculateMonthsBetween(null, latestContract.vigencia_final))
+      ? calculateMonthsRemaining(latestContract.vigencia_final)
       : 0;
 
     return { 
