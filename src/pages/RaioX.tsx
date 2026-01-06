@@ -52,8 +52,9 @@ import { FilterButtons } from "@/components/dashboard/FilterButtons";
 import { ActionBreakdownChart, generateActionsData } from "@/components/charts/ActionBreakdownChart";
 import { ActionThemeChart, generateActionsThemeData } from "@/components/charts/ActionThemeChart";
 import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from "@/components/charts/ChannelBreakdownChart";
-import { SupportBreakdownChart, generateOpenedTicketsData, generateClosedTicketsData, generateBacklogData } from "@/components/charts/SupportBreakdownChart";
 import { SimpleLineChart, generateUsersData, generateCollaboratorsData } from "@/components/charts/SimpleLineChart";
+import { CustomerDomainsSection } from "@/components/raiox/CustomerDomainsSection";
+import { SupportTicketsSection } from "@/components/raiox/SupportTicketsSection";
 import type { TimeFilter } from "@/components/dashboard/FilterButtons";
 import { Plus, ChevronDown, ChevronRight, Mail, Phone, Linkedin, Copy, ArrowRight, Pencil, Check, X, Trash2 } from "lucide-react";
 import { format } from "date-fns";
@@ -1095,6 +1096,9 @@ const RaioX = () => {
                   )}
                 </div>
 
+                {/* Domínios de E-mail */}
+                <CustomerDomainsSection customerId={selectedCustomer.id} />
+
                 {/* Champions (Contatos) */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -1398,45 +1402,12 @@ const RaioX = () => {
           </div>
         </div>
 
-        {/* Suporte section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium">Suporte</h2>
-            <FilterButtons
-              value={suporteFilter}
-              onChange={setSuporteFilter}
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-medium">Chamados Abertos</CardTitle>
-                <p className="text-xs text-muted-foreground">Por nível</p>
-              </CardHeader>
-              <CardContent>
-                <SupportBreakdownChart data={generateOpenedTicketsData(suporteFilter)} height={280} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-medium">Chamados Fechados</CardTitle>
-                <p className="text-xs text-muted-foreground">Por nível</p>
-              </CardHeader>
-              <CardContent>
-                <SupportBreakdownChart data={generateClosedTicketsData(suporteFilter)} height={280} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-medium">Backlog</CardTitle>
-                <p className="text-xs text-muted-foreground">Por nível</p>
-              </CardHeader>
-              <CardContent>
-                <SupportBreakdownChart data={generateBacklogData(suporteFilter)} height={280} />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* Suporte section - Real data from Intercom */}
+        <SupportTicketsSection 
+          customerId={selectedCustomer.id} 
+          filter={suporteFilter} 
+          onFilterChange={setSuporteFilter} 
+        />
 
       </div>
     </DashboardLayout>
