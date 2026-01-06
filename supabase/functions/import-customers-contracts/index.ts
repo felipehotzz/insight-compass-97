@@ -174,11 +174,29 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const { csvContent } = await req.json()
+    const { csvContent, fileName, userId } = await req.json()
     
     if (!csvContent) {
       throw new Error('CSV content is required')
     }
+
+    // Create import history record first
+    const { data: importRecord, error: importError } = await supabase
+      .from('import_history')
+      .insert({
+        import_type: 'customers_contracts',
+        file_name: fileName || 'import.csv',
+        imported_by: userId || null,
+        status: 'processing'
+      })
+      .select('id')
+      .single()
+
+    if (importError) {
+      console.error('Error creating import record:', importError)
+    }
+
+    const importId = importRecord?.id
 
     console.log('Starting import of customers and contracts...')
     
@@ -363,6 +381,7 @@ serve(async (req) => {
               nome_fantasia: customerData.nome_fantasia,
               status: customerData.status,
               data_cohort: customerData.data_cohort,
+              import_id: importId,
             })
             .select('id')
             .single()
@@ -407,6 +426,7 @@ serve(async (req) => {
                 .from('contracts')
                 .insert({
                   customer_id: customerId,
+                  import_id: importId,
                   ...contract
                 })
 
@@ -422,6 +442,7 @@ serve(async (req) => {
               .from('contracts')
               .insert({
                 customer_id: customerId,
+                import_id: importId,
                 ...contract
               })
 
@@ -442,9 +463,25 @@ serve(async (req) => {
       console.log('Errors:', errors.slice(0, 10))
     }
 
+    // Update import history record
+    if (importId) {
+      await supabase
+        .from('import_history')
+        .update({
+          customers_created: customersCreated,
+          customers_updated: customersUpdated,
+          contracts_created: contractsCreated,
+          contracts_updated: contractsUpdated,
+          status: 'completed',
+          error_message: errors.length > 0 ? errors.slice(0, 5).join('; ') : null
+        })
+        .eq('id', importId)
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
+        importId,
         customersCreated,
         customersUpdated,
         contractsCreated,
