@@ -281,6 +281,19 @@ const RaioX = () => {
     enabled: !!selectedCustomer,
   });
 
+  // Fetch profiles (users) for CS Responsável dropdown
+  const { data: profiles } = useQuery({
+    queryKey: ["profiles-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, name, email")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Fetch actions for selected customer
   const { data: actions } = useQuery({
     queryKey: ["customer-actions-raiox", selectedCustomer?.nome_fantasia],
@@ -645,11 +658,21 @@ const RaioX = () => {
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">CS Responsável</Label>
-                        <Input
+                        <Select
                           value={editForm.cs_responsavel}
-                          onChange={(e) => setEditForm({ ...editForm, cs_responsavel: e.target.value })}
-                          className="h-8 text-sm"
-                        />
+                          onValueChange={(value) => setEditForm({ ...editForm, cs_responsavel: value })}
+                        >
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder="Selecione um responsável" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {profiles?.map((profile) => (
+                              <SelectItem key={profile.id} value={profile.name}>
+                                {profile.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Data Cohort</Label>
