@@ -87,6 +87,15 @@ const formatDate = (dateStr: string | null) => {
   }
 };
 
+const formatDateTime = (dateStr: string | null) => {
+  if (!dateStr) return "-";
+  try {
+    return format(new Date(dateStr), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+  } catch {
+    return "-";
+  }
+};
+
 const getStatusColor = (status: string) => {
   switch (status) {
     case "open":
@@ -416,11 +425,11 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
                     </div>
                     <div className={`flex-1 max-w-[85%] ${msg.author_type === "admin" || msg.author_type === "bot" ? "text-right" : ""}`}>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium">
+                        <span className="text-sm font-medium">
                           {msg.author_name || (msg.author_type === "admin" ? "Suporte" : "Cliente")}
                         </span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(msg.created_at)}
+                        <span className="text-sm text-muted-foreground">
+                          {formatDateTime(msg.created_at)}
                         </span>
                       </div>
                       {/* Force light background for email content to ensure readability */}
