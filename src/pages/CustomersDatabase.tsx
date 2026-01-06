@@ -412,7 +412,7 @@ export default function CustomersDatabase() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    navigate(`/customer/${customer.id}`);
+                                    navigate(`/raio-x?customer=${customer.id}`);
                                   }}
                                 >
                                   Ver detalhes completos →
