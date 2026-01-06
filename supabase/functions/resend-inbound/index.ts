@@ -12,14 +12,14 @@ interface ResendInboundPayload {
     email_id: string;
     from: string;
     to: string[];
-    cc?: string[];
+    cc: string[];
+    bcc: string[];
     subject: string;
-    text?: string;
-    html?: string;
+    message_id: string;
     attachments?: Array<{
+      id: string;
       filename: string;
       content_type: string;
-      content: string;
     }>;
   };
 }
@@ -31,13 +31,11 @@ function extractDomain(email: string): string | null {
 }
 
 function extractEmail(emailString: string): string {
-  // Handle formats like "Name <email@domain.com>" or just "email@domain.com"
   const match = emailString.match(/<([^>]+)>/) || emailString.match(/([^\s<>]+@[^\s<>]+)/);
   return match ? match[1].toLowerCase().trim() : emailString.toLowerCase().trim();
 }
 
 function extractName(emailString: string): string {
-  // Extract name from "Name <email@domain.com>" format
   const match = emailString.match(/^([^<]+)</);
   if (match) {
     return match[1].trim().replace(/"/g, '');
@@ -45,8 +43,31 @@ function extractName(emailString: string): string {
   return extractEmail(emailString);
 }
 
+async function fetchEmailContent(emailId: string, resendApiKey: string): Promise<string | null> {
+  try {
+    const response = await fetch(`https://api.resend.com/emails/${emailId}`, {
+      headers: {
+        "Authorization": `Bearer ${resendApiKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch email content:", response.status, await response.text());
+      return null;
+    }
+
+    const emailData = await response.json();
+    console.log("Email content fetched:", JSON.stringify(emailData, null, 2));
+    
+    // Return text or html content
+    return emailData.text || emailData.html || null;
+  } catch (error) {
+    console.error("Error fetching email content:", error);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -56,10 +77,23 @@ Deno.serve(async (req) => {
     
     console.log("Received Resend inbound webhook:", JSON.stringify(payload, null, 2));
 
-    // Initialize Supabase client
+    // Verify it's an email.received event
+    if (payload.type !== "email.received") {
+      console.log("Ignoring non-email.received event:", payload.type);
+      return new Response(JSON.stringify({ success: true, message: "Event ignored" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Initialize clients
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch email content from Resend API
+    const emailContent = await fetchEmailContent(payload.data.email_id, resendApiKey);
 
     // Extract all recipient emails (To + CC)
     const allRecipients: string[] = [];
@@ -73,8 +107,12 @@ Deno.serve(async (req) => {
 
     console.log("All recipients:", allRecipients);
 
-    // Extract unique domains from recipients
-    const domains = [...new Set(allRecipients.map(extractDomain).filter(Boolean))] as string[];
+    // Extract unique domains from recipients (excluding resend.app domain)
+    const domains = [...new Set(
+      allRecipients
+        .map(extractDomain)
+        .filter(d => d && !d.includes("resend.app"))
+    )] as string[];
     
     console.log("Domains found:", domains);
 
@@ -82,7 +120,7 @@ Deno.serve(async (req) => {
     const { data: customerDomains, error: domainError } = await supabase
       .from("customer_domains")
       .select("domain, customer_id, customers:customer_id(id, nome_fantasia)")
-      .in("domain", domains);
+      .in("domain", domains.length > 0 ? domains : ["__none__"]);
 
     if (domainError) {
       console.error("Error looking up domains:", domainError);
@@ -101,7 +139,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Find matching customer (prioritize first match)
+    // Find matching customer
     let matchedCustomer: { id: string; nome_fantasia: string } | null = null;
     for (const domain of domains) {
       if (domainToCustomer.has(domain)) {
@@ -121,7 +159,7 @@ Deno.serve(async (req) => {
       category: "comunicação",
       title: payload.data.subject || "E-mail sem assunto",
       description: `De: ${senderName} (${senderEmail})\nPara: ${payload.data.to?.join(", ") || "N/A"}${payload.data.cc?.length ? `\nCC: ${payload.data.cc.join(", ")}` : ""}`,
-      content: payload.data.text || payload.data.html || null,
+      content: emailContent,
       customer: matchedCustomer?.nome_fantasia || "Não identificado",
       responsibles: [senderName],
     };
