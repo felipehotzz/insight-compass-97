@@ -134,7 +134,7 @@ export default function UnlinkedTickets() {
           </Button>
         </div>
 
-        <div className="rounded-lg border border-border bg-card">
+        <div className="rounded-lg bg-card">
           <Table>
             <TableHeader>
               <TableRow>
