@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, X, ExternalLink, FileText, Image as ImageIcon, File, FileSpreadsheet, FileCode, FileArchive } from "lucide-react";
+import { Download, Loader2, X, ExternalLink, FileText, Image as ImageIcon, File, FileSpreadsheet, FileCode, FileArchive, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Attachment {
@@ -13,6 +13,7 @@ interface Attachment {
 interface AttachmentPreviewProps {
   attachment: Attachment | null;
   url: string | null;
+  error?: string | null;
   isLoading: boolean;
   onClose: () => void;
   onDownload: () => void;
@@ -99,15 +100,7 @@ function getFileInfo(contentType: string, filename: string) {
   };
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-export function AttachmentPreview({ attachment, url, isLoading, onClose, onDownload }: AttachmentPreviewProps) {
+export function AttachmentPreview({ attachment, url, error, isLoading, onClose, onDownload }: AttachmentPreviewProps) {
   const [imageError, setImageError] = useState(false);
   
   if (!attachment) return null;
@@ -139,6 +132,14 @@ export function AttachmentPreview({ attachment, url, isLoading, onClose, onDownl
             <div className="flex flex-col items-center justify-center py-16">
               <Loader2 className="h-12 w-12 animate-spin text-muted-foreground mb-4" />
               <p className="text-muted-foreground">Carregando preview...</p>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-24 h-24 rounded-2xl flex items-center justify-center mb-6 bg-destructive/10">
+                <AlertCircle className="h-12 w-12 text-destructive" />
+              </div>
+              <p className="text-lg font-medium mb-2">{attachment.filename}</p>
+              <p className="text-muted-foreground mb-4 text-center max-w-md">{error}</p>
             </div>
           ) : canPreview && isImage ? (
             <div className="flex items-center justify-center p-4 bg-black/20 rounded-lg">
