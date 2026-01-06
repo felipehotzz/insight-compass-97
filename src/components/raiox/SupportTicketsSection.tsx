@@ -126,15 +126,32 @@ const getStatusLabel = (status: string) => {
 };
 
 const getPriorityColor = (priority: string | null) => {
-  switch (priority) {
+  switch (priority?.toLowerCase()) {
     case "n1":
       return "bg-red-500/20 text-red-500";
     case "n2":
       return "bg-orange-500/20 text-orange-500";
     case "n3":
       return "bg-blue-500/20 text-blue-500";
+    case "not_priority":
+      return "bg-muted/50 text-muted-foreground border-0";
     default:
-      return "";
+      return "bg-muted/50 text-muted-foreground border-0";
+  }
+};
+
+const getPriorityLabel = (priority: string | null) => {
+  switch (priority?.toLowerCase()) {
+    case "n1":
+      return "N1";
+    case "n2":
+      return "N2";
+    case "n3":
+      return "N3";
+    case "not_priority":
+      return "-";
+    default:
+      return priority?.toUpperCase() || "-";
   }
 };
 
@@ -372,8 +389,8 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange, peri
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getPriorityColor(ticket.priority)}>
-                          {ticket.priority?.toUpperCase() || "N2"}
+                        <Badge variant="outline" className={getPriorityColor(ticket.priority)}>
+                          {getPriorityLabel(ticket.priority)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
