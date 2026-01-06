@@ -64,6 +64,7 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
   const [downloadingAttachments, setDownloadingAttachments] = useState<Set<string>>(new Set());
   const [previewAttachment, setPreviewAttachment] = useState<{ attachment: Attachment; messageId: string } | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
@@ -104,7 +105,7 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
     });
   };
 
-  const fetchAttachmentUrl = async (attachment: Attachment, messageId: string): Promise<string | null> => {
+  const fetchAttachmentUrl = async (attachment: Attachment, messageId: string): Promise<{ url: string | null; error?: string }> => {
     try {
       const { data, error } = await supabase.functions.invoke("download-attachment", {
         body: {
@@ -114,26 +115,48 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
         },
       });
 
-      if (error) throw error;
-      return data?.url || null;
+      if (error) {
+        // Try to parse the error response for more details
+        const errorData = await error.context?.json?.() || {};
+        throw new Error(errorData.error || error.message);
+      }
+      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+      
+      return { url: data?.url || null };
     } catch (error: any) {
       console.error("Error fetching attachment URL:", error);
+      
+      // Check for the specific "old email" error
+      const errorMessage = error.message || "";
+      if (errorMessage.includes("Could not determine Resend email ID") || 
+          errorMessage.includes("before this feature was added")) {
+        return { 
+          url: null, 
+          error: "Este anexo foi recebido antes da funcionalidade de download ser implementada e não pode ser baixado." 
+        };
+      }
+      
       toast({
         title: "Erro ao carregar anexo",
         description: error.message || "Não foi possível carregar o anexo",
         variant: "destructive",
       });
-      return null;
+      return { url: null, error: error.message };
     }
   };
 
   const handlePreviewAttachment = async (attachment: Attachment, messageId: string) => {
     setPreviewAttachment({ attachment, messageId });
     setPreviewUrl(null);
+    setPreviewError(null);
     setPreviewLoading(true);
 
-    const url = await fetchAttachmentUrl(attachment, messageId);
-    setPreviewUrl(url);
+    const result = await fetchAttachmentUrl(attachment, messageId);
+    setPreviewUrl(result.url);
+    setPreviewError(result.error || null);
     setPreviewLoading(false);
   };
 
@@ -141,11 +164,11 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
     try {
       setDownloadingAttachments(prev => new Set(prev).add(attachment.id));
 
-      const url = await fetchAttachmentUrl(attachment, messageId);
+      const result = await fetchAttachmentUrl(attachment, messageId);
 
-      if (url) {
+      if (result.url) {
         const link = document.createElement("a");
-        link.href = url;
+        link.href = result.url;
         link.download = attachment.filename;
         link.target = "_blank";
         document.body.appendChild(link);
@@ -155,6 +178,12 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
         toast({
           title: "Download iniciado",
           description: `${attachment.filename}`,
+        });
+      } else if (result.error) {
+        toast({
+          title: "Não foi possível baixar",
+          description: result.error,
+          variant: "destructive",
         });
       }
     } finally {
@@ -169,6 +198,7 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
   const handleClosePreview = () => {
     setPreviewAttachment(null);
     setPreviewUrl(null);
+    setPreviewError(null);
     setPreviewLoading(false);
   };
 
@@ -382,6 +412,7 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
       <AttachmentPreview
         attachment={previewAttachment?.attachment || null}
         url={previewUrl}
+        error={previewError}
         isLoading={previewLoading}
         onClose={handleClosePreview}
         onDownload={handleDownloadFromPreview}
