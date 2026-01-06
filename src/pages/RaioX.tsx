@@ -1376,6 +1376,26 @@ const RaioX = () => {
               </CardContent>
             </Card>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">Usuários na Base</CardTitle>
+                <p className="text-xs text-muted-foreground">Evolução ao longo do tempo</p>
+              </CardHeader>
+              <CardContent>
+                <SimpleLineChart data={generateUsersData(utilizacaoFilter)} height={200} color="hsl(var(--color-growth))" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-medium">Colaboradores Cadastrados</CardTitle>
+                <p className="text-xs text-muted-foreground">Evolução ao longo do tempo</p>
+              </CardHeader>
+              <CardContent>
+                <SimpleLineChart data={generateCollaboratorsData(utilizacaoFilter)} height={200} color="hsl(var(--color-growth))" />
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Suporte section */}
@@ -1418,27 +1438,6 @@ const RaioX = () => {
           </div>
         </div>
 
-        {/* Usuários section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-medium">Usuários na Base</CardTitle>
-              <p className="text-xs text-muted-foreground">Evolução ao longo do tempo</p>
-            </CardHeader>
-            <CardContent>
-              <SimpleLineChart data={generateUsersData("month")} height={200} color="hsl(var(--color-growth))" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base font-medium">Colaboradores Cadastrados</CardTitle>
-              <p className="text-xs text-muted-foreground">Evolução ao longo do tempo</p>
-            </CardHeader>
-            <CardContent>
-              <SimpleLineChart data={generateCollaboratorsData("month")} height={200} color="hsl(var(--color-growth))" />
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </DashboardLayout>
   );
