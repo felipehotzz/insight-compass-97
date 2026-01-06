@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.import-customers-contracts]
 verify_jwt = false
+
+[functions.intercom-webhook]
+verify_jwt = false
+
+[functions.sync-intercom-tickets]
+verify_jwt = false
