@@ -951,69 +951,51 @@ const RaioX = () => {
                     <p className="text-sm text-muted-foreground text-center py-4">Nenhum contrato encontrado</p>
                   )}
                 </div>
+
+                {/* Champions (Contatos) */}
+                <div className="space-y-3">
+                  <h3 className="font-medium">Champions (Contatos)</h3>
+                  <div className="space-y-2">
+                    {mockChampions.map((champion, index) => (
+                      <div key={index} className="flex items-center justify-between bg-muted/30 rounded-lg p-3">
+                        <span className="font-medium">{champion.name}</span>
+                        <div className="flex items-center gap-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleCopyEmail(champion.email)}
+                                >
+                                  <Mail className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="flex items-center gap-2">
+                                <span>{champion.email}</span>
+                                <Copy className="h-3 w-3" />
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                            <a href={champion.linkedin} target="_blank" rel="noopener noreferrer">
+                              <Linkedin className="h-4 w-4 text-muted-foreground" />
+                            </a>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </CollapsibleContent>
           </Card>
         </Collapsible>
 
-        {/* CS Responsável and Champions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-3">CS Responsável</p>
-              <div className="flex items-center justify-between">
-                <p className="font-medium">{selectedCustomer.cs_responsavel || "Não definido"}</p>
-                {selectedCustomer.cs_responsavel && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <span>{selectedCustomer.cs_responsavel?.toLowerCase().replace(" ", ".")}@empresa.com</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground mb-3">Champions (Contatos)</p>
-              <div className="space-y-3">
-                {mockChampions.map((champion, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="font-medium">{champion.name}</span>
-                    <div className="flex items-center gap-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => handleCopyEmail(champion.email)}
-                            >
-                              <Mail className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent className="flex items-center gap-2">
-                            <span>{champion.email}</span>
-                            <Copy className="h-3 w-3" />
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                        <a href={champion.linkedin} target="_blank" rel="noopener noreferrer">
-                          <Linkedin className="h-4 w-4 text-muted-foreground" />
-                        </a>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Relacionamento section */}
         <div className="space-y-4">
