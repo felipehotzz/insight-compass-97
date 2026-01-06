@@ -127,7 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       try {
         const emailResponse = await resend.emails.send({
-          from: "Comunica.in <onboarding@resend.dev>",
+          from: "Comunica.in <atendimento@comunica.in>",
           to: [email.trim()],
           subject: "Você foi convidado para o Comunica.in",
           html: `
