@@ -148,15 +148,28 @@ const CustomerDetail = () => {
     contratosVigentes: (contracts || []).filter(
       (c) => c.status_contrato?.toLowerCase() === "vigente"
     ).length,
-    mesesAtivo: customer?.data_cohort
-      ? Math.max(
-          0,
-          Math.floor(
-            (new Date().getTime() - new Date(customer.data_cohort).getTime()) /
-              (1000 * 60 * 60 * 24 * 30)
-          )
-        )
-      : 0,
+    // Meses Ativo: calcula baseado no período real de atividade
+    mesesAtivo: (() => {
+      if (!customer?.data_cohort) return 0;
+      const startDate = new Date(customer.data_cohort);
+      let endDate = new Date();
+      
+      // Se cliente inativo, usar a data final do último contrato
+      if (customer.status !== "ativo" && contracts && contracts.length > 0) {
+        const lastContractEnd = contracts
+          .filter((c) => c.vigencia_final)
+          .map((c) => new Date(c.vigencia_final!))
+          .sort((a, b) => b.getTime() - a.getTime())[0];
+        
+        if (lastContractEnd) {
+          endDate = lastContractEnd;
+        }
+      }
+      
+      return Math.max(0, Math.floor(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+      ));
+    })(),
     valorTotalContratos: (contracts || []).reduce(
       (sum, c) => sum + (c.valor_contrato || 0),
       0
