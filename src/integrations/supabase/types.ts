@@ -59,6 +59,138 @@ export type Database = {
         }
         Relationships: []
       }
+      contracts: {
+        Row: {
+          condicao_pagamento: string | null
+          created_at: string
+          customer_id: string
+          data_movimento: string | null
+          id: string
+          id_contrato: string | null
+          id_financeiro: string | null
+          indice_renovacao: string | null
+          meses_vigencia: number | null
+          movimento_mrr: number | null
+          mrr: number | null
+          mrr_atual: boolean | null
+          observacoes: string | null
+          status_cliente: string | null
+          status_contrato: string | null
+          tipo_documento: string | null
+          tipo_movimento: string | null
+          tipo_renovacao: string | null
+          updated_at: string
+          valor_contrato: number | null
+          valor_original_mrr: number | null
+          vendedor: string | null
+          vigencia_final: string | null
+          vigencia_inicial: string | null
+        }
+        Insert: {
+          condicao_pagamento?: string | null
+          created_at?: string
+          customer_id: string
+          data_movimento?: string | null
+          id?: string
+          id_contrato?: string | null
+          id_financeiro?: string | null
+          indice_renovacao?: string | null
+          meses_vigencia?: number | null
+          movimento_mrr?: number | null
+          mrr?: number | null
+          mrr_atual?: boolean | null
+          observacoes?: string | null
+          status_cliente?: string | null
+          status_contrato?: string | null
+          tipo_documento?: string | null
+          tipo_movimento?: string | null
+          tipo_renovacao?: string | null
+          updated_at?: string
+          valor_contrato?: number | null
+          valor_original_mrr?: number | null
+          vendedor?: string | null
+          vigencia_final?: string | null
+          vigencia_inicial?: string | null
+        }
+        Update: {
+          condicao_pagamento?: string | null
+          created_at?: string
+          customer_id?: string
+          data_movimento?: string | null
+          id?: string
+          id_contrato?: string | null
+          id_financeiro?: string | null
+          indice_renovacao?: string | null
+          meses_vigencia?: number | null
+          movimento_mrr?: number | null
+          mrr?: number | null
+          mrr_atual?: boolean | null
+          observacoes?: string | null
+          status_cliente?: string | null
+          status_contrato?: string | null
+          tipo_documento?: string | null
+          tipo_movimento?: string | null
+          tipo_renovacao?: string | null
+          updated_at?: string
+          valor_contrato?: number | null
+          valor_original_mrr?: number | null
+          vendedor?: string | null
+          vigencia_final?: string | null
+          vigencia_inicial?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_metrics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          cnpj: string
+          created_at: string
+          cs_responsavel: string | null
+          data_cohort: string | null
+          id: string
+          nome_fantasia: string
+          razao_social: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cnpj: string
+          created_at?: string
+          cs_responsavel?: string | null
+          data_cohort?: string | null
+          id?: string
+          nome_fantasia: string
+          razao_social: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string
+          created_at?: string
+          cs_responsavel?: string | null
+          data_cohort?: string | null
+          id?: string
+          nome_fantasia?: string
+          razao_social?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       financial_metrics: {
         Row: {
           arr: number | null
@@ -259,7 +391,23 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      customer_metrics: {
+        Row: {
+          cnpj: string | null
+          contratos_vigentes: number | null
+          cs_responsavel: string | null
+          data_cohort: string | null
+          id: string | null
+          ltv_total: number | null
+          meses_ativo: number | null
+          mrr_atual_total: number | null
+          nome_fantasia: string | null
+          razao_social: string | null
+          status: string | null
+          total_contratos: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_role: {

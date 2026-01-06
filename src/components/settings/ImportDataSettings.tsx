@@ -7,26 +7,44 @@ import { useQueryClient } from "@tanstack/react-query";
 
 type ImportStatus = "idle" | "reading" | "importing" | "success" | "error";
 
+interface ImportResult {
+  imported?: number;
+  months?: string[];
+  customersCreated?: number;
+  customersUpdated?: number;
+  contractsCreated?: number;
+  contractsUpdated?: number;
+  totalCustomers?: number;
+  errors?: string[];
+}
+
 export function ImportDataSettings() {
-  const [status, setStatus] = useState<ImportStatus>("idle");
-  const [fileName, setFileName] = useState<string>("");
-  const [result, setResult] = useState<{ imported: number; months: string[] } | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dreStatus, setDreStatus] = useState<ImportStatus>("idle");
+  const [dreFileName, setDreFileName] = useState<string>("");
+  const [dreResult, setDreResult] = useState<ImportResult | null>(null);
+  const [dreErrorMessage, setDreErrorMessage] = useState<string>("");
+  const dreFileInputRef = useRef<HTMLInputElement>(null);
+
+  const [customersStatus, setCustomersStatus] = useState<ImportStatus>("idle");
+  const [customersFileName, setCustomersFileName] = useState<string>("");
+  const [customersResult, setCustomersResult] = useState<ImportResult | null>(null);
+  const [customersErrorMessage, setCustomersErrorMessage] = useState<string>("");
+  const customersFileInputRef = useRef<HTMLInputElement>(null);
+
   const queryClient = useQueryClient();
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDreFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setFileName(file.name);
-    setStatus("reading");
-    setResult(null);
-    setErrorMessage("");
+    setDreFileName(file.name);
+    setDreStatus("reading");
+    setDreResult(null);
+    setDreErrorMessage("");
 
     try {
       const text = await file.text();
-      setStatus("importing");
+      setDreStatus("importing");
 
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
@@ -45,29 +63,72 @@ export function ImportDataSettings() {
         throw new Error(data.error);
       }
 
-      setResult(data);
-      setStatus("success");
+      setDreResult(data);
+      setDreStatus("success");
       toast.success(`${data.imported} meses importados com sucesso!`);
       
-      // Invalidate queries to refresh dashboard
       queryClient.invalidateQueries({ queryKey: ["financial-metrics"] });
       queryClient.invalidateQueries({ queryKey: ["financial-metrics-latest"] });
 
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao importar dados";
-      setErrorMessage(message);
-      setStatus("error");
+      setDreErrorMessage(message);
+      setDreStatus("error");
       toast.error(message);
     }
 
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (dreFileInputRef.current) {
+      dreFileInputRef.current.value = "";
     }
   };
 
-  const handleButtonClick = () => {
-    fileInputRef.current?.click();
+  const handleCustomersFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setCustomersFileName(file.name);
+    setCustomersStatus("reading");
+    setCustomersResult(null);
+    setCustomersErrorMessage("");
+
+    try {
+      const text = await file.text();
+      setCustomersStatus("importing");
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error("Você precisa estar logado para importar dados");
+      }
+
+      const { data, error } = await supabase.functions.invoke("import-customers-contracts", {
+        body: { csvContent: text },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setCustomersResult(data);
+      setCustomersStatus("success");
+      toast.success(`${data.totalCustomers} clientes e ${data.contractsCreated + data.contractsUpdated} contratos processados!`);
+      
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customer-metrics"] });
+
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erro ao importar dados";
+      setCustomersErrorMessage(message);
+      setCustomersStatus("error");
+      toast.error(message);
+    }
+
+    if (customersFileInputRef.current) {
+      customersFileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -75,7 +136,7 @@ export function ImportDataSettings() {
       <div>
         <h2 className="text-xl font-semibold mb-2">Importar Dados</h2>
         <p className="text-muted-foreground">
-          Importe dados financeiros da DRE via arquivo CSV.
+          Importe dados financeiros e de clientes via arquivo CSV.
         </p>
       </div>
 
@@ -105,22 +166,22 @@ export function ImportDataSettings() {
 
         <div className="flex items-center gap-4">
           <input
-            ref={fileInputRef}
+            ref={dreFileInputRef}
             type="file"
             accept=".csv"
-            onChange={handleFileSelect}
+            onChange={handleDreFileSelect}
             className="hidden"
           />
           
           <Button 
-            onClick={handleButtonClick}
-            disabled={status === "reading" || status === "importing"}
+            onClick={() => dreFileInputRef.current?.click()}
+            disabled={dreStatus === "reading" || dreStatus === "importing"}
             className="gap-2"
           >
-            {status === "reading" || status === "importing" ? (
+            {dreStatus === "reading" || dreStatus === "importing" ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                {status === "reading" ? "Lendo arquivo..." : "Importando..."}
+                {dreStatus === "reading" ? "Lendo arquivo..." : "Importando..."}
               </>
             ) : (
               <>
@@ -130,51 +191,126 @@ export function ImportDataSettings() {
             )}
           </Button>
 
-          {fileName && status !== "idle" && (
-            <span className="text-sm text-muted-foreground">{fileName}</span>
+          {dreFileName && dreStatus !== "idle" && (
+            <span className="text-sm text-muted-foreground">{dreFileName}</span>
           )}
         </div>
 
-        {/* Result feedback */}
-        {status === "success" && result && (
+        {dreStatus === "success" && dreResult && (
           <div className="flex items-start gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
             <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
             <div>
               <p className="font-medium text-green-500">Importação concluída!</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {result.imported} meses importados com sucesso.
+                {dreResult.imported} meses importados com sucesso.
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Período: {result.months[0]} até {result.months[result.months.length - 1]}
-              </p>
+              {dreResult.months && dreResult.months.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Período: {dreResult.months[0]} até {dreResult.months[dreResult.months.length - 1]}
+                </p>
+              )}
             </div>
           </div>
         )}
 
-        {status === "error" && (
+        {dreStatus === "error" && (
           <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
             <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
             <div>
               <p className="font-medium text-destructive">Erro na importação</p>
-              <p className="text-sm text-muted-foreground mt-1">{errorMessage}</p>
+              <p className="text-sm text-muted-foreground mt-1">{dreErrorMessage}</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Future import types */}
-      <div className="border border-border rounded-lg p-6 opacity-50">
+      {/* Customers and Contracts Import Section */}
+      <div className="border border-border rounded-lg p-6 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-muted rounded-lg">
-            <FileSpreadsheet className="h-5 w-5 text-muted-foreground" />
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <FileSpreadsheet className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-medium">Clientes e Contatos</h3>
+            <h3 className="font-medium">Clientes e Contratos</h3>
             <p className="text-sm text-muted-foreground">
-              Em breve - importação de dados de clientes
+              Arquivo CSV com dados de clientes e contratos
             </p>
           </div>
         </div>
+
+        <div className="text-sm text-muted-foreground bg-secondary/50 rounded-md p-4">
+          <p className="font-medium mb-2">Formato esperado:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Separador: ponto e vírgula (;)</li>
+            <li>Colunas principais: ID Financeiro, Status cliente, Id cliente (CNPJ), Razão Social, Nome Fantasia</li>
+            <li>Dados de contrato: MRR, Vigência inicial/final, Status do contrato, etc.</li>
+            <li>Clientes são agrupados por CNPJ único</li>
+          </ul>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <input
+            ref={customersFileInputRef}
+            type="file"
+            accept=".csv"
+            onChange={handleCustomersFileSelect}
+            className="hidden"
+          />
+          
+          <Button 
+            onClick={() => customersFileInputRef.current?.click()}
+            disabled={customersStatus === "reading" || customersStatus === "importing"}
+            className="gap-2"
+          >
+            {customersStatus === "reading" || customersStatus === "importing" ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {customersStatus === "reading" ? "Lendo arquivo..." : "Importando..."}
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                Selecionar arquivo CSV
+              </>
+            )}
+          </Button>
+
+          {customersFileName && customersStatus !== "idle" && (
+            <span className="text-sm text-muted-foreground">{customersFileName}</span>
+          )}
+        </div>
+
+        {customersStatus === "success" && customersResult && (
+          <div className="flex items-start gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+            <div>
+              <p className="font-medium text-green-500">Importação concluída!</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                <span className="font-medium">{customersResult.totalCustomers}</span> clientes processados 
+                ({customersResult.customersCreated} novos, {customersResult.customersUpdated} atualizados)
+              </p>
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium">{(customersResult.contractsCreated || 0) + (customersResult.contractsUpdated || 0)}</span> contratos processados
+                ({customersResult.contractsCreated} novos, {customersResult.contractsUpdated} atualizados)
+              </p>
+              {customersResult.errors && customersResult.errors.length > 0 && (
+                <p className="text-xs text-amber-500 mt-2">
+                  ⚠️ {customersResult.errors.length} avisos durante importação
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {customersStatus === "error" && (
+          <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+            <div>
+              <p className="font-medium text-destructive">Erro na importação</p>
+              <p className="text-sm text-muted-foreground mt-1">{customersErrorMessage}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
