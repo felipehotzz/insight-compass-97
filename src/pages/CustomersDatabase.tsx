@@ -70,6 +70,7 @@ interface CustomerWithMetrics extends Customer {
   contratos_vigentes: number;
   meses_ativo: number;
   formato_pagamento: string | null;
+  domain: string | null;
 }
 
 const formatCurrency = (value: number) => {
@@ -138,6 +139,19 @@ export default function CustomersDatabase() {
 
       if (contractsError) throw contractsError;
 
+      // Fetch all customer domains
+      const { data: domains, error: domainsError } = await supabase
+        .from("customer_domains")
+        .select("customer_id, domain");
+
+      if (domainsError) throw domainsError;
+
+      // Create domain map
+      const domainMap = new Map<string, string>();
+      (domains || []).forEach((d) => {
+        domainMap.set(d.customer_id, d.domain);
+      });
+
       // Group contracts by customer and calculate metrics
       const customersWithMetrics: CustomerWithMetrics[] = (customers || []).map((customer) => {
         const customerContracts = (contracts || []).filter(
@@ -200,6 +214,7 @@ export default function CustomersDatabase() {
           contratos_vigentes,
           meses_ativo: Math.max(0, meses_ativo),
           formato_pagamento,
+          domain: domainMap.get(customer.id) || null,
         };
       });
 
@@ -257,7 +272,7 @@ export default function CustomersDatabase() {
         toast.success(`Domínios atualizados: ${success} de ${total} clientes`, {
           description: failed > 0 ? `${failed} não encontrados` : undefined,
         });
-        queryClient.invalidateQueries({ queryKey: ["customer-domains"] });
+        queryClient.invalidateQueries({ queryKey: ["customers-database"] });
       } else {
         throw new Error(data?.error || "Erro desconhecido");
       }
@@ -368,6 +383,7 @@ export default function CustomersDatabase() {
               <TableRow className="bg-muted/50">
                 <TableHead className="w-10"></TableHead>
                 <TableHead>Cliente</TableHead>
+                <TableHead>Domínio</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Pagamento</TableHead>
                 <TableHead className="text-right">MRR Atual</TableHead>
@@ -379,7 +395,7 @@ export default function CustomersDatabase() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <div className="flex items-center justify-center gap-2 text-muted-foreground">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                       Carregando...
@@ -388,7 +404,7 @@ export default function CustomersDatabase() {
                 </TableRow>
               ) : filteredCustomers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Nenhum cliente encontrado
                   </TableCell>
                 </TableRow>
@@ -418,6 +434,21 @@ export default function CustomersDatabase() {
                         </TableCell>
                         <TableCell>
                           <p className="font-medium">{customer.nome_fantasia}</p>
+                        </TableCell>
+                        <TableCell>
+                          {customer.domain ? (
+                            <a 
+                              href={`https://${customer.domain}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {customer.domain}
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge
