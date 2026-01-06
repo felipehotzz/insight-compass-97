@@ -30,7 +30,12 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2, Check } from "lucide-react";
+import { ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2, Check, ChevronDown, ChevronRight, Archive } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { toast } from "sonner";
 
 interface UnlinkedTicket {
@@ -79,6 +84,7 @@ export default function UnlinkedTickets() {
   const [loadingConversation, setLoadingConversation] = useState(false);
   const [linkingTicketId, setLinkingTicketId] = useState<string | null>(null);
   const [linkedTicketIds, setLinkedTicketIds] = useState<Set<string>>(new Set());
+  const [noEmailCollapsed, setNoEmailCollapsed] = useState(true);
 
   const { data: tickets, isLoading: ticketsLoading } = useQuery({
     queryKey: ["unlinked-tickets"],
@@ -242,8 +248,9 @@ export default function UnlinkedTickets() {
     return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
   };
 
-  // Filter out linked tickets from display
-  const visibleTickets = tickets?.filter((t) => !linkedTicketIds.has(t.id));
+  // Separate tickets with email from those without
+  const ticketsWithEmail = tickets?.filter((t) => !linkedTicketIds.has(t.id) && t.from_email);
+  const ticketsWithoutEmail = tickets?.filter((t) => !linkedTicketIds.has(t.id) && !t.from_email);
 
   return (
     <DashboardLayout>
@@ -252,7 +259,7 @@ export default function UnlinkedTickets() {
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Tickets Não Vinculados</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {visibleTickets?.length || 0} tickets sem cliente associado
+              {ticketsWithEmail?.length || 0} tickets sem cliente associado
             </p>
           </div>
           <Button
@@ -287,14 +294,14 @@ export default function UnlinkedTickets() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : visibleTickets?.length === 0 ? (
+              ) : ticketsWithEmail?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    Todos os tickets estão vinculados a clientes!
+                    Todos os tickets com email estão vinculados a clientes!
                   </TableCell>
                 </TableRow>
               ) : (
-                visibleTickets?.map((ticket) => (
+                ticketsWithEmail?.map((ticket) => (
                   <TableRow 
                     key={ticket.id}
                     className={`transition-all duration-300 ${
@@ -306,10 +313,8 @@ export default function UnlinkedTickets() {
                     <TableCell>
                       <div className="space-y-1">
                         <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
-                        <p className="text-xs text-muted-foreground">{ticket.from_email || "Sem email"}</p>
-                        {ticket.from_email && (
-                          <p className="text-xs text-primary">@{extractDomain(ticket.from_email)}</p>
-                        )}
+                        <p className="text-xs text-muted-foreground">{ticket.from_email}</p>
+                        <p className="text-xs text-primary">@{extractDomain(ticket.from_email)}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -376,6 +381,85 @@ export default function UnlinkedTickets() {
             </TableBody>
           </Table>
         </div>
+
+        {/* Tickets sem email - Seção colapsada */}
+        {ticketsWithoutEmail && ticketsWithoutEmail.length > 0 && (
+          <Collapsible open={!noEmailCollapsed} onOpenChange={(open) => setNoEmailCollapsed(!open)}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted">
+                <div className="flex items-center gap-2">
+                  <Archive className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Tickets sem email ({ticketsWithoutEmail.length})
+                  </span>
+                  <Badge variant="outline" className="text-xs">Produto descontinuado</Badge>
+                </div>
+                {noEmailCollapsed ? (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="rounded-lg bg-card mt-2 border border-muted">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">Nome</TableHead>
+                      <TableHead>Assunto</TableHead>
+                      <TableHead className="w-[100px]">Status</TableHead>
+                      <TableHead className="w-[120px]">Data</TableHead>
+                      <TableHead className="w-[80px]">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {ticketsWithoutEmail.map((ticket) => (
+                      <TableRow key={ticket.id} className="opacity-75">
+                        <TableCell>
+                          <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {format(new Date(ticket.created_at), "dd/MM/yy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewTicket(ticket)}
+                              title="Ver conversa"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              asChild
+                              title="Abrir no Intercom"
+                            >
+                              <a
+                                href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${ticket.intercom_conversation_id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
       </div>
 
       {/* View Ticket Dialog */}
