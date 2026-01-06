@@ -65,7 +65,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl h-[80vh] p-0 gap-0 overflow-hidden">
+      <DialogContent className="max-w-5xl h-[80vh] max-h-[80vh] p-0 gap-0 overflow-hidden flex flex-col">
         <div className="flex h-full">
           {/* Sidebar */}
           <div className="w-56 border-r border-border bg-secondary/30 p-4">
