@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ChartCard } from "@/components/dashboard/ChartCard";
-import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
+import { FilterButtons, TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
 import { FunnelChart } from "@/components/charts/FunnelChart";
 import { StackedBarChart } from "@/components/charts/StackedBarChart";
 import { SimpleBarChart } from "@/components/charts/SimpleBarChart";
@@ -319,6 +319,7 @@ const MetricChartCard = ({ title, data, formatValue, color = "hsl(var(--primary)
 
 const Growth = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
+  const [timePeriod, setTimePeriod] = useState<PeriodFilter>("last_3_months");
   const [selectedMonth, setSelectedMonth] = useState<typeof forecastByMonth[0] | null>(null);
 
   const totalCommit = forecastByMonth.reduce((sum, m) => sum + m.commit, 0);
@@ -340,7 +341,7 @@ const Growth = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <h1 className="text-xl text-foreground">Pipeline</h1>
-          <FilterButtons value={timeFilter} onChange={setTimeFilter} />
+          <FilterButtons value={timeFilter} onChange={setTimeFilter} periodValue={timePeriod} onPeriodChange={setTimePeriod} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

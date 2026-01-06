@@ -49,13 +49,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FilterButtons } from "@/components/dashboard/FilterButtons";
+import type { TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
 import { ActionBreakdownChart, generateActionsData } from "@/components/charts/ActionBreakdownChart";
 import { ActionThemeChart, generateActionsThemeData } from "@/components/charts/ActionThemeChart";
 import { ChannelBreakdownChart, generateChannelData, generateDispatchData } from "@/components/charts/ChannelBreakdownChart";
 import { SimpleLineChart, generateUsersData, generateCollaboratorsData } from "@/components/charts/SimpleLineChart";
 import { CustomerDomainsSection } from "@/components/raiox/CustomerDomainsSection";
 import { SupportTicketsSection } from "@/components/raiox/SupportTicketsSection";
-import type { TimeFilter } from "@/components/dashboard/FilterButtons";
 import { Plus, ChevronDown, ChevronRight, Mail, Phone, Linkedin, Copy, ArrowRight, Pencil, Check, X, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -248,8 +248,11 @@ const RaioX = () => {
   const customerIdFromUrl = searchParams.get("customer");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(customerIdFromUrl);
   const [relacionamentoFilter, setRelacionamentoFilter] = useState<TimeFilter>("month");
+  const [relacionamentoPeriod, setRelacionamentoPeriod] = useState<PeriodFilter>("last_3_months");
   const [utilizacaoFilter, setUtilizacaoFilter] = useState<TimeFilter>("month");
+  const [utilizacaoPeriod, setUtilizacaoPeriod] = useState<PeriodFilter>("last_3_months");
   const [suporteFilter, setSuporteFilter] = useState<TimeFilter>("month");
+  const [suportePeriod, setSuportePeriod] = useState<PeriodFilter>("last_3_months");
   
   // Customer data section state
   const [dadosClienteOpen, setDadosClienteOpen] = useState(false);
@@ -1299,6 +1302,8 @@ const RaioX = () => {
             <FilterButtons
               value={relacionamentoFilter}
               onChange={setRelacionamentoFilter}
+              periodValue={relacionamentoPeriod}
+              onPeriodChange={setRelacionamentoPeriod}
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1387,6 +1392,8 @@ const RaioX = () => {
             <FilterButtons
               value={utilizacaoFilter}
               onChange={setUtilizacaoFilter}
+              periodValue={utilizacaoPeriod}
+              onPeriodChange={setUtilizacaoPeriod}
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1435,7 +1442,9 @@ const RaioX = () => {
         <SupportTicketsSection 
           customerId={selectedCustomer.id} 
           filter={suporteFilter} 
-          onFilterChange={setSuporteFilter} 
+          onFilterChange={setSuporteFilter}
+          periodValue={suportePeriod}
+          onPeriodChange={setSuportePeriod}
         />
 
       </div>

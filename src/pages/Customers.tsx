@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartCard } from "@/components/dashboard/ChartCard";
-import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
+import { FilterButtons, TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
 import { HorizontalBarChart } from "@/components/charts/HorizontalBarChart";
 import { SimpleBarChart } from "@/components/charts/SimpleBarChart";
 import { StackedBarChart } from "@/components/charts/StackedBarChart";
@@ -267,8 +267,11 @@ const planSeries = [
 const Customers = () => {
   const [compositionFilter, setCompositionFilter] = useState<CompositionFilter>("month");
   const [relationshipFilter, setRelationshipFilter] = useState<TimeFilter>("month");
+  const [relationshipPeriod, setRelationshipPeriod] = useState<PeriodFilter>("last_3_months");
   const [usageFilter, setUsageFilter] = useState<TimeFilter>("month");
+  const [usagePeriod, setUsagePeriod] = useState<PeriodFilter>("last_3_months");
   const [supportFilter, setSupportFilter] = useState<TimeFilter>("month");
+  const [supportPeriod, setSupportPeriod] = useState<PeriodFilter>("last_3_months");
   const [renewalsOpen, setRenewalsOpen] = useState(false);
   const [renewalsPeriod, setRenewalsPeriod] = useState<"30" | "90" | "180">("30");
   const [selectedCS, setSelectedCS] = useState<string | null>(null);
@@ -353,7 +356,7 @@ const Customers = () => {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-title">Relacionamento</h2>
-            <FilterButtons value={relationshipFilter} onChange={setRelationshipFilter} />
+            <FilterButtons value={relationshipFilter} onChange={setRelationshipFilter} periodValue={relationshipPeriod} onPeriodChange={setRelationshipPeriod} />
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -605,7 +608,7 @@ const Customers = () => {
               <Activity className="h-4 w-4 text-muted-foreground" />
               Utilização (Geral)
             </h2>
-            <FilterButtons value={usageFilter} onChange={setUsageFilter} />
+            <FilterButtons value={usageFilter} onChange={setUsageFilter} periodValue={usagePeriod} onPeriodChange={setUsagePeriod} />
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
@@ -651,7 +654,7 @@ const Customers = () => {
               <Headphones className="h-4 w-4 text-muted-foreground" />
               Suporte
             </h2>
-            <FilterButtons value={supportFilter} onChange={setSupportFilter} />
+            <FilterButtons value={supportFilter} onChange={setSupportFilter} periodValue={supportPeriod} onPeriodChange={setSupportPeriod} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <ChartCard title="Chamados Abertos" subtitle="Por nível">

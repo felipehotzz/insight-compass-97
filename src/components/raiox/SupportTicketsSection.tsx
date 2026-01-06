@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FilterButtons } from "@/components/dashboard/FilterButtons";
-import type { TimeFilter } from "@/components/dashboard/FilterButtons";
+import type { TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
 import {
   Table,
   TableBody,
@@ -31,6 +31,8 @@ interface SupportTicketsSectionProps {
   customerId: string;
   filter: TimeFilter;
   onFilterChange: (filter: TimeFilter) => void;
+  periodValue?: PeriodFilter;
+  onPeriodChange?: (period: PeriodFilter) => void;
 }
 
 interface Ticket {
@@ -135,7 +137,7 @@ const getPriorityColor = (priority: string | null) => {
   }
 };
 
-export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: SupportTicketsSectionProps) => {
+export const SupportTicketsSection = ({ customerId, filter, onFilterChange, periodValue = "last_3_months", onPeriodChange }: SupportTicketsSectionProps) => {
   const queryClient = useQueryClient();
   const startDate = getDateRange(filter);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -272,7 +274,7 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
             {syncMutation.isPending ? "Sincronizando..." : "Sincronizar"}
           </Button>
         </div>
-        <FilterButtons value={filter} onChange={onFilterChange} />
+        <FilterButtons value={filter} onChange={onFilterChange} periodValue={periodValue} onPeriodChange={onPeriodChange} />
       </div>
 
       {/* Metrics Cards */}
