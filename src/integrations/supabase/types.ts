@@ -306,6 +306,7 @@ export type Database = {
         Row: {
           action_id: string
           attachments: Json | null
+          attachments_downloaded: boolean | null
           bcc_emails: string[] | null
           body_html: string | null
           body_text: string | null
@@ -323,6 +324,7 @@ export type Database = {
         Insert: {
           action_id: string
           attachments?: Json | null
+          attachments_downloaded?: boolean | null
           bcc_emails?: string[] | null
           body_html?: string | null
           body_text?: string | null
@@ -340,6 +342,7 @@ export type Database = {
         Update: {
           action_id?: string
           attachments?: Json | null
+          attachments_downloaded?: boolean | null
           bcc_emails?: string[] | null
           body_html?: string | null
           body_text?: string | null
