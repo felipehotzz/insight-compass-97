@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TimeFilter } from "@/components/dashboard/FilterButtons";
-import { format, subMonths } from "date-fns";
+import { format, subDays, subWeeks, subMonths, subQuarters, startOfDay, startOfWeek, startOfMonth, startOfQuarter, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, eachQuarterOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface SupportData {
@@ -17,18 +17,80 @@ interface TicketsByCustomer {
   value: number;
 }
 
+// Get date range and period config based on filter
+const getFilterConfig = (filter: TimeFilter) => {
+  const now = new Date();
+  
+  switch (filter) {
+    case "day":
+      return {
+        startDate: subDays(now, 6),
+        getKey: (date: Date) => format(date, "yyyy-MM-dd"),
+        getLabel: (date: Date) => format(date, "EEE", { locale: ptBR }),
+        getPeriods: (start: Date, end: Date) => 
+          eachDayOfInterval({ start, end }).map(d => ({
+            key: format(d, "yyyy-MM-dd"),
+            label: format(d, "EEE", { locale: ptBR }).charAt(0).toUpperCase() + format(d, "EEE", { locale: ptBR }).slice(1)
+          }))
+      };
+    case "week":
+      return {
+        startDate: subWeeks(now, 5),
+        getKey: (date: Date) => format(startOfWeek(date, { weekStartsOn: 0 }), "yyyy-MM-dd"),
+        getLabel: (date: Date) => `Sem ${format(date, "w")}`,
+        getPeriods: (start: Date, end: Date) => 
+          eachWeekOfInterval({ start, end }, { weekStartsOn: 0 }).map(d => ({
+            key: format(d, "yyyy-MM-dd"),
+            label: `Sem ${format(d, "w")}`
+          }))
+      };
+    case "month":
+      return {
+        startDate: subMonths(now, 5),
+        getKey: (date: Date) => format(date, "yyyy-MM"),
+        getLabel: (date: Date) => format(date, "MMM", { locale: ptBR }),
+        getPeriods: (start: Date, end: Date) => 
+          eachMonthOfInterval({ start, end }).map(d => ({
+            key: format(d, "yyyy-MM"),
+            label: format(d, "MMM", { locale: ptBR }).charAt(0).toUpperCase() + format(d, "MMM", { locale: ptBR }).slice(1)
+          }))
+      };
+    case "quarter":
+      return {
+        startDate: subQuarters(now, 3),
+        getKey: (date: Date) => `${format(date, "yyyy")}-Q${Math.ceil((date.getMonth() + 1) / 3)}`,
+        getLabel: (date: Date) => `Q${Math.ceil((date.getMonth() + 1) / 3)} ${format(date, "yy")}`,
+        getPeriods: (start: Date, end: Date) => 
+          eachQuarterOfInterval({ start, end }).map(d => ({
+            key: `${format(d, "yyyy")}-Q${Math.ceil((d.getMonth() + 1) / 3)}`,
+            label: `Q${Math.ceil((d.getMonth() + 1) / 3)} ${format(d, "yy")}`
+          }))
+      };
+    default:
+      return {
+        startDate: subMonths(now, 5),
+        getKey: (date: Date) => format(date, "yyyy-MM"),
+        getLabel: (date: Date) => format(date, "MMM", { locale: ptBR }),
+        getPeriods: (start: Date, end: Date) => 
+          eachMonthOfInterval({ start, end }).map(d => ({
+            key: format(d, "yyyy-MM"),
+            label: format(d, "MMM", { locale: ptBR }).charAt(0).toUpperCase() + format(d, "MMM", { locale: ptBR }).slice(1)
+          }))
+      };
+  }
+};
+
 export const useSupportMetrics = (filter: TimeFilter) => {
-  // Calculate start date - get last 12 months to ensure we have all data
-  const startDate = subMonths(new Date(), 12);
+  const filterConfig = getFilterConfig(filter);
 
   // Fetch all ticket data
   const { data: ticketData, isLoading: ticketLoading } = useQuery({
-    queryKey: ["support-ticket-data"],
+    queryKey: ["support-ticket-data", filter],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets")
         .select("created_at, closed_at, status, priority")
-        .gte("created_at", "2025-01-01")
+        .gte("created_at", filterConfig.startDate.toISOString())
         .or("archived.is.null,archived.eq.false");
 
       if (error) throw error;
@@ -38,7 +100,7 @@ export const useSupportMetrics = (filter: TimeFilter) => {
 
   // Fetch tickets by customer
   const { data: customerData, isLoading: customerLoading } = useQuery({
-    queryKey: ["support-by-customer"],
+    queryKey: ["support-by-customer", filter],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets")
@@ -47,7 +109,7 @@ export const useSupportMetrics = (filter: TimeFilter) => {
           customer_id,
           customers!inner(nome_fantasia)
         `)
-        .gte("created_at", "2025-01-01")
+        .gte("created_at", filterConfig.startDate.toISOString())
         .or("archived.is.null,archived.eq.false")
         .not("customer_id", "is", null);
 
@@ -56,26 +118,16 @@ export const useSupportMetrics = (filter: TimeFilter) => {
     },
   });
 
-  // Process monthly data for charts
-  const processMonthlyData = () => {
+  // Process data for charts based on filter
+  const processData = () => {
     if (!ticketData) return { opened: [], closed: [], backlog: [] };
 
-    // Generate last 6 months
-    const months: { key: string; label: string }[] = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = subMonths(new Date(), i);
-      const monthKey = format(d, "yyyy-MM");
-      const label = format(d, "MMM", { locale: ptBR });
-      months.push({ 
-        key: monthKey, 
-        label: label.charAt(0).toUpperCase() + label.slice(1) 
-      });
-    }
+    const periods = filterConfig.getPeriods(filterConfig.startDate, new Date());
 
     // Initialize data structure
-    const monthData = new Map<string, { opened: { n1: number; n2: number; n3: number }; closed: { n1: number; n2: number; n3: number } }>();
-    months.forEach(m => {
-      monthData.set(m.key, {
+    const periodData = new Map<string, { opened: { n1: number; n2: number; n3: number }; closed: { n1: number; n2: number; n3: number } }>();
+    periods.forEach(p => {
+      periodData.set(p.key, {
         opened: { n1: 0, n2: 0, n3: 0 },
         closed: { n1: 0, n2: 0, n3: 0 },
       });
@@ -83,21 +135,21 @@ export const useSupportMetrics = (filter: TimeFilter) => {
 
     // Process tickets
     ticketData.forEach((ticket) => {
-      const createdMonthKey = format(new Date(ticket.created_at), "yyyy-MM");
+      const createdKey = filterConfig.getKey(new Date(ticket.created_at));
       
-      if (monthData.has(createdMonthKey)) {
-        const entry = monthData.get(createdMonthKey)!;
+      if (periodData.has(createdKey)) {
+        const entry = periodData.get(createdKey)!;
         
         // Map priority: priority -> n3, n2 -> n2, everything else -> n1
         const priorityKey = ticket.priority === "priority" ? "n3" : ticket.priority === "n2" ? "n2" : "n1";
         
         entry.opened[priorityKey]++;
         
-        // Count closed tickets in the month they were closed
+        // Count closed tickets in the period they were closed
         if (ticket.status === "closed" && ticket.closed_at) {
-          const closedMonthKey = format(new Date(ticket.closed_at), "yyyy-MM");
-          if (monthData.has(closedMonthKey)) {
-            monthData.get(closedMonthKey)!.closed[priorityKey]++;
+          const closedKey = filterConfig.getKey(new Date(ticket.closed_at));
+          if (periodData.has(closedKey)) {
+            periodData.get(closedKey)!.closed[priorityKey]++;
           }
         }
       }
@@ -110,14 +162,14 @@ export const useSupportMetrics = (filter: TimeFilter) => {
 
     let runningBacklog = { n1: 0, n2: 0, n3: 0 };
 
-    months.forEach((month) => {
-      const entry = monthData.get(month.key);
+    periods.forEach((period) => {
+      const entry = periodData.get(period.key);
       if (entry) {
         const openedTotal = entry.opened.n1 + entry.opened.n2 + entry.opened.n3;
         const closedTotal = entry.closed.n1 + entry.closed.n2 + entry.closed.n3;
         
         opened.push({ 
-          period: month.label, 
+          period: period.label, 
           n1: entry.opened.n1,
           n2: entry.opened.n2,
           n3: entry.opened.n3,
@@ -125,7 +177,7 @@ export const useSupportMetrics = (filter: TimeFilter) => {
         });
         
         closed.push({ 
-          period: month.label, 
+          period: period.label, 
           n1: entry.closed.n1,
           n2: entry.closed.n2,
           n3: entry.closed.n3,
@@ -143,7 +195,7 @@ export const useSupportMetrics = (filter: TimeFilter) => {
         runningBacklog.n3 = Math.max(0, runningBacklog.n3);
         
         backlog.push({ 
-          period: month.label, 
+          period: period.label, 
           n1: runningBacklog.n1,
           n2: runningBacklog.n2,
           n3: runningBacklog.n3,
@@ -172,7 +224,7 @@ export const useSupportMetrics = (filter: TimeFilter) => {
       .slice(0, 10);
   };
 
-  const { opened, closed, backlog } = processMonthlyData();
+  const { opened, closed, backlog } = processData();
   const ticketsByCustomer = processCustomerData();
 
   return {
