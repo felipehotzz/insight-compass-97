@@ -30,7 +30,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2, Check, ChevronDown, ChevronRight, Archive, Building2 } from "lucide-react";
+import { ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2, Check, ChevronDown, ChevronRight, Archive, Building2, ArchiveX } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -46,6 +46,7 @@ interface UnlinkedTicket {
   subject: string | null;
   status: string;
   created_at: string;
+  archived: boolean | null;
 }
 
 interface Customer {
@@ -86,13 +87,14 @@ export default function UnlinkedTickets() {
   const [linkedTicketIds, setLinkedTicketIds] = useState<Set<string>>(new Set());
   const [noEmailCollapsed, setNoEmailCollapsed] = useState(true);
   const [internalCollapsed, setInternalCollapsed] = useState(true);
+  const [archivedCollapsed, setArchivedCollapsed] = useState(true);
 
   const { data: tickets, isLoading: ticketsLoading } = useQuery({
     queryKey: ["unlinked-tickets"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets")
-        .select("id, intercom_conversation_id, from_email, from_name, subject, status, created_at")
+        .select("id, intercom_conversation_id, from_email, from_name, subject, status, created_at, archived")
         .is("customer_id", null)
         .order("created_at", { ascending: false });
 
@@ -212,6 +214,25 @@ export default function UnlinkedTickets() {
     });
   };
 
+  const archiveTicketMutation = useMutation({
+    mutationFn: async ({ ticketId, archived }: { ticketId: string; archived: boolean }) => {
+      const { error } = await supabase
+        .from("support_tickets")
+        .update({ archived })
+        .eq("id", ticketId);
+
+      if (error) throw error;
+      return ticketId;
+    },
+    onSuccess: (_, variables) => {
+      toast.success(variables.archived ? "Ticket arquivado!" : "Ticket desarquivado!");
+      queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] });
+    },
+    onError: () => {
+      toast.error("Erro ao arquivar ticket");
+    },
+  });
+
   const handleViewTicket = async (ticket: UnlinkedTicket) => {
     setViewingTicket(ticket);
     setConversationDetail(null);
@@ -249,12 +270,13 @@ export default function UnlinkedTickets() {
     return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
   };
 
-  // Separate tickets: with email (excluding internal), internal (@comunica.in), and without email
+  // Separate tickets: with email (excluding internal and archived), internal (@comunica.in), without email, and archived
   const isInternalEmail = (email: string | null) => email?.toLowerCase().endsWith("@comunica.in");
   
-  const ticketsWithEmail = tickets?.filter((t) => !linkedTicketIds.has(t.id) && t.from_email && !isInternalEmail(t.from_email));
-  const internalTickets = tickets?.filter((t) => !linkedTicketIds.has(t.id) && isInternalEmail(t.from_email));
-  const ticketsWithoutEmail = tickets?.filter((t) => !linkedTicketIds.has(t.id) && !t.from_email);
+  const ticketsWithEmail = tickets?.filter((t) => !linkedTicketIds.has(t.id) && t.from_email && !isInternalEmail(t.from_email) && !t.archived);
+  const internalTickets = tickets?.filter((t) => !linkedTicketIds.has(t.id) && isInternalEmail(t.from_email) && !t.archived);
+  const ticketsWithoutEmail = tickets?.filter((t) => !linkedTicketIds.has(t.id) && !t.from_email && !t.archived);
+  const archivedTickets = tickets?.filter((t) => !linkedTicketIds.has(t.id) && t.archived);
 
   return (
     <DashboardLayout>
@@ -285,7 +307,7 @@ export default function UnlinkedTickets() {
                 <TableHead className="w-[100px]">Status</TableHead>
                 <TableHead className="w-[120px]">Data</TableHead>
                 <TableHead className="w-[250px]">Vincular a</TableHead>
-                <TableHead className="w-[80px]">Ações</TableHead>
+                <TableHead className="w-[110px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -376,6 +398,15 @@ export default function UnlinkedTickets() {
                           >
                             <ExternalLink className="h-4 w-4" />
                           </a>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => archiveTicketMutation.mutate({ ticketId: ticket.id, archived: true })}
+                          title="Arquivar"
+                          disabled={archiveTicketMutation.isPending}
+                        >
+                          <ArchiveX className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -535,6 +566,85 @@ export default function UnlinkedTickets() {
                               >
                                 <ExternalLink className="h-4 w-4" />
                               </a>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Tickets arquivados - Seção colapsada */}
+        {archivedTickets && archivedTickets.length > 0 && (
+          <Collapsible open={!archivedCollapsed} onOpenChange={(open) => setArchivedCollapsed(!open)}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted">
+                <div className="flex items-center gap-2">
+                  <ArchiveX className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Tickets arquivados ({archivedTickets.length})
+                  </span>
+                  <Badge variant="outline" className="text-xs">Irrelevantes</Badge>
+                </div>
+                {archivedCollapsed ? (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="rounded-lg bg-card mt-2 border border-muted">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">Email / Nome</TableHead>
+                      <TableHead>Assunto</TableHead>
+                      <TableHead className="w-[100px]">Status</TableHead>
+                      <TableHead className="w-[120px]">Data</TableHead>
+                      <TableHead className="w-[80px]">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {archivedTickets.map((ticket) => (
+                      <TableRow key={ticket.id} className="opacity-75">
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
+                            {ticket.from_email && (
+                              <p className="text-xs text-muted-foreground">{ticket.from_email}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {format(new Date(ticket.created_at), "dd/MM/yy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewTicket(ticket)}
+                              title="Ver conversa"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => archiveTicketMutation.mutate({ ticketId: ticket.id, archived: false })}
+                              title="Desarquivar"
+                              disabled={archiveTicketMutation.isPending}
+                            >
+                              <Archive className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
