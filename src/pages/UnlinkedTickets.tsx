@@ -735,9 +735,18 @@ export default function UnlinkedTickets() {
 
       {/* View Ticket Dialog */}
       <Dialog open={!!viewingTicket} onOpenChange={(open) => !open && setViewingTicket(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-foreground">
+        <DialogContent className="max-w-4xl max-h-[90vh] [&>button]:hidden">
+          <DialogHeader className="relative">
+            <a
+              href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${viewingTicket?.intercom_conversation_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute top-0 right-0 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Intercom
+            </a>
+            <DialogTitle className="flex items-center gap-2 text-foreground pr-20">
               <Mail className="h-5 w-5 text-primary" />
               {stripHtml(viewingTicket?.subject) || "Conversa"}
             </DialogTitle>
@@ -754,28 +763,12 @@ export default function UnlinkedTickets() {
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="h-[500px] pr-4">
+          <ScrollArea className="h-[600px] pr-4">
             <IntercomThreadView 
               messages={conversationDetail?.messages || []} 
               loading={loadingConversation}
             />
           </ScrollArea>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setViewingTicket(null)}>
-              Fechar
-            </Button>
-            <Button asChild>
-              <a
-                href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${viewingTicket?.intercom_conversation_id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Abrir no Intercom
-              </a>
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

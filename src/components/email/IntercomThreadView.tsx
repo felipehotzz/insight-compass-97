@@ -166,11 +166,12 @@ export function IntercomThreadView({ messages, loading }: IntercomThreadViewProp
                   </div>
 
                   {/* Message body */}
-                  <div className="prose prose-sm max-w-none text-foreground">
+                  <div className="prose prose-sm max-w-none">
                     {message.body ? (
                       <div 
                         dangerouslySetInnerHTML={{ __html: message.body }} 
-                        className="email-content [&_p]:text-foreground [&_span]:text-foreground [&_div]:text-foreground [&_a]:text-primary [&_a]:underline"
+                        className="email-content text-foreground [&_*]:text-foreground [&_a]:!text-primary [&_a]:underline [&_p]:mb-2 [&_br]:block"
+                        style={{ color: 'hsl(var(--foreground))' }}
                       />
                     ) : (
                       <p className="text-muted-foreground italic">Sem conteúdo</p>
