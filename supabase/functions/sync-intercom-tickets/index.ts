@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
       domainMap.set(d.domain.toLowerCase(), d.customer_id);
     }
 
-    console.log("Loaded domains:", domainMap.size);
+    console.log("Loaded domains:", Array.from(domainMap.keys()));
 
     // Fetch conversations from Intercom
     let allConversations: IntercomConversation[] = [];
@@ -134,31 +134,52 @@ Deno.serve(async (req) => {
 
     console.log(`Total conversations fetched: ${allConversations.length}`);
 
-    // Process each conversation
+    // Process each conversation - fetch full details to get contact email
     let syncedCount = 0;
     let linkedCount = 0;
 
     for (const conv of allConversations) {
-      // Extract email from contacts
+      // Fetch full conversation details to get contact info
+      const detailResponse = await fetch(`https://api.intercom.io/conversations/${conv.id}`, {
+        headers: {
+          Authorization: `Bearer ${intercomToken}`,
+          Accept: "application/json",
+          "Intercom-Version": "2.11",
+        },
+      });
+
+      if (!detailResponse.ok) {
+        console.error(`Failed to fetch details for conversation ${conv.id}`);
+        continue;
+      }
+
+      const fullConv = await detailResponse.json();
+
+      // Extract email from contacts in full conversation
       let fromEmail: string | null = null;
       let fromName: string | null = null;
 
-      if (conv.contacts?.contacts?.length) {
-        const firstContact = conv.contacts.contacts[0];
+      // Check contacts in the full conversation
+      if (fullConv.contacts?.contacts?.length) {
+        const firstContact = fullConv.contacts.contacts[0];
         fromEmail = firstContact.email || null;
         fromName = firstContact.name || null;
-      } else if (conv.source?.author?.type === "user") {
-        fromEmail = conv.source.author.email || null;
-        fromName = conv.source.author.name || null;
+        console.log(`Conversation ${conv.id} - Contact: ${fromName} <${fromEmail}>`);
+      } else if (fullConv.source?.author?.type === "user" || fullConv.source?.author?.type === "lead") {
+        fromEmail = fullConv.source.author.email || null;
+        fromName = fullConv.source.author.name || null;
+        console.log(`Conversation ${conv.id} - Source author: ${fromName} <${fromEmail}>`);
       }
 
       // Find customer by domain
       let foundCustomerId: string | null = null;
       if (fromEmail) {
-        const domain = fromEmail.split("@")[1]?.toLowerCase();
-        if (domain && domainMap.has(domain)) {
-          foundCustomerId = domainMap.get(domain)!;
+        const emailDomain = fromEmail.split("@")[1]?.toLowerCase();
+        console.log(`Checking domain: ${emailDomain}`);
+        if (emailDomain && domainMap.has(emailDomain)) {
+          foundCustomerId = domainMap.get(emailDomain)!;
           linkedCount++;
+          console.log(`Matched to customer: ${foundCustomerId}`);
         }
       }
 
@@ -169,23 +190,26 @@ Deno.serve(async (req) => {
 
       // Determine priority
       let priority = "n2";
-      if (conv.priority === "priority") {
+      if (fullConv.priority === "priority") {
         priority = "n1";
       }
 
       // Get assignee
       let assigneeName: string | null = null;
-      if (conv.teammates?.admins?.length) {
-        assigneeName = conv.teammates.admins[0].name || null;
+      if (fullConv.teammates?.admins?.length) {
+        assigneeName = fullConv.teammates.admins[0].name || null;
       }
 
       // Map state to status
       let status = "open";
       let closedAt: string | null = null;
-      if (conv.state === "closed") {
+      const convState = fullConv.state || conv.state;
+      const convUpdatedAt = fullConv.updated_at || conv.updated_at;
+      
+      if (convState === "closed") {
         status = "closed";
-        closedAt = new Date(conv.updated_at * 1000).toISOString();
-      } else if (conv.state === "snoozed") {
+        closedAt = new Date(convUpdatedAt * 1000).toISOString();
+      } else if (convState === "snoozed") {
         status = "snoozed";
       }
 
@@ -196,14 +220,14 @@ Deno.serve(async (req) => {
           intercom_conversation_id: conv.id,
           from_email: fromEmail,
           from_name: fromName,
-          subject: conv.title || conv.source?.subject || null,
+          subject: fullConv.title || fullConv.source?.subject || conv.title || null,
           status,
           priority,
           assignee_name: assigneeName,
           customer_id: foundCustomerId,
           closed_at: closedAt,
-          created_at: new Date(conv.created_at * 1000).toISOString(),
-          updated_at: new Date(conv.updated_at * 1000).toISOString(),
+          created_at: new Date((fullConv.created_at || conv.created_at) * 1000).toISOString(),
+          updated_at: new Date(convUpdatedAt * 1000).toISOString(),
         }, {
           onConflict: "intercom_conversation_id",
         });
