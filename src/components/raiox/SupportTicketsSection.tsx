@@ -248,8 +248,13 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
     };
   }, [tickets, backlogTickets]);
 
-  // Get latest 5 tickets for the list
-  const latestTickets = tickets?.slice(0, 5) || [];
+  // State to control expanded view
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Get tickets for the list - show 5 or all based on expanded state
+  const displayedTickets = isExpanded ? (tickets || []) : (tickets?.slice(0, 5) || []);
+  const totalTickets = tickets?.length || 0;
+  const hasMore = totalTickets > 5;
 
   return (
     <div className="space-y-4">
@@ -319,56 +324,71 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
       {/* Tickets List */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-medium">Últimos Chamados</CardTitle>
+          <CardTitle className="text-base font-medium">
+            Últimos Chamados {totalTickets > 0 && <span className="text-muted-foreground">({totalTickets})</span>}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
             <p className="text-sm text-muted-foreground p-4">Carregando...</p>
-          ) : latestTickets.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/30">
-                  <TableHead className="text-xs">Assunto</TableHead>
-                  <TableHead className="text-xs">Remetente</TableHead>
-                  <TableHead className="text-xs">Status</TableHead>
-                  <TableHead className="text-xs">Prioridade</TableHead>
-                  <TableHead className="text-xs">Responsável</TableHead>
-                  <TableHead className="text-xs text-right">Data</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {latestTickets.map((ticket) => (
-                  <TableRow 
-                    key={ticket.id} 
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => fetchConversation(ticket)}
-                  >
-                    <TableCell className="text-sm font-medium max-w-[200px] truncate">
-                      {ticket.subject || "(Sem assunto)"}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {ticket.from_name || ticket.from_email || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(ticket.status)}>
-                        {getStatusLabel(ticket.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getPriorityColor(ticket.priority)}>
-                        {ticket.priority?.toUpperCase() || "N2"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {ticket.assignee_name || "-"}
-                    </TableCell>
-                    <TableCell className="text-sm text-right text-muted-foreground">
-                      {formatDate(ticket.created_at)}
-                    </TableCell>
+          ) : displayedTickets.length > 0 ? (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="text-xs">Assunto</TableHead>
+                    <TableHead className="text-xs">Remetente</TableHead>
+                    <TableHead className="text-xs">Status</TableHead>
+                    <TableHead className="text-xs">Prioridade</TableHead>
+                    <TableHead className="text-xs">Responsável</TableHead>
+                    <TableHead className="text-xs text-right">Data</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {displayedTickets.map((ticket) => (
+                    <TableRow 
+                      key={ticket.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => fetchConversation(ticket)}
+                    >
+                      <TableCell className="text-sm font-medium max-w-[200px] truncate">
+                        {ticket.subject || "(Sem assunto)"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {ticket.from_name || ticket.from_email || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(ticket.status)}>
+                          {getStatusLabel(ticket.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getPriorityColor(ticket.priority)}>
+                          {ticket.priority?.toUpperCase() || "N2"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {ticket.assignee_name || "-"}
+                      </TableCell>
+                      <TableCell className="text-sm text-right text-muted-foreground">
+                        {formatDate(ticket.created_at)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {hasMore && (
+                <div className="p-3 border-t">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                  >
+                    {isExpanded ? "Ver menos" : `Ver mais ${totalTickets - 5} chamados`}
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">
               Nenhum chamado encontrado. Configure os domínios do cliente para vincular tickets automaticamente.
