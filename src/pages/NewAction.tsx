@@ -74,7 +74,6 @@ const NewAction = () => {
   const [actionType, setActionType] = useState("");
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
-  const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
   const [content, setContent] = useState("");
   const [responsibles, setResponsibles] = useState<string[]>([]);
