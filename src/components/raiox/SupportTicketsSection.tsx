@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FilterButtons } from "@/components/dashboard/FilterButtons";
 import type { TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
+import { getDateRangeFromPeriod } from "@/components/dashboard/PeriodDropdown";
 import {
   Table,
   TableBody,
@@ -139,7 +140,7 @@ const getPriorityColor = (priority: string | null) => {
 
 export const SupportTicketsSection = ({ customerId, filter, onFilterChange, periodValue = "last_3_months", onPeriodChange }: SupportTicketsSectionProps) => {
   const queryClient = useQueryClient();
-  const startDate = getDateRange(filter);
+  const { startDate: periodStartDate } = getDateRangeFromPeriod(periodValue);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [conversationMessages, setConversationMessages] = useState<Message[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
@@ -182,16 +183,22 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange, peri
     }
   };
 
-  // Fetch tickets for this customer
+  // Fetch tickets for this customer based on period filter
   const { data: tickets, isLoading } = useQuery({
-    queryKey: ["support-tickets", customerId, filter],
+    queryKey: ["support-tickets", customerId, periodValue],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("support_tickets")
         .select("*")
         .eq("customer_id", customerId)
-        .gte("created_at", startDate.toISOString())
         .order("created_at", { ascending: false });
+      
+      // Apply period filter if not "all"
+      if (periodStartDate) {
+        query = query.gte("created_at", periodStartDate.toISOString());
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data as Ticket[];
     },
