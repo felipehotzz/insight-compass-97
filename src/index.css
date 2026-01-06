@@ -147,15 +147,21 @@
   }
 }
 
-/* Force white text on email content from external sources */
+/* Force foreground text on email content from external sources */
 .email-content,
 .email-content * {
   color: hsl(var(--foreground)) !important;
+  background-color: transparent !important;
 }
 
 .email-content a,
 .email-content a * {
   color: hsl(var(--primary)) !important;
+}
+
+.email-content img {
+  max-width: 100%;
+  height: auto;
 }
 
 @layer utilities {

@@ -735,8 +735,8 @@ export default function UnlinkedTickets() {
 
       {/* View Ticket Dialog */}
       <Dialog open={!!viewingTicket} onOpenChange={(open) => !open && setViewingTicket(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] [&>button]:hidden">
-          <DialogHeader className="relative">
+        <DialogContent className="max-w-4xl max-h-[90vh] [&>button]:hidden focus:outline-none focus-visible:outline-none focus-visible:ring-0">
+          <div className="relative">
             <a
               href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${viewingTicket?.intercom_conversation_id}`}
               target="_blank"
@@ -746,27 +746,16 @@ export default function UnlinkedTickets() {
               <ExternalLink className="h-3 w-3" />
               Intercom
             </a>
-            <DialogTitle className="flex items-center gap-2 text-foreground pr-20">
-              <Mail className="h-5 w-5 text-primary" />
-              {stripHtml(viewingTicket?.subject) || "Conversa"}
-            </DialogTitle>
-            <DialogDescription className="flex items-center gap-2 flex-wrap">
-              <span>{viewingTicket?.from_name}</span>
-              {viewingTicket?.from_email && (
-                <>
-                  <span className="text-muted-foreground">•</span>
-                  <span className="text-muted-foreground">{viewingTicket.from_email}</span>
-                </>
-              )}
-              <span className="text-muted-foreground">•</span>
-              {viewingTicket && format(new Date(viewingTicket.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-            </DialogDescription>
-          </DialogHeader>
+          </div>
 
-          <ScrollArea className="h-[600px] pr-4">
+          <ScrollArea className="h-[70vh] pr-4">
             <IntercomThreadView 
               messages={conversationDetail?.messages || []} 
               loading={loadingConversation}
+              subject={stripHtml(viewingTicket?.subject) || undefined}
+              fromName={viewingTicket?.from_name || undefined}
+              fromEmail={viewingTicket?.from_email || undefined}
+              createdAt={viewingTicket?.created_at}
             />
           </ScrollArea>
         </DialogContent>
