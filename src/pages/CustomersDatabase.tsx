@@ -116,10 +116,12 @@ export default function CustomersDatabase() {
           (c) => c.customer_id === customer.id
         );
 
+        // MRR Atual: soma apenas dos contratos VIGENTES
         const mrr_atual_total = customerContracts
-          .filter((c) => c.mrr_atual)
+          .filter((c) => c.status_contrato?.toLowerCase() === "vigente")
           .reduce((sum, c) => sum + (c.mrr || 0), 0);
 
+        // LTV Total: soma de MRR × meses de vigência de TODOS os contratos
         const ltv_total = customerContracts.reduce(
           (sum, c) => sum + (c.mrr || 0) * (c.meses_vigencia || 1),
           0
