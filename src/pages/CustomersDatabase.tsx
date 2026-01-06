@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,10 +24,13 @@ import {
   ChevronDown, 
   ChevronRight, 
   Filter,
-  Download
+  Download,
+  Globe,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface Customer {
   id: string;
@@ -112,7 +115,9 @@ export default function CustomersDatabase() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "ativo" | "inativo">("all");
   const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
+  const [enrichingDomains, setEnrichingDomains] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Fetch customers with their contracts
   const { data: customersData, isLoading } = useQuery({
@@ -236,16 +241,61 @@ export default function CustomersDatabase() {
     });
   };
 
+  const handleEnrichDomains = async () => {
+    setEnrichingDomains(true);
+    toast.info("Buscando domínios automaticamente...", { duration: 5000 });
+
+    try {
+      const { data, error } = await supabase.functions.invoke("enrich-customer-domains", {
+        body: { mode: "batch" },
+      });
+
+      if (error) throw error;
+
+      if (data?.success && data?.results) {
+        const { success, failed, total } = data.results;
+        toast.success(`Domínios atualizados: ${success} de ${total} clientes`, {
+          description: failed > 0 ? `${failed} não encontrados` : undefined,
+        });
+        queryClient.invalidateQueries({ queryKey: ["customer-domains"] });
+      } else {
+        throw new Error(data?.error || "Erro desconhecido");
+      }
+    } catch (error) {
+      console.error("Error enriching domains:", error);
+      toast.error("Erro ao buscar domínios", {
+        description: error instanceof Error ? error.message : "Tente novamente",
+      });
+    } finally {
+      setEnrichingDomains(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-medium">Customers Database</h1>
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Exportar
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              className="gap-2"
+              onClick={handleEnrichDomains}
+              disabled={enrichingDomains}
+            >
+              {enrichingDomains ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Globe className="h-4 w-4" />
+              )}
+              {enrichingDomains ? "Buscando..." : "Buscar Domínios"}
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Exportar
+            </Button>
+          </div>
         </div>
 
         {/* Summary Cards */}
