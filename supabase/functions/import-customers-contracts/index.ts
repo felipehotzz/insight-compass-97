@@ -195,34 +195,37 @@ serve(async (req) => {
     const header = parseCSVLine(lines[0], separator)
     console.log('Header columns:', header.length, header.slice(0, 5))
     
-    // Map header indices
+    // Map header indices - only use first match to avoid long text columns overwriting
     const colMap: Record<string, number> = {}
     header.forEach((col, idx) => {
       const normalized = col.toLowerCase().trim()
-      if (normalized.includes('id financeiro')) colMap['id_financeiro'] = idx
-      else if (normalized.includes('status cliente')) colMap['status_cliente'] = idx
-      else if (normalized.includes('id cliente') || normalized.includes('cnpj')) colMap['cnpj'] = idx
-      else if (normalized.includes('razão social') || normalized.includes('razao social')) colMap['razao_social'] = idx
-      else if (normalized.includes('nome fantasia')) colMap['nome_fantasia'] = idx
-      else if (normalized.includes('mrr atual')) colMap['mrr_atual'] = idx
-      else if (normalized.includes('data do cohort') || normalized.includes('cohort')) colMap['data_cohort'] = idx
-      else if (normalized.includes('data do movimento') || normalized.includes('movimento')) colMap['data_movimento'] = idx
-      else if (normalized.includes('mrr') && !normalized.includes('atual') && !normalized.includes('movimento') && !normalized.includes('original')) colMap['mrr'] = idx
-      else if (normalized.includes('movimento de mrr')) colMap['movimento_mrr'] = idx
-      else if (normalized.includes('tipo de movimento')) colMap['tipo_movimento'] = idx
-      else if (normalized.includes('status do contrato') || normalized.includes('status contrato')) colMap['status_contrato'] = idx
-      else if (normalized.includes('id do contrato') || normalized.includes('id contrato')) colMap['id_contrato'] = idx
-      else if (normalized.includes('tipo do documento') || normalized.includes('tipo documento')) colMap['tipo_documento'] = idx
-      else if (normalized.includes('vigência inicial') || normalized.includes('vigencia inicial')) colMap['vigencia_inicial'] = idx
-      else if (normalized.includes('vigência final') || normalized.includes('vigencia final')) colMap['vigencia_final'] = idx
-      else if (normalized.includes('meses de vigência') || normalized.includes('meses vigencia')) colMap['meses_vigencia'] = idx
-      else if (normalized.includes('valor do contrato') || normalized.includes('valor contrato')) colMap['valor_contrato'] = idx
-      else if (normalized.includes('tipo de renovação') || normalized.includes('tipo renovacao')) colMap['tipo_renovacao'] = idx
-      else if (normalized.includes('índice') || normalized.includes('indice')) colMap['indice_renovacao'] = idx
-      else if (normalized.includes('vendedor')) colMap['vendedor'] = idx
-      else if (normalized.includes('valor original') || normalized.includes('mrr original')) colMap['valor_original_mrr'] = idx
-      else if (normalized.includes('observação') || normalized.includes('observacao')) colMap['observacoes'] = idx
-      else if (normalized.includes('condição') || normalized.includes('condicao') || normalized.includes('pagamento')) colMap['condicao_pagamento'] = idx
+      // Skip columns that are too long (likely contain text, not headers)
+      if (normalized.length > 50) return
+      
+      if (normalized.includes('id financeiro') && colMap['id_financeiro'] === undefined) colMap['id_financeiro'] = idx
+      else if (normalized.includes('status cliente') && colMap['status_cliente'] === undefined) colMap['status_cliente'] = idx
+      else if ((normalized.includes('id cliente') || normalized === 'cnpj') && colMap['cnpj'] === undefined) colMap['cnpj'] = idx
+      else if ((normalized.includes('razão social') || normalized.includes('razao social')) && colMap['razao_social'] === undefined) colMap['razao_social'] = idx
+      else if (normalized.includes('nome fantasia') && colMap['nome_fantasia'] === undefined) colMap['nome_fantasia'] = idx
+      else if (normalized.includes('mrr atual') && colMap['mrr_atual'] === undefined) colMap['mrr_atual'] = idx
+      else if ((normalized.includes('data cohort') || normalized === 'cohort') && colMap['data_cohort'] === undefined) colMap['data_cohort'] = idx
+      else if ((normalized.includes('data movimento') || normalized === 'movimento') && colMap['data_movimento'] === undefined) colMap['data_movimento'] = idx
+      else if (normalized === 'mrr' && colMap['mrr'] === undefined) colMap['mrr'] = idx
+      else if (normalized.includes('movimento mrr') && colMap['movimento_mrr'] === undefined) colMap['movimento_mrr'] = idx
+      else if (normalized.includes('tipo movimento') && colMap['tipo_movimento'] === undefined) colMap['tipo_movimento'] = idx
+      else if ((normalized.includes('status contrato') || normalized === 'status contrato') && colMap['status_contrato'] === undefined) colMap['status_contrato'] = idx
+      else if ((normalized.includes('id contrato') || normalized === 'id contrato') && colMap['id_contrato'] === undefined) colMap['id_contrato'] = idx
+      else if (normalized.includes('documento') && colMap['tipo_documento'] === undefined) colMap['tipo_documento'] = idx
+      else if ((normalized.includes('vigência inicial') || normalized.includes('vigencia inicial')) && colMap['vigencia_inicial'] === undefined) colMap['vigencia_inicial'] = idx
+      else if ((normalized.includes('vigência final') || normalized.includes('vigencia final')) && colMap['vigencia_final'] === undefined) colMap['vigencia_final'] = idx
+      else if ((normalized.includes('meses') && normalized.includes('vigência')) && colMap['meses_vigencia'] === undefined) colMap['meses_vigencia'] = idx
+      else if (normalized.includes('valor contrato') && colMap['valor_contrato'] === undefined) colMap['valor_contrato'] = idx
+      else if (normalized.includes('tipo renovação') || normalized.includes('tipo renovacao') && colMap['tipo_renovacao'] === undefined) colMap['tipo_renovacao'] = idx
+      else if ((normalized.includes('índice') || normalized.includes('indice')) && colMap['indice_renovacao'] === undefined) colMap['indice_renovacao'] = idx
+      else if (normalized.includes('vendedor') && colMap['vendedor'] === undefined) colMap['vendedor'] = idx
+      else if ((normalized.includes('valor original') || normalized.includes('mrr original')) && colMap['valor_original_mrr'] === undefined) colMap['valor_original_mrr'] = idx
+      else if ((normalized.includes('obs') || normalized.includes('observação')) && colMap['observacoes'] === undefined) colMap['observacoes'] = idx
+      else if ((normalized.includes('condição') || normalized.includes('condicao') || normalized.includes('pagamento')) && colMap['condicao_pagamento'] === undefined) colMap['condicao_pagamento'] = idx
     })
     
     console.log('Column mapping:', colMap)
