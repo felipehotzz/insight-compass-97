@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Growth from "./pages/Growth";
 import Presence from "./pages/Presence";
 import Customers from "./pages/Customers";
+import CustomersDatabase from "./pages/CustomersDatabase";
 import CustomerDetail from "./pages/CustomerDetail";
 import ActionRegistry from "./pages/ActionRegistry";
 import NewAction from "./pages/NewAction";
@@ -49,6 +50,8 @@ function AppContent() {
         <Route path="/pipeline" element={<ProtectedRoute><Growth /></ProtectedRoute>} />
         <Route path="/growth" element={<ProtectedRoute><Presence /></ProtectedRoute>} />
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+        <Route path="/cdb" element={<ProtectedRoute><CustomersDatabase /></ProtectedRoute>} />
+        <Route path="/customer/:customerId" element={<ProtectedRoute><CustomerDetail /></ProtectedRoute>} />
         <Route path="/customer-detail" element={<ProtectedRoute><CustomerDetail /></ProtectedRoute>} />
         <Route path="/actions" element={<ProtectedRoute><ActionRegistry /></ProtectedRoute>} />
         <Route path="/actions/new" element={<ProtectedRoute><NewAction /></ProtectedRoute>} />
