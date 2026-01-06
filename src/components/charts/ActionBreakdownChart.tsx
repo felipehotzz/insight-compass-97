@@ -139,6 +139,7 @@ export function ActionBreakdownChart({ data, height = 280 }: ActionBreakdownChar
             name="Reunião" 
             stackId="a" 
             fill="hsl(var(--color-growth))" 
+            stroke="none"
             radius={[0, 0, 0, 0]}
           />
           <Bar 
@@ -146,18 +147,21 @@ export function ActionBreakdownChart({ data, height = 280 }: ActionBreakdownChar
             name="E-mail" 
             stackId="a" 
             fill="hsl(var(--color-overview))" 
+            stroke="none"
           />
           <Bar 
             dataKey="ligacao" 
             name="Ligação" 
             stackId="a" 
             fill="hsl(var(--color-community))" 
+            stroke="none"
           />
           <Bar 
             dataKey="whatsapp" 
             name="WhatsApp" 
             stackId="a" 
             fill="hsl(var(--color-success))" 
+            stroke="none"
             radius={[3, 3, 0, 0]}
           />
         </BarChart>
