@@ -152,12 +152,30 @@ export default function CustomersDatabase() {
           (c) => c.status_contrato?.toLowerCase() === "vigente"
         ).length;
 
-        const meses_ativo = customer.data_cohort
-          ? Math.floor(
-              (new Date().getTime() - new Date(customer.data_cohort).getTime()) /
-                (1000 * 60 * 60 * 24 * 30)
-            )
-          : 0;
+        // Meses Ativo: calcula baseado no período real de atividade
+        // Para clientes ativos: desde cohort até hoje
+        // Para clientes inativos: desde cohort até o último contrato que terminou
+        let meses_ativo = 0;
+        if (customer.data_cohort) {
+          const startDate = new Date(customer.data_cohort);
+          let endDate = new Date(); // default: hoje
+          
+          // Se cliente inativo, usar a data final do último contrato
+          if (customer.status !== "ativo" && customerContracts.length > 0) {
+            const lastContractEnd = customerContracts
+              .filter((c) => c.vigencia_final)
+              .map((c) => new Date(c.vigencia_final!))
+              .sort((a, b) => b.getTime() - a.getTime())[0];
+            
+            if (lastContractEnd) {
+              endDate = lastContractEnd;
+            }
+          }
+          
+          meses_ativo = Math.floor(
+            (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
+          );
+        }
 
         return {
           ...customer,
