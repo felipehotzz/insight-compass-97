@@ -107,11 +107,31 @@ interface Action {
   action_date: string;
 }
 
-// Mock data for champions/contacts
-const mockChampions = [
-  { name: "Maria Silva", email: "maria.silva@empresa.com", phone: "+55 11 99999-0001", linkedin: "https://linkedin.com/in/mariasilva" },
-  { name: "João Souza", email: "joao.souza@empresa.com", phone: "+55 11 99999-0002", linkedin: "https://linkedin.com/in/joaosouza" },
-];
+interface Champion {
+  id: string;
+  customer_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  linkedin: string | null;
+  role: string | null;
+}
+
+interface NewChampionForm {
+  name: string;
+  email: string;
+  phone: string;
+  linkedin: string;
+  role: string;
+}
+
+const initialChampionForm: NewChampionForm = {
+  name: "",
+  email: "",
+  phone: "",
+  linkedin: "",
+  role: "",
+};
 
 const formatCurrency = (value: number | null) => {
   if (value === null || value === undefined) return "-";
@@ -243,6 +263,8 @@ const RaioX = () => {
   });
   const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
   const [contractForm, setContractForm] = useState<NewContractForm>(initialContractForm);
+  const [isChampionDialogOpen, setIsChampionDialogOpen] = useState(false);
+  const [championForm, setChampionForm] = useState<NewChampionForm>(initialChampionForm);
 
   // Sync URL param with state
   useEffect(() => {
@@ -299,6 +321,22 @@ const RaioX = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch champions for selected customer
+  const { data: champions } = useQuery({
+    queryKey: ["customer-champions", selectedCustomer?.id],
+    queryFn: async () => {
+      if (!selectedCustomer) return [];
+      const { data, error } = await supabase
+        .from("champions")
+        .select("*")
+        .eq("customer_id", selectedCustomer.id)
+        .order("name");
+      if (error) throw error;
+      return data as Champion[];
+    },
+    enabled: !!selectedCustomer,
   });
 
   // Fetch actions for selected customer
@@ -461,6 +499,30 @@ const RaioX = () => {
     },
   });
 
+  // Create champion mutation
+  const createChampionMutation = useMutation({
+    mutationFn: async (data: NewChampionForm) => {
+      const { error } = await supabase.from("champions").insert({
+        customer_id: selectedCustomer?.id,
+        name: data.name,
+        email: data.email || null,
+        phone: data.phone || null,
+        linkedin: data.linkedin || null,
+        role: data.role || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customer-champions", selectedCustomer?.id] });
+      setIsChampionDialogOpen(false);
+      setChampionForm(initialChampionForm);
+      toast.success("Contato adicionado com sucesso");
+    },
+    onError: (error) => {
+      toast.error("Erro ao adicionar contato: " + error.message);
+    },
+  });
+
   const startEditing = () => {
     if (selectedCustomer) {
       setEditForm({
@@ -493,6 +555,15 @@ const RaioX = () => {
   const handleCreateContract = (e: React.FormEvent) => {
     e.preventDefault();
     createContractMutation.mutate(contractForm);
+  };
+
+  const handleCreateChampion = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!championForm.name.trim()) {
+      toast.error("Nome é obrigatório");
+      return;
+    }
+    createChampionMutation.mutate(championForm);
   };
 
   const handleCopyEmail = (email: string) => {
@@ -954,58 +1025,139 @@ const RaioX = () => {
 
                 {/* Champions (Contatos) */}
                 <div className="space-y-3">
-                  <h3 className="font-medium">Champions (Contatos)</h3>
-                  <div className="border rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="hover:bg-transparent">
-                          <TableHead className="text-xs">Nome</TableHead>
-                          <TableHead className="text-xs">E-mail</TableHead>
-                          <TableHead className="text-xs">Telefone</TableHead>
-                          <TableHead className="text-xs text-right">Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {mockChampions.map((champion, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="text-sm font-medium">{champion.name}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{champion.email}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{champion.phone}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => handleCopyEmail(champion.email)}
-                                      >
-                                        <Mail className="h-4 w-4 text-muted-foreground" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent className="flex items-center gap-2">
-                                      <span>Copiar e-mail</span>
-                                      <Copy className="h-3 w-3" />
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Phone className="h-4 w-4 text-muted-foreground" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                                  <a href={champion.linkedin} target="_blank" rel="noopener noreferrer">
-                                    <Linkedin className="h-4 w-4 text-muted-foreground" />
-                                  </a>
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium">Champions (Contatos)</h3>
+                    <Dialog open={isChampionDialogOpen} onOpenChange={setIsChampionDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" className="gap-2">
+                          <Plus className="h-4 w-4" />
+                          Novo Contato
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-lg">
+                        <DialogHeader>
+                          <DialogTitle>Novo Contato</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleCreateChampion} className="space-y-4">
+                          <div className="space-y-3">
+                            <div className="space-y-1">
+                              <Label className="text-sm">Nome *</Label>
+                              <Input
+                                value={championForm.name}
+                                onChange={(e) => setChampionForm({ ...championForm, name: e.target.value })}
+                                placeholder="Nome completo"
+                                required
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-sm">Cargo</Label>
+                              <Input
+                                value={championForm.role}
+                                onChange={(e) => setChampionForm({ ...championForm, role: e.target.value })}
+                                placeholder="Ex: Diretor de Marketing"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-sm">E-mail</Label>
+                              <Input
+                                type="email"
+                                value={championForm.email}
+                                onChange={(e) => setChampionForm({ ...championForm, email: e.target.value })}
+                                placeholder="email@empresa.com"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-sm">Telefone</Label>
+                              <Input
+                                value={championForm.phone}
+                                onChange={(e) => setChampionForm({ ...championForm, phone: e.target.value })}
+                                placeholder="+55 11 99999-0000"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-sm">LinkedIn</Label>
+                              <Input
+                                value={championForm.linkedin}
+                                onChange={(e) => setChampionForm({ ...championForm, linkedin: e.target.value })}
+                                placeholder="https://linkedin.com/in/..."
+                              />
+                            </div>
+                          </div>
+                          <div className="flex justify-end gap-2 pt-4">
+                            <Button type="button" variant="outline" onClick={() => setIsChampionDialogOpen(false)}>
+                              Cancelar
+                            </Button>
+                            <Button type="submit" disabled={createChampionMutation.isPending}>
+                              {createChampionMutation.isPending ? "Salvando..." : "Salvar"}
+                            </Button>
+                          </div>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
                   </div>
+                  {champions && champions.length > 0 ? (
+                    <div className="border rounded-lg overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="hover:bg-transparent">
+                            <TableHead className="text-xs">Nome</TableHead>
+                            <TableHead className="text-xs">Cargo</TableHead>
+                            <TableHead className="text-xs">E-mail</TableHead>
+                            <TableHead className="text-xs">Telefone</TableHead>
+                            <TableHead className="text-xs text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {champions.map((champion) => (
+                            <TableRow key={champion.id}>
+                              <TableCell className="text-sm font-medium">{champion.name}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{champion.role || "-"}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{champion.email || "-"}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground">{champion.phone || "-"}</TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  {champion.email && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() => handleCopyEmail(champion.email!)}
+                                          >
+                                            <Mail className="h-4 w-4 text-muted-foreground" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="flex items-center gap-2">
+                                          <span>Copiar e-mail</span>
+                                          <Copy className="h-3 w-3" />
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                  {champion.phone && (
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <Phone className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                  )}
+                                  {champion.linkedin && (
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                                      <a href={champion.linkedin} target="_blank" rel="noopener noreferrer">
+                                        <Linkedin className="h-4 w-4 text-muted-foreground" />
+                                      </a>
+                                    </Button>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">Nenhum contato cadastrado</p>
+                  )}
                 </div>
               </CardContent>
             </CollapsibleContent>
