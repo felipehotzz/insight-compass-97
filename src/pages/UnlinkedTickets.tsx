@@ -19,9 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Link2, ExternalLink, RefreshCw } from "lucide-react";
+import { Link2, ExternalLink, RefreshCw, Users } from "lucide-react";
 import { toast } from "sonner";
 
 interface UnlinkedTicket {
@@ -39,9 +47,17 @@ interface Customer {
   nome_fantasia: string;
 }
 
+interface SuggestionData {
+  customerId: string;
+  customerName: string;
+  domain: string | null;
+  relatedTickets: UnlinkedTicket[];
+}
+
 export default function UnlinkedTickets() {
   const queryClient = useQueryClient();
   const [selectedCustomers, setSelectedCustomers] = useState<Record<string, string>>({});
+  const [suggestionDialog, setSuggestionDialog] = useState<SuggestionData | null>(null);
 
   const { data: tickets, isLoading: ticketsLoading } = useQuery({
     queryKey: ["unlinked-tickets"],
@@ -71,31 +87,104 @@ export default function UnlinkedTickets() {
     },
   });
 
+  const extractDomain = (email: string | null) => {
+    if (!email) return null;
+    const parts = email.split("@");
+    return parts.length > 1 ? parts[1].toLowerCase() : null;
+  };
+
+  const findRelatedTickets = (linkedTicket: UnlinkedTicket, allTickets: UnlinkedTicket[]) => {
+    const email = linkedTicket.from_email?.toLowerCase();
+    const domain = extractDomain(linkedTicket.from_email);
+
+    return allTickets.filter((t) => {
+      if (t.id === linkedTicket.id) return false;
+      
+      // Same email match
+      if (email && t.from_email?.toLowerCase() === email) return true;
+      
+      // Same domain match (excluding common domains)
+      if (domain && !["gmail.com", "hotmail.com", "outlook.com", "yahoo.com"].includes(domain)) {
+        const ticketDomain = extractDomain(t.from_email);
+        if (ticketDomain === domain) return true;
+      }
+      
+      return false;
+    });
+  };
+
   const linkTicketMutation = useMutation({
-    mutationFn: async ({ ticketId, customerId }: { ticketId: string; customerId: string }) => {
+    mutationFn: async ({ ticketIds, customerId }: { ticketIds: string[]; customerId: string }) => {
       const { error } = await supabase
         .from("support_tickets")
         .update({ customer_id: customerId })
-        .eq("id", ticketId);
+        .in("id", ticketIds);
 
       if (error) throw error;
+      return ticketIds.length;
     },
-    onSuccess: () => {
+    onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] });
-      toast.success("Ticket vinculado com sucesso!");
+      toast.success(`${count} ticket${count > 1 ? "s" : ""} vinculado${count > 1 ? "s" : ""} com sucesso!`);
+      setSuggestionDialog(null);
     },
     onError: () => {
-      toast.error("Erro ao vincular ticket");
+      toast.error("Erro ao vincular tickets");
     },
   });
 
-  const handleLink = (ticketId: string) => {
-    const customerId = selectedCustomers[ticketId];
+  const handleLink = (ticket: UnlinkedTicket) => {
+    const customerId = selectedCustomers[ticket.id];
     if (!customerId) {
       toast.error("Selecione um cliente primeiro");
       return;
     }
-    linkTicketMutation.mutate({ ticketId, customerId });
+
+    const customer = customers?.find((c) => c.id === customerId);
+    const relatedTickets = tickets ? findRelatedTickets(ticket, tickets) : [];
+
+    if (relatedTickets.length > 0) {
+      // Show suggestion dialog
+      setSuggestionDialog({
+        customerId,
+        customerName: customer?.nome_fantasia || "",
+        domain: extractDomain(ticket.from_email),
+        relatedTickets,
+      });
+    } else {
+      // Link only this ticket
+      linkTicketMutation.mutate({ ticketIds: [ticket.id], customerId });
+    }
+  };
+
+  const handleLinkSingle = () => {
+    if (!suggestionDialog) return;
+    // Find the original ticket (the one that triggered the suggestion)
+    const originalTicketId = Object.entries(selectedCustomers).find(
+      ([_, cId]) => cId === suggestionDialog.customerId
+    )?.[0];
+    
+    if (originalTicketId) {
+      linkTicketMutation.mutate({ 
+        ticketIds: [originalTicketId], 
+        customerId: suggestionDialog.customerId 
+      });
+    }
+  };
+
+  const handleLinkAll = () => {
+    if (!suggestionDialog) return;
+    const originalTicketId = Object.entries(selectedCustomers).find(
+      ([_, cId]) => cId === suggestionDialog.customerId
+    )?.[0];
+    
+    if (originalTicketId) {
+      const allTicketIds = [originalTicketId, ...suggestionDialog.relatedTickets.map((t) => t.id)];
+      linkTicketMutation.mutate({ 
+        ticketIds: allTicketIds, 
+        customerId: suggestionDialog.customerId 
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -106,12 +195,6 @@ export default function UnlinkedTickets() {
     };
     const config = variants[status] || { variant: "outline" as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
-  const extractDomain = (email: string | null) => {
-    if (!email) return null;
-    const parts = email.split("@");
-    return parts.length > 1 ? parts[1] : null;
   };
 
   return (
@@ -205,7 +288,7 @@ export default function UnlinkedTickets() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleLink(ticket.id)}
+                          onClick={() => handleLink(ticket)}
                           disabled={!selectedCustomers[ticket.id] || linkTicketMutation.isPending}
                         >
                           <Link2 className="h-4 w-4" />
@@ -232,6 +315,47 @@ export default function UnlinkedTickets() {
           </Table>
         </div>
       </div>
+
+      {/* Suggestion Dialog */}
+      <Dialog open={!!suggestionDialog} onOpenChange={(open) => !open && setSuggestionDialog(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Tickets relacionados encontrados
+            </DialogTitle>
+            <DialogDescription>
+              Encontramos mais {suggestionDialog?.relatedTickets.length} ticket
+              {(suggestionDialog?.relatedTickets.length || 0) > 1 ? "s" : ""} do domínio{" "}
+              <span className="font-medium text-foreground">@{suggestionDialog?.domain}</span>. 
+              Deseja vincular todos a <span className="font-medium text-foreground">{suggestionDialog?.customerName}</span>?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[300px] overflow-y-auto space-y-2 my-4">
+            {suggestionDialog?.relatedTickets.map((ticket) => (
+              <div key={ticket.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">{ticket.from_name || ticket.from_email}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{ticket.subject || "Sem assunto"}</p>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {format(new Date(ticket.created_at), "dd/MM/yy")}
+                </Badge>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={handleLinkSingle} disabled={linkTicketMutation.isPending}>
+              Vincular apenas 1
+            </Button>
+            <Button onClick={handleLinkAll} disabled={linkTicketMutation.isPending}>
+              Vincular todos ({(suggestionDialog?.relatedTickets.length || 0) + 1})
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
