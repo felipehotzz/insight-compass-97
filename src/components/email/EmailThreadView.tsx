@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Mail, Reply, ChevronDown, ChevronUp, Paperclip } from "lucide-react";
+import { Mail, ChevronDown, ChevronUp, Paperclip, Download, Loader2, FileText, Image, File } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface Attachment {
   id: string;
@@ -28,11 +29,17 @@ interface EmailThreadViewProps {
   actionId: string;
 }
 
+function getFileIcon(contentType: string) {
+  if (contentType.startsWith("image/")) return Image;
+  if (contentType === "application/pdf" || contentType.includes("document")) return FileText;
+  return File;
+}
+
 export function EmailThreadView({ actionId }: EmailThreadViewProps) {
   const [messages, setMessages] = useState<EmailMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
-
+  const [downloadingAttachments, setDownloadingAttachments] = useState<Set<string>>(new Set());
   useEffect(() => {
     fetchMessages();
   }, [actionId]);
@@ -69,6 +76,51 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
       }
       return newSet;
     });
+  };
+
+  const handleDownloadAttachment = async (attachment: Attachment, messageId: string) => {
+    try {
+      setDownloadingAttachments(prev => new Set(prev).add(attachment.id));
+
+      const { data, error } = await supabase.functions.invoke("download-attachment", {
+        body: {
+          attachmentId: attachment.id,
+          filename: attachment.filename,
+          messageId,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Open the file in a new tab or trigger download
+        const link = document.createElement("a");
+        link.href = data.url;
+        link.download = attachment.filename;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast({
+          title: "Download iniciado",
+          description: `${attachment.filename}`,
+        });
+      }
+    } catch (error: any) {
+      console.error("Error downloading attachment:", error);
+      toast({
+        title: "Erro ao baixar anexo",
+        description: error.message || "Não foi possível baixar o anexo",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingAttachments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(attachment.id);
+        return newSet;
+      });
+    }
   };
 
   const formatSender = (message: EmailMessage) => {
@@ -201,19 +253,34 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
                   {/* Attachments */}
                   {message.attachments && Array.isArray(message.attachments) && message.attachments.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-border">
-                      <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <p className="text-sm font-medium mb-3 flex items-center gap-2">
                         <Paperclip className="h-4 w-4" />
                         {message.attachments.length} anexo(s)
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {message.attachments.map((att: Attachment, i: number) => (
-                          <span
-                            key={att.id || i}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded bg-secondary text-xs"
-                          >
-                            {att.filename || "Anexo"}
-                          </span>
-                        ))}
+                        {message.attachments.map((att: Attachment, i: number) => {
+                          const FileIcon = getFileIcon(att.content_type || "");
+                          const isDownloading = downloadingAttachments.has(att.id);
+                          
+                          return (
+                            <button
+                              key={att.id || i}
+                              onClick={() => handleDownloadAttachment(att, message.id)}
+                              disabled={isDownloading}
+                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-sm group"
+                            >
+                              <FileIcon className="h-4 w-4 text-muted-foreground" />
+                              <span className="max-w-[200px] truncate">
+                                {att.filename || "Anexo"}
+                              </span>
+                              {isDownloading ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              ) : (
+                                <Download className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.enrich-customer-domains]
 verify_jwt = false
+
+[functions.download-attachment]
+verify_jwt = false
