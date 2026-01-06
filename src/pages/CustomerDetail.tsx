@@ -114,9 +114,11 @@ const CustomerDetail = () => {
 
   // Calculate metrics
   const metrics = {
+    // MRR Atual: soma apenas dos contratos VIGENTES
     mrrAtual: (contracts || [])
-      .filter((c) => c.mrr_atual)
+      .filter((c) => c.status_contrato?.toLowerCase() === "vigente")
       .reduce((sum, c) => sum + (c.mrr || 0), 0),
+    // LTV Total: soma de MRR × meses de vigência de TODOS os contratos
     ltvTotal: (contracts || []).reduce(
       (sum, c) => sum + (c.mrr || 0) * (c.meses_vigencia || 1),
       0
