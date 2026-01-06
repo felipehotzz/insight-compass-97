@@ -1,9 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { FilterButtons } from "@/components/dashboard/FilterButtons";
-import { SupportBreakdownChart } from "@/components/charts/SupportBreakdownChart";
 import type { TimeFilter } from "@/components/dashboard/FilterButtons";
 import {
   Table,
@@ -13,10 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { format, subDays, subWeeks, subMonths, subQuarters, startOfDay } from "date-fns";
+import { format, subDays, subWeeks, subMonths, subQuarters } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useMemo } from "react";
-
+import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 interface SupportTicketsSectionProps {
   customerId: string;
   filter: TimeFilter;
@@ -108,7 +110,27 @@ const getPriorityColor = (priority: string | null) => {
 };
 
 export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: SupportTicketsSectionProps) => {
+  const queryClient = useQueryClient();
   const startDate = getDateRange(filter);
+
+  // Sync tickets from Intercom
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("sync-intercom-tickets", {
+        body: { customerId, limit: 100 },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["support-tickets-backlog"] });
+      toast.success(`Sincronizado: ${data.synced} tickets (${data.linkedToCustomers} vinculados)`);
+    },
+    onError: (error) => {
+      toast.error("Erro ao sincronizar: " + error.message);
+    },
+  });
 
   // Fetch tickets for this customer
   const { data: tickets, isLoading } = useQuery({
@@ -184,7 +206,19 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">Suporte</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-medium">Suporte</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 h-8"
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${syncMutation.isPending ? "animate-spin" : ""}`} />
+            {syncMutation.isPending ? "Sincronizando..." : "Sincronizar"}
+          </Button>
+        </div>
         <FilterButtons value={filter} onChange={onFilterChange} />
       </div>
 
