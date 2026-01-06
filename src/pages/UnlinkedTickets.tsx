@@ -735,11 +735,11 @@ export default function UnlinkedTickets() {
 
       {/* View Ticket Dialog */}
       <Dialog open={!!viewingTicket} onOpenChange={(open) => !open && setViewingTicket(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh]">
+        <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-foreground">
               <Mail className="h-5 w-5 text-primary" />
-              {viewingTicket?.subject || "Conversa"}
+              {stripHtml(viewingTicket?.subject) || "Conversa"}
             </DialogTitle>
             <DialogDescription className="flex items-center gap-2 flex-wrap">
               <span>{viewingTicket?.from_name}</span>
