@@ -215,21 +215,27 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
                   {/* Email metadata */}
                   <div className="text-sm space-y-1 mb-4 pb-4 border-b border-border">
                     <div className="flex gap-2">
-                      <span className="text-muted-foreground w-12">De:</span>
+                      <span className="text-muted-foreground w-16">De:</span>
                       <span>{formatSender(message)}</span>
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-muted-foreground w-12">Para:</span>
+                      <span className="text-muted-foreground w-16">Para:</span>
                       <span>{message.to_emails.join(", ")}</span>
                     </div>
                     {message.cc_emails.length > 0 && (
                       <div className="flex gap-2">
-                        <span className="text-muted-foreground w-12">CC:</span>
+                        <span className="text-muted-foreground w-16">CC:</span>
                         <span>{message.cc_emails.join(", ")}</span>
                       </div>
                     )}
+                    {message.subject && (
+                      <div className="flex gap-2">
+                        <span className="text-muted-foreground w-16">Assunto:</span>
+                        <span className="font-medium">{message.subject}</span>
+                      </div>
+                    )}
                     <div className="flex gap-2">
-                      <span className="text-muted-foreground w-12">Data:</span>
+                      <span className="text-muted-foreground w-16">Data:</span>
                       <span>
                         {format(new Date(message.sent_at), "EEEE, d 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
                       </span>
