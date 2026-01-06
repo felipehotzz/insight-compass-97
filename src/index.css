@@ -147,6 +147,17 @@
   }
 }
 
+/* Force white text on email content from external sources */
+.email-content,
+.email-content * {
+  color: hsl(var(--foreground)) !important;
+}
+
+.email-content a,
+.email-content a * {
+  color: hsl(var(--primary)) !important;
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.3s ease-out forwards;
