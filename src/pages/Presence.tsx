@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ChartCard } from "@/components/dashboard/ChartCard";
-import { FilterButtons, TimeFilter } from "@/components/dashboard/FilterButtons";
+import { FilterButtons, TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
 import { MonthlyLineChart } from "@/components/charts/MonthlyLineChart";
 import { Globe, MessageCircle, Linkedin, Mail } from "lucide-react";
 import { 
@@ -22,13 +22,14 @@ import {
 
 const Presence = () => {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("month");
+  const [timePeriod, setTimePeriod] = useState<PeriodFilter>("last_3_months");
 
   return (
     <DashboardLayout title="">
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <h1 className="text-xl text-foreground">Growth</h1>
-          <FilterButtons value={timeFilter} onChange={setTimeFilter} />
+          <FilterButtons value={timeFilter} onChange={setTimeFilter} periodValue={timePeriod} onPeriodChange={setTimePeriod} />
         </div>
 
         {/* Site Section */}
