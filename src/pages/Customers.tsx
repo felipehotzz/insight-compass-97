@@ -9,6 +9,7 @@ import { ChannelBreakdownChart, generateGeneralChannelData, generateGeneralDispa
 import { SupportBreakdownChart, generateGeneralOpenedTicketsData, generateGeneralClosedTicketsData, generateGeneralBacklogData } from "@/components/charts/SupportBreakdownChart";
 import { SimpleLineChart, generateGeneralUsersData, generateGeneralCollaboratorsData } from "@/components/charts/SimpleLineChart";
 import { ActionBreakdownChart, generateGlobalActionsData } from "@/components/charts/ActionBreakdownChart";
+import { MrrByPaymentChart } from "@/components/charts/MrrByPaymentChart";
 import { ActionThemeChart, generateGlobalActionsThemeData } from "@/components/charts/ActionThemeChart";
 import { Calendar, Headphones, Activity, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -402,7 +403,7 @@ const Customers = () => {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <ChartCard title="Número de Clientes">
               <StackedBarChart
                 data={customerCompositionData}
@@ -418,6 +419,9 @@ const Customers = () => {
                 series={planSeries}
                 height={280}
               />
+            </ChartCard>
+            <ChartCard title="MRR por Modelo de Pagamento">
+              <MrrByPaymentChart />
             </ChartCard>
           </div>
         </div>
