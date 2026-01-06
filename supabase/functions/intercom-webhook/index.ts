@@ -62,11 +62,28 @@ Deno.serve(async (req) => {
     console.log("Received Intercom webhook:", JSON.stringify(payload, null, 2));
 
     const topic = payload.topic;
+
+    // Handle ping test from Intercom
+    if (topic === "ping") {
+      console.log("Received ping test from Intercom");
+      return new Response(JSON.stringify({ success: true, message: "Pong" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const conversation = payload.data?.item;
 
     if (!conversation) {
       console.log("No conversation data in payload");
       return new Response(JSON.stringify({ success: true, message: "No conversation data" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate required fields
+    if (!conversation.id || typeof conversation.updated_at !== 'number') {
+      console.log("Invalid conversation data - missing id or updated_at");
+      return new Response(JSON.stringify({ success: true, message: "Invalid conversation data" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
