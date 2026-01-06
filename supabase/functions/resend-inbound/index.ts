@@ -142,10 +142,36 @@ Deno.serve(async (req) => {
 
     const senderEmail = extractEmail(payload.data.from);
     const senderName = extractName(payload.data.from);
-    const toEmails = payload.data.to?.map(extractEmail) || [];
-    const ccEmails = payload.data.cc?.map(extractEmail) || [];
+    
+    // Try to get original recipients from headers (for CC'd emails)
+    // The webhook "to" field only shows the Resend address when email is CC'd
+    const originalToHeader = emailContent?.headers?.["to"] || emailContent?.headers?.["To"];
+    const originalCcHeader = emailContent?.headers?.["cc"] || emailContent?.headers?.["Cc"];
+    
+    // Parse original To from headers, filtering out resend.app addresses
+    let toEmails: string[] = [];
+    if (originalToHeader) {
+      // Parse "Name <email>, Name2 <email2>" format
+      const emails = originalToHeader.split(",").map((s: string) => extractEmail(s.trim()));
+      toEmails = emails.filter((e: string) => !e.includes("resend.app"));
+    }
+    // Fallback to webhook data if no original To found
+    if (toEmails.length === 0) {
+      toEmails = (payload.data.to?.map(extractEmail) || []).filter(e => !e.includes("resend.app"));
+    }
+    
+    // Parse original CC from headers
+    let ccEmails: string[] = [];
+    if (originalCcHeader) {
+      const emails = originalCcHeader.split(",").map((s: string) => extractEmail(s.trim()));
+      ccEmails = emails.filter((e: string) => !e.includes("resend.app"));
+    } else {
+      ccEmails = (payload.data.cc?.map(extractEmail) || []).filter(e => !e.includes("resend.app"));
+    }
+    
     const allRecipients = [...toEmails, ...ccEmails];
 
+    console.log("Original To:", toEmails, "Original CC:", ccEmails);
     console.log("Sender:", senderEmail, "Recipients:", allRecipients);
 
     // Extract domains (excluding resend.app)
