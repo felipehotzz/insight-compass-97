@@ -23,10 +23,6 @@ import {
   Search, 
   ChevronDown, 
   ChevronRight, 
-  Users, 
-  FileText, 
-  TrendingUp,
-  Building2,
   Filter,
   Download
 } from "lucide-react";
@@ -194,12 +190,7 @@ export default function CustomersDatabase() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Customers Database</h1>
-            <p className="text-muted-foreground">
-              Base de dados completa de clientes e contratos
-            </p>
-          </div>
+          <h1 className="text-xl font-medium">Customers Database</h1>
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             Exportar
@@ -209,51 +200,23 @@ export default function CustomersDatabase() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-card border border-border rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Clientes</p>
-                <p className="text-2xl font-bold">{summaryMetrics.totalClientes}</p>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">Total Clientes</p>
+            <p className="text-2xl font-bold">{summaryMetrics.totalClientes}</p>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <Building2 className="h-5 w-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Clientes Ativos</p>
-                <p className="text-2xl font-bold">{summaryMetrics.clientesAtivos}</p>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">Clientes Ativos</p>
+            <p className="text-2xl font-bold">{summaryMetrics.clientesAtivos}</p>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">MRR Total</p>
-                <p className="text-2xl font-bold">{formatCurrency(summaryMetrics.mrrTotal)}</p>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">MRR Total</p>
+            <p className="text-2xl font-bold">{formatCurrency(summaryMetrics.mrrTotal)}</p>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500/10 rounded-lg">
-                <FileText className="h-5 w-5 text-amber-500" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">LTV Total</p>
-                <p className="text-2xl font-bold">{formatCurrency(summaryMetrics.ltvTotal)}</p>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">LTV Total</p>
+            <p className="text-2xl font-bold">{formatCurrency(summaryMetrics.ltvTotal)}</p>
           </div>
         </div>
 
