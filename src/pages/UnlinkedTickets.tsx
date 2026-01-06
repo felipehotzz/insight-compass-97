@@ -36,6 +36,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 interface UnlinkedTicket {
@@ -88,6 +89,7 @@ export default function UnlinkedTickets() {
   const [noEmailCollapsed, setNoEmailCollapsed] = useState(true);
   const [internalCollapsed, setInternalCollapsed] = useState(true);
   const [archivedCollapsed, setArchivedCollapsed] = useState(true);
+  const [selectedTickets, setSelectedTickets] = useState<Set<string>>(new Set());
 
   const { data: tickets, isLoading: ticketsLoading } = useQuery({
     queryKey: ["unlinked-tickets"],
@@ -233,6 +235,46 @@ export default function UnlinkedTickets() {
     },
   });
 
+  const archiveBatchMutation = useMutation({
+    mutationFn: async (ticketIds: string[]) => {
+      const { error } = await supabase
+        .from("support_tickets")
+        .update({ archived: true })
+        .in("id", ticketIds);
+
+      if (error) throw error;
+      return ticketIds;
+    },
+    onSuccess: (ticketIds) => {
+      toast.success(`${ticketIds.length} ticket${ticketIds.length > 1 ? "s" : ""} arquivado${ticketIds.length > 1 ? "s" : ""}!`);
+      setSelectedTickets(new Set());
+      queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] });
+    },
+    onError: () => {
+      toast.error("Erro ao arquivar tickets");
+    },
+  });
+
+  const handleSelectTicket = (ticketId: string, checked: boolean) => {
+    setSelectedTickets((prev) => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(ticketId);
+      } else {
+        newSet.delete(ticketId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && ticketsWithEmail) {
+      setSelectedTickets(new Set(ticketsWithEmail.map((t) => t.id)));
+    } else {
+      setSelectedTickets(new Set());
+    }
+  };
+
   const handleViewTicket = async (ticket: UnlinkedTicket) => {
     setViewingTicket(ticket);
     setConversationDetail(null);
@@ -288,20 +330,43 @@ export default function UnlinkedTickets() {
               {ticketsWithEmail?.length || 0} tickets sem cliente associado
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] })}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Atualizar
-          </Button>
+          <div className="flex items-center gap-2">
+            {selectedTickets.size > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => archiveBatchMutation.mutate(Array.from(selectedTickets))}
+                disabled={archiveBatchMutation.isPending}
+              >
+                {archiveBatchMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <ArchiveX className="h-4 w-4 mr-2" />
+                )}
+                Arquivar {selectedTickets.size} ticket{selectedTickets.size > 1 ? "s" : ""}
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] })}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Atualizar
+            </Button>
+          </div>
         </div>
 
         <div className="rounded-lg bg-card">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[40px]">
+                  <Checkbox
+                    checked={ticketsWithEmail?.length ? selectedTickets.size === ticketsWithEmail.length : false}
+                    onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                  />
+                </TableHead>
                 <TableHead className="w-[200px]">Email / Nome</TableHead>
                 <TableHead>Assunto</TableHead>
                 <TableHead className="w-[100px]">Status</TableHead>
@@ -313,7 +378,7 @@ export default function UnlinkedTickets() {
             <TableBody>
               {ticketsLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     <div className="flex items-center justify-center gap-2">
                       <RefreshCw className="h-4 w-4 animate-spin" />
                       Carregando...
@@ -322,7 +387,7 @@ export default function UnlinkedTickets() {
                 </TableRow>
               ) : ticketsWithEmail?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Todos os tickets com email estão vinculados a clientes!
                   </TableCell>
                 </TableRow>
@@ -336,6 +401,12 @@ export default function UnlinkedTickets() {
                         : "opacity-100"
                     }`}
                   >
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedTickets.has(ticket.id)}
+                        onCheckedChange={(checked) => handleSelectTicket(ticket.id, !!checked)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
