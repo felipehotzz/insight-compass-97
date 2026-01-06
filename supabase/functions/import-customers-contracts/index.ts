@@ -111,7 +111,7 @@ function parseInt2(value: string): number | null {
   return isNaN(parsed) ? null : parsed
 }
 
-function parseCSVLine(line: string): string[] {
+function parseCSVLine(line: string, separator: string = ','): string[] {
   const result: string[] = []
   let current = ''
   let inQuotes = false
@@ -126,7 +126,7 @@ function parseCSVLine(line: string): string[] {
       } else {
         inQuotes = !inQuotes
       }
-    } else if (char === ';' && !inQuotes) {
+    } else if (char === separator && !inQuotes) {
       result.push(current.trim())
       current = ''
     } else {
@@ -136,6 +136,25 @@ function parseCSVLine(line: string): string[] {
   
   result.push(current.trim())
   return result
+}
+
+function detectSeparator(headerLine: string): string {
+  // Count occurrences of common separators outside of quotes
+  let inQuotes = false
+  let semicolonCount = 0
+  let commaCount = 0
+  
+  for (let i = 0; i < headerLine.length; i++) {
+    const char = headerLine[i]
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (!inQuotes) {
+      if (char === ';') semicolonCount++
+      if (char === ',') commaCount++
+    }
+  }
+  
+  return semicolonCount > commaCount ? ';' : ','
 }
 
 serve(async (req) => {
@@ -169,9 +188,12 @@ serve(async (req) => {
       throw new Error('CSV must have at least a header and one data row')
     }
 
-    // Parse header - expected columns
-    const header = parseCSVLine(lines[0])
-    console.log('Header columns:', header.length)
+    // Detect separator and parse header
+    const separator = detectSeparator(lines[0])
+    console.log('Detected separator:', separator === ';' ? 'semicolon' : 'comma')
+    
+    const header = parseCSVLine(lines[0], separator)
+    console.log('Header columns:', header.length, header.slice(0, 5))
     
     // Map header indices
     const colMap: Record<string, number> = {}
@@ -225,7 +247,7 @@ serve(async (req) => {
 
     // Process data rows
     for (let i = 1; i < lines.length; i++) {
-      const values = parseCSVLine(lines[i])
+      const values = parseCSVLine(lines[i], separator)
       if (values.length < 5) continue // Skip empty or malformed rows
       
       const cnpj = values[colMap['cnpj']]?.trim()
