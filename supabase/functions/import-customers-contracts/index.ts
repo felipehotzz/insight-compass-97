@@ -11,16 +11,13 @@ function parseMonetaryValue(value: string): number | null {
   
   let cleanValue = value.trim()
   
-  // Handle negative values in parentheses
   const isNegative = cleanValue.startsWith('(') && cleanValue.endsWith(')')
   if (isNegative) {
     cleanValue = cleanValue.slice(1, -1)
   }
   
-  // Remove currency symbols and spaces
   cleanValue = cleanValue.replace(/[R$\s]/g, '')
   
-  // Count dots and commas
   const dotCount = (cleanValue.match(/\./g) || []).length
   const commaCount = (cleanValue.match(/,/g) || []).length
   
@@ -30,23 +27,18 @@ function parseMonetaryValue(value: string): number | null {
   let normalized: string
   
   if (lastComma > lastDot) {
-    // BR format: 1.234,56 -> remove dots, replace comma with dot
     normalized = cleanValue.replace(/\./g, '').replace(',', '.')
   } else if (lastDot > lastComma && commaCount > 0) {
-    // US format with comma as thousands: 1,234.56 -> remove commas
     normalized = cleanValue.replace(/,/g, '')
   } else if (lastComma === -1 && lastDot === -1) {
-    // No separators, just a number
     normalized = cleanValue
   } else if (commaCount > 0 && dotCount === 0) {
-    // Only comma(s), BR decimal or BR thousands
     if (commaCount === 1) {
       normalized = cleanValue.replace(',', '.')
     } else {
       normalized = cleanValue.replace(/,/g, '')
     }
   } else if (dotCount > 0 && commaCount === 0) {
-    // Only dot(s) - need to determine if it's decimal or thousands
     if (dotCount === 1) {
       const afterDot = cleanValue.split('.')[1]
       if (afterDot && afterDot.length === 3 && /^\d{3}$/.test(afterDot)) {
@@ -72,7 +64,6 @@ function parseDate(dateStr: string): string | null {
   
   const cleaned = dateStr.trim()
   
-  // Format: DD/MM/YYYY
   const ddmmyyyy = cleaned.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
   if (ddmmyyyy) {
     const day = ddmmyyyy[1].padStart(2, '0')
@@ -81,13 +72,11 @@ function parseDate(dateStr: string): string | null {
     return `${year}-${month}-${day}`
   }
   
-  // Format: YYYY-MM-DD
   const iso = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})$/)
   if (iso) {
     return cleaned
   }
   
-  // Format: mon/yy (jan/22)
   const monthYear = cleaned.match(/^(\w{3})\/(\d{2})$/)
   if (monthYear) {
     const months: Record<string, string> = {
@@ -139,7 +128,6 @@ function parseCSVLine(line: string, separator: string = ','): string[] {
 }
 
 function detectSeparator(headerLine: string): string {
-  // Count occurrences of common separators outside of quotes
   let inQuotes = false
   let semicolonCount = 0
   let commaCount = 0
@@ -158,7 +146,6 @@ function detectSeparator(headerLine: string): string {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -180,7 +167,7 @@ serve(async (req) => {
       throw new Error('CSV content is required')
     }
 
-    // Create import history record first
+    // Create import history record
     const { data: importRecord, error: importError } = await supabase
       .from('import_history')
       .insert({
@@ -200,76 +187,79 @@ serve(async (req) => {
 
     console.log('Starting import of customers and contracts...')
     
-    const lines = csvContent.split('\n').filter((line: string) => line.trim() !== '')
+    const lines = csvContent.split(/\r?\n/).filter((line: string) => line.trim())
     
     if (lines.length < 2) {
-      throw new Error('CSV must have at least a header and one data row')
+      throw new Error('CSV file must contain at least a header row and one data row')
     }
 
-    // Detect separator and parse header
     const separator = detectSeparator(lines[0])
-    console.log('Detected separator:', separator === ';' ? 'semicolon' : 'comma')
+    console.log(`Detected separator: ${separator === ';' ? 'semicolon' : 'comma'}`)
     
-    const header = parseCSVLine(lines[0], separator)
-    console.log('Header columns:', header.length, header.slice(0, 5))
+    const headers = parseCSVLine(lines[0], separator).map((h: string) => h.toLowerCase().trim())
+    console.log('Header columns:', headers.length, headers.slice(0, 5))
     
-    // Map header indices - only use first match to avoid long text columns overwriting
+    // Column mapping
     const colMap: Record<string, number> = {}
-    header.forEach((col, idx) => {
-      const normalized = col.toLowerCase().trim()
-      // Skip columns that are too long (likely contain text, not headers)
-      if (normalized.length > 50) return
-      
-      if (normalized.includes('id financeiro') && colMap['id_financeiro'] === undefined) colMap['id_financeiro'] = idx
-      else if (normalized.includes('status cliente') && colMap['status_cliente'] === undefined) colMap['status_cliente'] = idx
-      else if ((normalized.includes('id cliente') || normalized === 'cnpj') && colMap['cnpj'] === undefined) colMap['cnpj'] = idx
-      else if ((normalized.includes('razão social') || normalized.includes('razao social')) && colMap['razao_social'] === undefined) colMap['razao_social'] = idx
-      else if (normalized.includes('nome fantasia') && colMap['nome_fantasia'] === undefined) colMap['nome_fantasia'] = idx
-      else if (normalized.includes('mrr atual') && colMap['mrr_atual'] === undefined) colMap['mrr_atual'] = idx
-      else if ((normalized.includes('data cohort') || normalized === 'cohort') && colMap['data_cohort'] === undefined) colMap['data_cohort'] = idx
-      else if ((normalized.includes('data movimento') || normalized === 'movimento') && colMap['data_movimento'] === undefined) colMap['data_movimento'] = idx
-      else if (normalized === 'mrr' && colMap['mrr'] === undefined) colMap['mrr'] = idx
-      else if (normalized.includes('movimento mrr') && colMap['movimento_mrr'] === undefined) colMap['movimento_mrr'] = idx
-      else if (normalized.includes('tipo movimento') && colMap['tipo_movimento'] === undefined) colMap['tipo_movimento'] = idx
-      else if ((normalized.includes('status contrato') || normalized === 'status contrato') && colMap['status_contrato'] === undefined) colMap['status_contrato'] = idx
-      else if ((normalized.includes('id contrato') || normalized === 'id contrato') && colMap['id_contrato'] === undefined) colMap['id_contrato'] = idx
-      else if (normalized.includes('documento') && colMap['tipo_documento'] === undefined) colMap['tipo_documento'] = idx
-      else if ((normalized.includes('vigência inicial') || normalized.includes('vigencia inicial')) && colMap['vigencia_inicial'] === undefined) colMap['vigencia_inicial'] = idx
-      else if ((normalized.includes('vigência final') || normalized.includes('vigencia final')) && colMap['vigencia_final'] === undefined) colMap['vigencia_final'] = idx
-      else if ((normalized.includes('meses') && normalized.includes('vigência')) && colMap['meses_vigencia'] === undefined) colMap['meses_vigencia'] = idx
-      else if (normalized.includes('valor contrato') && colMap['valor_contrato'] === undefined) colMap['valor_contrato'] = idx
-      else if (normalized.includes('tipo renovação') || normalized.includes('tipo renovacao') && colMap['tipo_renovacao'] === undefined) colMap['tipo_renovacao'] = idx
-      else if ((normalized.includes('índice') || normalized.includes('indice')) && colMap['indice_renovacao'] === undefined) colMap['indice_renovacao'] = idx
-      else if (normalized.includes('vendedor') && colMap['vendedor'] === undefined) colMap['vendedor'] = idx
-      else if ((normalized.includes('valor original') || normalized.includes('mrr original')) && colMap['valor_original_mrr'] === undefined) colMap['valor_original_mrr'] = idx
-      else if ((normalized.includes('obs') || normalized.includes('observação')) && colMap['observacoes'] === undefined) colMap['observacoes'] = idx
-      else if ((normalized.includes('condição') || normalized.includes('condicao') || normalized.includes('pagamento')) && colMap['condicao_pagamento'] === undefined) colMap['condicao_pagamento'] = idx
-    })
+    
+    const columnMappings: Record<string, string[]> = {
+      'id_financeiro': ['id financeiro', 'id_financeiro'],
+      'status_cliente': ['status cliente', 'status_cliente'],
+      'cnpj': ['id cliente (cnpj)', 'cnpj', 'id cliente'],
+      'razao_social': ['razão social', 'razao social', 'razao_social'],
+      'nome_fantasia': ['nome fantasia (omie)', 'nome fantasia', 'nome_fantasia'],
+      'mrr_atual': ['mrr atual', 'mrr_atual'],
+      'data_cohort': ['cohort', 'data cohort', 'data_cohort'],
+      'data_movimento': ['data movimento', 'data_movimento'],
+      'mrr': ['mrr'],
+      'movimento_mrr': ['movimento mrr', 'movimento_mrr'],
+      'tipo_movimento': ['tipo movimento', 'tipo_movimento'],
+      'status_contrato': ['status contrato', 'status_contrato'],
+      'id_contrato': ['id contrato', 'id_contrato'],
+      'tipo_documento': ['tipo documento', 'tipo_documento'],
+      'vigencia_inicial': ['vigência inicial', 'vigencia inicial', 'vigencia_inicial'],
+      'vigencia_final': ['vigência final', 'vigencia final', 'vigencia_final'],
+      'meses_vigencia': ['meses vigência', 'meses vigencia', 'meses_vigencia'],
+      'valor_contrato': ['valor contrato', 'valor_contrato'],
+      'tipo_renovacao': ['tipo renovação', 'tipo renovacao', 'tipo_renovacao'],
+      'indice_renovacao': ['índice renovação', 'indice renovacao', 'indice_renovacao'],
+      'vendedor': ['vendedor'],
+      'valor_original_mrr': ['valor original mrr', 'valor_original_mrr'],
+      'observacoes': ['observações', 'observacoes'],
+      'condicao_pagamento': ['condição pagamento', 'condicao pagamento', 'condicao_pagamento'],
+    }
+
+    for (const [key, variations] of Object.entries(columnMappings)) {
+      for (let i = 0; i < headers.length; i++) {
+        const header = headers[i].toLowerCase().trim()
+        if (variations.some(v => header.includes(v.toLowerCase()))) {
+          colMap[key] = i
+          break
+        }
+      }
+    }
     
     console.log('Column mapping:', colMap)
-    
-    // Check required columns
+
     if (colMap['cnpj'] === undefined) {
-      throw new Error('Coluna "Id cliente (CNPJ)" não encontrada no CSV')
-    }
-    if (colMap['razao_social'] === undefined) {
-      throw new Error('Coluna "Razão Social" não encontrada no CSV')
+      throw new Error('Coluna CNPJ não encontrada. Verifique se o arquivo contém a coluna "Id cliente (CNPJ)"')
     }
 
-    // Group data by CNPJ to create customers first
-    const customerMap = new Map<string, {
+    // Parse all data first
+    interface CustomerData {
       cnpj: string
       razao_social: string
       nome_fantasia: string
       status: string
       data_cohort: string | null
       contracts: any[]
-    }>()
-
-    // Process data rows
+    }
+    
+    const customerMap = new Map<string, CustomerData>()
+    
     for (let i = 1; i < lines.length; i++) {
       const values = parseCSVLine(lines[i], separator)
-      if (values.length < 5) continue // Skip empty or malformed rows
+      if (values.length < 3) continue
       
       const cnpj = values[colMap['cnpj']]?.trim()
       if (!cnpj) continue
@@ -279,7 +269,6 @@ serve(async (req) => {
       const statusCliente = values[colMap['status_cliente']]?.trim().toLowerCase() || 'ativo'
       const dataCohort = parseDate(values[colMap['data_cohort']] || '')
       
-      // Get or create customer entry
       if (!customerMap.has(cnpj)) {
         customerMap.set(cnpj, {
           cnpj,
@@ -293,21 +282,18 @@ serve(async (req) => {
       
       const customer = customerMap.get(cnpj)!
       
-      // Update customer status to ativo if any contract shows ativo
       if (statusCliente === 'ativo') {
         customer.status = 'ativo'
       }
       
-      // Update cohort to earliest date
       if (dataCohort && (!customer.data_cohort || dataCohort < customer.data_cohort)) {
         customer.data_cohort = dataCohort
       }
       
-      // Parse contract data
       const mrrAtualValue = values[colMap['mrr_atual']]?.trim() || ''
       const mrrAtual = mrrAtualValue !== '' && mrrAtualValue !== '-' && mrrAtualValue !== '0'
       
-      const contract = {
+      customer.contracts.push({
         id_financeiro: values[colMap['id_financeiro']]?.trim() || null,
         status_cliente: statusCliente,
         status_contrato: values[colMap['status_contrato']]?.trim().toLowerCase() || null,
@@ -327,141 +313,130 @@ serve(async (req) => {
         valor_original_mrr: parseMonetaryValue(values[colMap['valor_original_mrr']] || ''),
         observacoes: values[colMap['observacoes']]?.trim() || null,
         condicao_pagamento: values[colMap['condicao_pagamento']]?.trim() || null,
-      }
-      
-      customer.contracts.push(contract)
+        id_contrato: values[colMap['id_contrato']]?.trim() || null,
+      })
     }
 
     console.log(`Found ${customerMap.size} unique customers`)
     
+    // Get all existing customers by CNPJ in batch
+    const cnpjs = Array.from(customerMap.keys())
+    const { data: existingCustomers } = await supabase
+      .from('customers')
+      .select('id, cnpj')
+      .in('cnpj', cnpjs)
+
+    const existingCustomerMap = new Map<string, string>()
+    for (const c of existingCustomers || []) {
+      existingCustomerMap.set(c.cnpj, c.id)
+    }
+
     let customersCreated = 0
     let customersUpdated = 0
     let contractsCreated = 0
-    let contractsUpdated = 0
     let errors: string[] = []
 
-    // Process each customer
+    // Prepare batch inserts
+    const customersToInsert: any[] = []
+    const customersToUpdate: { cnpj: string; data: any }[] = []
+    
     for (const [cnpj, customerData] of customerMap) {
-      try {
-        // Check if customer exists
-        const { data: existingCustomer } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('cnpj', cnpj)
-          .single()
-
-        let customerId: string
-
-        if (existingCustomer) {
-          // Update existing customer
-          const { error: updateError } = await supabase
-            .from('customers')
-            .update({
-              razao_social: customerData.razao_social,
-              nome_fantasia: customerData.nome_fantasia,
-              status: customerData.status,
-              data_cohort: customerData.data_cohort,
-            })
-            .eq('id', existingCustomer.id)
-
-          if (updateError) {
-            errors.push(`Erro ao atualizar cliente ${cnpj}: ${updateError.message}`)
-            continue
+      if (existingCustomerMap.has(cnpj)) {
+        customersToUpdate.push({
+          cnpj,
+          data: {
+            razao_social: customerData.razao_social,
+            nome_fantasia: customerData.nome_fantasia,
+            status: customerData.status,
+            data_cohort: customerData.data_cohort,
           }
-
-          customerId = existingCustomer.id
-          customersUpdated++
-        } else {
-          // Create new customer
-          const { data: newCustomer, error: insertError } = await supabase
-            .from('customers')
-            .insert({
-              cnpj: customerData.cnpj,
-              razao_social: customerData.razao_social,
-              nome_fantasia: customerData.nome_fantasia,
-              status: customerData.status,
-              data_cohort: customerData.data_cohort,
-              import_id: importId,
-            })
-            .select('id')
-            .single()
-
-          if (insertError) {
-            errors.push(`Erro ao criar cliente ${cnpj}: ${insertError.message}`)
-            continue
-          }
-
-          customerId = newCustomer.id
-          customersCreated++
-        }
-
-        // Process contracts for this customer
-        for (const contract of customerData.contracts) {
-          // Check if contract exists (by id_financeiro)
-          if (contract.id_financeiro) {
-            const { data: existingContract } = await supabase
-              .from('contracts')
-              .select('id')
-              .eq('id_financeiro', contract.id_financeiro)
-              .single()
-
-            if (existingContract) {
-              // Update existing contract
-              const { error: contractUpdateError } = await supabase
-                .from('contracts')
-                .update({
-                  customer_id: customerId,
-                  ...contract
-                })
-                .eq('id', existingContract.id)
-
-              if (contractUpdateError) {
-                errors.push(`Erro ao atualizar contrato ${contract.id_financeiro}: ${contractUpdateError.message}`)
-              } else {
-                contractsUpdated++
-              }
-            } else {
-              // Create new contract
-              const { error: contractInsertError } = await supabase
-                .from('contracts')
-                .insert({
-                  customer_id: customerId,
-                  import_id: importId,
-                  ...contract
-                })
-
-              if (contractInsertError) {
-                errors.push(`Erro ao criar contrato ${contract.id_financeiro}: ${contractInsertError.message}`)
-              } else {
-                contractsCreated++
-              }
-            }
-          } else {
-            // No id_financeiro, create new contract
-            const { error: contractInsertError } = await supabase
-              .from('contracts')
-              .insert({
-                customer_id: customerId,
-                import_id: importId,
-                ...contract
-              })
-
-            if (contractInsertError) {
-              errors.push(`Erro ao criar contrato sem ID: ${contractInsertError.message}`)
-            } else {
-              contractsCreated++
-            }
-          }
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err)
-        errors.push(`Erro ao processar cliente ${cnpj}: ${errorMessage}`)
+        })
+      } else {
+        customersToInsert.push({
+          cnpj: customerData.cnpj,
+          razao_social: customerData.razao_social,
+          nome_fantasia: customerData.nome_fantasia,
+          status: customerData.status,
+          data_cohort: customerData.data_cohort,
+          import_id: importId,
+        })
       }
     }
-    console.log(`Import complete: ${customersCreated} customers created, ${customersUpdated} updated, ${contractsCreated} contracts created, ${contractsUpdated} updated`)
-    if (errors.length > 0) {
-      console.log('Errors:', errors.slice(0, 10))
+
+    // Batch insert new customers
+    if (customersToInsert.length > 0) {
+      const { data: newCustomers, error: insertError } = await supabase
+        .from('customers')
+        .insert(customersToInsert)
+        .select('id, cnpj')
+
+      if (insertError) {
+        console.error('Error inserting customers:', insertError)
+        errors.push(`Erro ao inserir clientes: ${insertError.message}`)
+      } else {
+        customersCreated = newCustomers?.length || 0
+        for (const c of newCustomers || []) {
+          existingCustomerMap.set(c.cnpj, c.id)
+        }
+      }
     }
+
+    // Update existing customers one by one (batch update not supported)
+    for (const { cnpj, data } of customersToUpdate) {
+      const { error } = await supabase
+        .from('customers')
+        .update(data)
+        .eq('cnpj', cnpj)
+      
+      if (!error) {
+        customersUpdated++
+      }
+    }
+
+    console.log(`Customers: ${customersCreated} created, ${customersUpdated} updated`)
+
+    // Delete existing contracts for these customers to avoid duplicates
+    const customerIds = Array.from(existingCustomerMap.values())
+    if (customerIds.length > 0) {
+      await supabase
+        .from('contracts')
+        .delete()
+        .in('customer_id', customerIds)
+    }
+
+    // Prepare all contracts for batch insert
+    const contractsToInsert: any[] = []
+    
+    for (const [cnpj, customerData] of customerMap) {
+      const customerId = existingCustomerMap.get(cnpj)
+      if (!customerId) continue
+      
+      for (const contract of customerData.contracts) {
+        contractsToInsert.push({
+          customer_id: customerId,
+          import_id: importId,
+          ...contract
+        })
+      }
+    }
+
+    // Batch insert contracts in chunks of 500
+    const CHUNK_SIZE = 500
+    for (let i = 0; i < contractsToInsert.length; i += CHUNK_SIZE) {
+      const chunk = contractsToInsert.slice(i, i + CHUNK_SIZE)
+      const { error: contractError } = await supabase
+        .from('contracts')
+        .insert(chunk)
+
+      if (contractError) {
+        console.error('Error inserting contracts:', contractError)
+        errors.push(`Erro ao inserir contratos: ${contractError.message}`)
+      } else {
+        contractsCreated += chunk.length
+      }
+    }
+
+    console.log(`Import complete: ${customersCreated} customers created, ${customersUpdated} updated, ${contractsCreated} contracts created`)
 
     // Update import history record
     if (importId) {
@@ -471,7 +446,7 @@ serve(async (req) => {
           customers_created: customersCreated,
           customers_updated: customersUpdated,
           contracts_created: contractsCreated,
-          contracts_updated: contractsUpdated,
+          contracts_updated: 0,
           status: 'completed',
           error_message: errors.length > 0 ? errors.slice(0, 5).join('; ') : null
         })
@@ -485,7 +460,7 @@ serve(async (req) => {
         customersCreated,
         customersUpdated,
         contractsCreated,
-        contractsUpdated,
+        contractsUpdated: 0,
         totalCustomers: customerMap.size,
         errors: errors.slice(0, 10)
       }),
