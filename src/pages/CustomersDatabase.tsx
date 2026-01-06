@@ -117,6 +117,7 @@ export default function CustomersDatabase() {
   const [statusFilter, setStatusFilter] = useState<"all" | "ativo" | "inativo">("all");
   const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
   const [enrichingDomains, setEnrichingDomains] = useState(false);
+  const [cleaningDomains, setCleaningDomains] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -256,6 +257,36 @@ export default function CustomersDatabase() {
     });
   };
 
+  const handleCleanupDomains = async () => {
+    setCleaningDomains(true);
+    toast.info("Limpando formato dos domínios...", { duration: 3000 });
+
+    try {
+      const { data, error } = await supabase.functions.invoke("enrich-customer-domains", {
+        body: { mode: "cleanup" },
+      });
+
+      if (error) throw error;
+
+      if (data?.success && data?.results) {
+        const { updated, total } = data.results;
+        toast.success(`Domínios corrigidos: ${updated} de ${total}`, {
+          description: "Removidos https://, www. e caminhos",
+        });
+        queryClient.invalidateQueries({ queryKey: ["customers-database"] });
+      } else {
+        throw new Error(data?.error || "Erro desconhecido");
+      }
+    } catch (error) {
+      console.error("Error cleaning domains:", error);
+      toast.error("Erro ao limpar domínios", {
+        description: error instanceof Error ? error.message : "Tente novamente",
+      });
+    } finally {
+      setCleaningDomains(false);
+    }
+  };
+
   const handleEnrichDomains = async () => {
     setEnrichingDomains(true);
     toast.info("Buscando domínios automaticamente...", { duration: 5000 });
@@ -296,8 +327,21 @@ export default function CustomersDatabase() {
             <Button 
               variant="outline" 
               className="gap-2"
+              onClick={handleCleanupDomains}
+              disabled={cleaningDomains || enrichingDomains}
+            >
+              {cleaningDomains ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Globe className="h-4 w-4" />
+              )}
+              {cleaningDomains ? "Limpando..." : "Limpar Domínios"}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="gap-2"
               onClick={handleEnrichDomains}
-              disabled={enrichingDomains}
+              disabled={enrichingDomains || cleaningDomains}
             >
               {enrichingDomains ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
