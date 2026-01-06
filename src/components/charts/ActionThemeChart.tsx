@@ -147,6 +147,7 @@ export function ActionThemeChart({ data, height = 280 }: ActionThemeChartProps) 
             name="Renovação" 
             stackId="a" 
             fill="hsl(142 71% 45%)" 
+            stroke="none"
             radius={[0, 0, 0, 0]}
           />
           <Bar 
@@ -154,36 +155,42 @@ export function ActionThemeChart({ data, height = 280 }: ActionThemeChartProps) 
             name="Expansão" 
             stackId="a" 
             fill="hsl(200 70% 50%)" 
+            stroke="none"
           />
           <Bar 
             dataKey="onboarding" 
             name="Onboarding" 
             stackId="a" 
             fill="hsl(280 60% 55%)" 
+            stroke="none"
           />
           <Bar 
             dataKey="contencao" 
             name="Contenção" 
             stackId="a" 
             fill="hsl(0 70% 55%)" 
+            stroke="none"
           />
           <Bar 
             dataKey="suporte" 
             name="Suporte" 
             stackId="a" 
             fill="hsl(40 80% 50%)" 
+            stroke="none"
           />
           <Bar 
             dataKey="tecnica" 
             name="Técnica" 
             stackId="a" 
             fill="hsl(0 0% 50%)" 
+            stroke="none"
           />
           <Bar 
             dataKey="relacionamento" 
             name="Relacionamento" 
             stackId="a" 
             fill="hsl(320 60% 55%)" 
+            stroke="none"
             radius={[3, 3, 0, 0]}
           />
         </BarChart>
