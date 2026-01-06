@@ -370,22 +370,23 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
 
       {/* Conversation Modal */}
       <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="max-w-4xl max-h-[90vh] focus:outline-none focus-visible:outline-none focus-visible:ring-0">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              {selectedTicket?.subject || "Conversa"}
-            </DialogTitle>
-            <div className="flex items-center gap-2 pt-2">
-              <Badge className={getStatusColor(selectedTicket?.status || "")}>
-                {getStatusLabel(selectedTicket?.status || "")}
-              </Badge>
-              <Badge className={getPriorityColor(selectedTicket?.priority)}>
-                {selectedTicket?.priority?.toUpperCase() || "N2"}
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                {selectedTicket?.from_name || selectedTicket?.from_email}
-              </span>
+            <div className="flex items-center justify-between">
+              <DialogTitle>
+                {selectedTicket?.subject || "Conversa"}
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Badge className={getStatusColor(selectedTicket?.status || "")}>
+                  {getStatusLabel(selectedTicket?.status || "")}
+                </Badge>
+                <Badge className={getPriorityColor(selectedTicket?.priority)}>
+                  {selectedTicket?.priority?.toUpperCase() || "N2"}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {selectedTicket?.from_name || selectedTicket?.from_email}
+                </span>
+              </div>
             </div>
           </DialogHeader>
 
