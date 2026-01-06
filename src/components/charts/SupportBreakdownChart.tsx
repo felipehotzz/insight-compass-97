@@ -20,6 +20,7 @@ interface SupportData {
 interface SupportBreakdownChartProps {
   data: SupportData[];
   height?: number;
+  onBarClick?: (period: string, priority: string | null) => void;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -56,7 +57,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function SupportBreakdownChart({ data, height = 280 }: SupportBreakdownChartProps) {
+export function SupportBreakdownChart({ data, height = 280, onBarClick }: SupportBreakdownChartProps) {
+  const handleBarClick = (data: any, dataKey: string) => {
+    if (onBarClick && data?.period) {
+      onBarClick(data.period, dataKey);
+    }
+  };
+
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -88,12 +95,16 @@ export function SupportBreakdownChart({ data, height = 280 }: SupportBreakdownCh
           stackId="a" 
           fill="hsl(var(--color-support))" 
           radius={[0, 0, 0, 0]}
+          className={onBarClick ? "cursor-pointer" : ""}
+          onClick={(data) => handleBarClick(data, "n1")}
         />
         <Bar 
           dataKey="n2" 
           name="N2" 
           stackId="a" 
-          fill="hsl(var(--color-growth-alt))" 
+          fill="hsl(var(--color-growth-alt))"
+          className={onBarClick ? "cursor-pointer" : ""}
+          onClick={(data) => handleBarClick(data, "n2")}
         />
         <Bar 
           dataKey="n3" 
@@ -101,6 +112,8 @@ export function SupportBreakdownChart({ data, height = 280 }: SupportBreakdownCh
           stackId="a" 
           fill="hsl(var(--color-danger))" 
           radius={[3, 3, 0, 0]}
+          className={onBarClick ? "cursor-pointer" : ""}
+          onClick={(data) => handleBarClick(data, "n3")}
         />
       </BarChart>
     </ResponsiveContainer>

@@ -162,6 +162,7 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange, peri
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [conversationMessages, setConversationMessages] = useState<Message[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [chartFilter, setChartFilter] = useState<{ period: string; priority: string; type: 'opened' | 'closed' | 'backlog' } | null>(null);
   // Sync ALL tickets from Intercom (not filtered by customer)
   const syncMutation = useMutation({
     mutationFn: async () => {
@@ -398,10 +399,58 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange, peri
   // State to control expanded view
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Get period config for filtering
+  const filterConfig = getFilterConfig(filter);
+
+  // Filter tickets based on chart selection
+  const filteredTickets = useMemo(() => {
+    if (!tickets || !chartFilter) return tickets || [];
+    
+    return tickets.filter((ticket) => {
+      // Check priority match
+      const ticketPriority = ticket.priority?.toLowerCase();
+      let priorityMatch = false;
+      if (chartFilter.priority === "n1") {
+        priorityMatch = ticketPriority === "n1" || ticketPriority === "not_priority";
+      } else if (chartFilter.priority === "n2") {
+        priorityMatch = ticketPriority === "n2";
+      } else if (chartFilter.priority === "n3") {
+        priorityMatch = ticketPriority === "n3" || ticketPriority === "priority";
+      }
+      
+      if (!priorityMatch) return false;
+
+      // Check period match based on chart type
+      const ticketKey = chartFilter.type === 'closed' && ticket.closed_at 
+        ? filterConfig.getKey(new Date(ticket.closed_at))
+        : filterConfig.getKey(new Date(ticket.created_at));
+      
+      const periodLabel = filterConfig.getLabel(
+        chartFilter.type === 'closed' && ticket.closed_at 
+          ? new Date(ticket.closed_at)
+          : new Date(ticket.created_at)
+      );
+      
+      return periodLabel === chartFilter.period;
+    });
+  }, [tickets, chartFilter, filter]);
+
   // Get tickets for the list - show 5 or all based on expanded state
-  const displayedTickets = isExpanded ? (tickets || []) : (tickets?.slice(0, 5) || []);
-  const totalTickets = tickets?.length || 0;
+  const ticketsToShow = chartFilter ? filteredTickets : (tickets || []);
+  const displayedTickets = isExpanded ? ticketsToShow : ticketsToShow.slice(0, 5);
+  const totalTickets = ticketsToShow.length;
   const hasMore = totalTickets > 5;
+
+  const handleChartClick = (type: 'opened' | 'closed' | 'backlog') => (period: string, priority: string | null) => {
+    if (priority) {
+      setChartFilter({ period, priority, type });
+      setIsExpanded(false);
+    }
+  };
+
+  const clearFilter = () => {
+    setChartFilter(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -425,22 +474,29 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange, peri
       {/* Metrics Cards with Charts */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <ChartCard title="Chamados Abertos" subtitle="Por nível">
-          <SupportBreakdownChart data={chartData.opened} height={220} />
+          <SupportBreakdownChart data={chartData.opened} height={220} onBarClick={handleChartClick('opened')} />
         </ChartCard>
         <ChartCard title="Chamados Fechados" subtitle="Por nível">
-          <SupportBreakdownChart data={chartData.closed} height={220} />
+          <SupportBreakdownChart data={chartData.closed} height={220} onBarClick={handleChartClick('closed')} />
         </ChartCard>
         <ChartCard title="Backlog" subtitle="Por nível">
-          <SupportBreakdownChart data={chartData.backlog} height={220} />
+          <SupportBreakdownChart data={chartData.backlog} height={220} onBarClick={handleChartClick('backlog')} />
         </ChartCard>
       </div>
 
       {/* Tickets List */}
       <Card>
         <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
           <CardTitle className="text-base font-medium">
-            Últimos Chamados {totalTickets > 0 && <span className="text-muted-foreground">({totalTickets})</span>}
+            {chartFilter ? `Chamados ${chartFilter.type === 'opened' ? 'Abertos' : chartFilter.type === 'closed' ? 'Fechados' : 'Backlog'} - ${chartFilter.period} (${chartFilter.priority.toUpperCase()})` : 'Últimos Chamados'} {totalTickets > 0 && <span className="text-muted-foreground">({totalTickets})</span>}
           </CardTitle>
+          {chartFilter && (
+            <Button variant="ghost" size="sm" onClick={clearFilter} className="text-xs">
+              Limpar filtro
+            </Button>
+          )}
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
