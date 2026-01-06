@@ -31,7 +31,6 @@ const navigation: { name: string; href: string; icon: any; permission: AppPage }
   { name: "Growth", href: "/growth", icon: Share2, permission: "growth" },
   { name: "Clientes", href: "/customers", icon: Users, permission: "clientes" },
   { name: "CDB", href: "/cdb", icon: Database, permission: "clientes" },
-  { name: "Raio-X", href: "/customer-detail", icon: UserCircle, permission: "raio_x" },
   { name: "Ações", href: "/actions", icon: ClipboardList, permission: "acoes" },
 ];
 
