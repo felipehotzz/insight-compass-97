@@ -68,6 +68,7 @@ export type Database = {
           id: string
           id_contrato: string | null
           id_financeiro: string | null
+          import_id: string | null
           indice_renovacao: string | null
           meses_vigencia: number | null
           movimento_mrr: number | null
@@ -94,6 +95,7 @@ export type Database = {
           id?: string
           id_contrato?: string | null
           id_financeiro?: string | null
+          import_id?: string | null
           indice_renovacao?: string | null
           meses_vigencia?: number | null
           movimento_mrr?: number | null
@@ -120,6 +122,7 @@ export type Database = {
           id?: string
           id_contrato?: string | null
           id_financeiro?: string | null
+          import_id?: string | null
           indice_renovacao?: string | null
           meses_vigencia?: number | null
           movimento_mrr?: number | null
@@ -153,6 +156,13 @@ export type Database = {
             referencedRelation: "customers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contracts_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "import_history"
+            referencedColumns: ["id"]
+          },
         ]
       }
       customers: {
@@ -162,6 +172,7 @@ export type Database = {
           cs_responsavel: string | null
           data_cohort: string | null
           id: string
+          import_id: string | null
           nome_fantasia: string
           razao_social: string
           status: string
@@ -173,6 +184,7 @@ export type Database = {
           cs_responsavel?: string | null
           data_cohort?: string | null
           id?: string
+          import_id?: string | null
           nome_fantasia: string
           razao_social: string
           status?: string
@@ -184,12 +196,21 @@ export type Database = {
           cs_responsavel?: string | null
           data_cohort?: string | null
           id?: string
+          import_id?: string | null
           nome_fantasia?: string
           razao_social?: string
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "import_history"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       financial_metrics: {
         Row: {
@@ -275,6 +296,54 @@ export type Database = {
           revenue_taxes?: number | null
           sales_marketing_expenses?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      import_history: {
+        Row: {
+          contracts_created: number | null
+          contracts_updated: number | null
+          created_at: string
+          customers_created: number | null
+          customers_updated: number | null
+          error_message: string | null
+          file_name: string
+          file_path: string | null
+          id: string
+          import_type: string
+          imported_by: string | null
+          records_imported: number | null
+          status: string
+        }
+        Insert: {
+          contracts_created?: number | null
+          contracts_updated?: number | null
+          created_at?: string
+          customers_created?: number | null
+          customers_updated?: number | null
+          error_message?: string | null
+          file_name: string
+          file_path?: string | null
+          id?: string
+          import_type: string
+          imported_by?: string | null
+          records_imported?: number | null
+          status?: string
+        }
+        Update: {
+          contracts_created?: number | null
+          contracts_updated?: number | null
+          created_at?: string
+          customers_created?: number | null
+          customers_updated?: number | null
+          error_message?: string | null
+          file_name?: string
+          file_path?: string | null
+          id?: string
+          import_type?: string
+          imported_by?: string | null
+          records_imported?: number | null
+          status?: string
         }
         Relationships: []
       }

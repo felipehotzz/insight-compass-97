@@ -1,9 +1,21 @@
-import { useState, useRef } from "react";
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, Trash2, History, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type ImportStatus = "idle" | "reading" | "importing" | "success" | "error";
 
@@ -16,6 +28,21 @@ interface ImportResult {
   contractsUpdated?: number;
   totalCustomers?: number;
   errors?: string[];
+  importId?: string;
+}
+
+interface ImportHistoryItem {
+  id: string;
+  import_type: string;
+  file_name: string;
+  customers_created: number;
+  customers_updated: number;
+  contracts_created: number;
+  contracts_updated: number;
+  records_imported: number;
+  status: string;
+  error_message: string | null;
+  created_at: string;
 }
 
 export function ImportDataSettings() {
@@ -31,7 +58,73 @@ export function ImportDataSettings() {
   const [customersErrorMessage, setCustomersErrorMessage] = useState<string>("");
   const customersFileInputRef = useRef<HTMLInputElement>(null);
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [importToDelete, setImportToDelete] = useState<ImportHistoryItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const queryClient = useQueryClient();
+
+  // Fetch import history
+  const { data: importHistory, isLoading: isLoadingHistory, refetch: refetchHistory } = useQuery({
+    queryKey: ["import-history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("import_history")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      return data as ImportHistoryItem[];
+    },
+  });
+
+  const handleDeleteImport = async () => {
+    if (!importToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      // Delete contracts linked to this import
+      const { error: contractsError } = await supabase
+        .from("contracts")
+        .delete()
+        .eq("import_id", importToDelete.id);
+
+      if (contractsError) {
+        console.error("Error deleting contracts:", contractsError);
+      }
+
+      // Delete customers linked to this import (only those without other contracts)
+      const { error: customersError } = await supabase
+        .from("customers")
+        .delete()
+        .eq("import_id", importToDelete.id);
+
+      if (customersError) {
+        console.error("Error deleting customers:", customersError);
+      }
+
+      // Delete the import history record
+      const { error: historyError } = await supabase
+        .from("import_history")
+        .delete()
+        .eq("id", importToDelete.id);
+
+      if (historyError) throw historyError;
+
+      toast.success("Importação excluída com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["import-history"] });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["customer-metrics"] });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao excluir importação";
+      toast.error(message);
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setImportToDelete(null);
+    }
+  };
 
   const handleDreFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,7 +194,11 @@ export function ImportDataSettings() {
       }
 
       const { data, error } = await supabase.functions.invoke("import-customers-contracts", {
-        body: { csvContent: text },
+        body: { 
+          csvContent: text,
+          fileName: file.name,
+          userId: sessionData.session.user.id
+        },
       });
 
       if (error) {
@@ -312,6 +409,121 @@ export function ImportDataSettings() {
           </div>
         )}
       </div>
+
+      {/* Import History Section */}
+      <div className="border border-border rounded-lg p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-muted rounded-lg">
+              <History className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="font-medium">Histórico de Importações</h3>
+              <p className="text-sm text-muted-foreground">
+                Gerencie suas importações anteriores
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetchHistory()}
+            className="gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Atualizar
+          </Button>
+        </div>
+
+        {isLoadingHistory ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : importHistory && importHistory.length > 0 ? (
+          <div className="space-y-2">
+            {importHistory.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">{item.file_name}</p>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded ${
+                        item.status === "completed"
+                          ? "bg-green-500/20 text-green-500"
+                          : item.status === "failed"
+                          ? "bg-destructive/20 text-destructive"
+                          : "bg-amber-500/20 text-amber-500"
+                      }`}
+                    >
+                      {item.status === "completed" ? "Concluído" : item.status === "failed" ? "Falhou" : "Processando"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    {item.import_type === "customers_contracts" && (
+                      <span className="ml-2">
+                        • {item.customers_created + item.customers_updated} clientes, {item.contracts_created + item.contracts_updated} contratos
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => {
+                    setImportToDelete(item);
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Nenhuma importação registrada</p>
+          </div>
+        )}
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir importação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação irá excluir todos os clientes e contratos criados por esta importação.
+              {importToDelete && (
+                <span className="block mt-2 font-medium text-foreground">
+                  Arquivo: {importToDelete.file_name}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteImport}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Excluindo...
+                </>
+              ) : (
+                "Excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
