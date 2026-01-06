@@ -5,6 +5,12 @@ import { Mail, Reply, ChevronDown, ChevronUp, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
+interface Attachment {
+  id: string;
+  filename: string;
+  content_type: string;
+}
+
 interface EmailMessage {
   id: string;
   from_email: string;
@@ -15,7 +21,7 @@ interface EmailMessage {
   body_text: string | null;
   body_html: string | null;
   sent_at: string;
-  attachments: unknown;
+  attachments: Attachment[] | unknown;
 }
 
 interface EmailThreadViewProps {
@@ -42,7 +48,7 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
       if (error) throw error;
       
       if (data && data.length > 0) {
-        setMessages(data);
+        setMessages(data as EmailMessage[]);
         // Expand the last message by default
         setExpandedMessages(new Set([data[data.length - 1].id]));
       }
@@ -193,16 +199,16 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
                   </div>
 
                   {/* Attachments */}
-                  {Array.isArray(message.attachments) && message.attachments.length > 0 && (
+                  {message.attachments && Array.isArray(message.attachments) && message.attachments.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-border">
                       <p className="text-sm font-medium mb-2 flex items-center gap-2">
                         <Paperclip className="h-4 w-4" />
                         {message.attachments.length} anexo(s)
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {message.attachments.map((att: { filename?: string }, i: number) => (
+                        {message.attachments.map((att: Attachment, i: number) => (
                           <span
-                            key={i}
+                            key={att.id || i}
                             className="inline-flex items-center gap-1 px-2 py-1 rounded bg-secondary text-xs"
                           >
                             {att.filename || "Anexo"}
