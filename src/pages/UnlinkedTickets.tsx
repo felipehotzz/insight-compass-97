@@ -30,7 +30,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Link2, ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2 } from "lucide-react";
+import { ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface UnlinkedTicket {
@@ -53,6 +53,7 @@ interface SuggestionData {
   customerName: string;
   domain: string | null;
   relatedTickets: UnlinkedTicket[];
+  originalTicketId: string;
 }
 
 interface ConversationMessage {
@@ -72,11 +73,12 @@ interface ConversationDetail {
 
 export default function UnlinkedTickets() {
   const queryClient = useQueryClient();
-  const [selectedCustomers, setSelectedCustomers] = useState<Record<string, string>>({});
   const [suggestionDialog, setSuggestionDialog] = useState<SuggestionData | null>(null);
   const [viewingTicket, setViewingTicket] = useState<UnlinkedTicket | null>(null);
   const [conversationDetail, setConversationDetail] = useState<ConversationDetail | null>(null);
   const [loadingConversation, setLoadingConversation] = useState(false);
+  const [linkingTicketId, setLinkingTicketId] = useState<string | null>(null);
+  const [linkedTicketIds, setLinkedTicketIds] = useState<Set<string>>(new Set());
 
   const { data: tickets, isLoading: ticketsLoading } = useQuery({
     queryKey: ["unlinked-tickets"],
@@ -118,6 +120,7 @@ export default function UnlinkedTickets() {
 
     return allTickets.filter((t) => {
       if (t.id === linkedTicket.id) return false;
+      if (linkedTicketIds.has(t.id)) return false;
       
       if (email && t.from_email?.toLowerCase() === email) return true;
       
@@ -138,67 +141,68 @@ export default function UnlinkedTickets() {
         .in("id", ticketIds);
 
       if (error) throw error;
-      return ticketIds.length;
+      return ticketIds;
     },
-    onSuccess: (count) => {
-      queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] });
-      toast.success(`${count} ticket${count > 1 ? "s" : ""} vinculado${count > 1 ? "s" : ""} com sucesso!`);
+    onSuccess: (ticketIds) => {
+      // Add to linked set for animation
+      setLinkedTicketIds((prev) => new Set([...prev, ...ticketIds]));
+      
+      const count = ticketIds.length;
+      toast.success(`${count} ticket${count > 1 ? "s" : ""} vinculado${count > 1 ? "s" : ""} com sucesso!`, {
+        icon: <Check className="h-4 w-4 text-green-500" />,
+      });
+      
       setSuggestionDialog(null);
+      setLinkingTicketId(null);
+      
+      // Refresh list after animation
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] });
+        setLinkedTicketIds(new Set());
+      }, 500);
     },
     onError: () => {
       toast.error("Erro ao vincular tickets");
+      setLinkingTicketId(null);
     },
   });
 
-  const handleLink = (ticket: UnlinkedTicket) => {
-    const customerId = selectedCustomers[ticket.id];
-    if (!customerId) {
-      toast.error("Selecione um cliente primeiro");
-      return;
-    }
-
+  const handleSelectCustomer = (ticket: UnlinkedTicket, customerId: string) => {
     const customer = customers?.find((c) => c.id === customerId);
     const relatedTickets = tickets ? findRelatedTickets(ticket, tickets) : [];
 
+    setLinkingTicketId(ticket.id);
+
     if (relatedTickets.length > 0) {
+      // Show suggestion dialog
       setSuggestionDialog({
         customerId,
         customerName: customer?.nome_fantasia || "",
         domain: extractDomain(ticket.from_email),
         relatedTickets,
+        originalTicketId: ticket.id,
       });
     } else {
+      // Link immediately
       linkTicketMutation.mutate({ ticketIds: [ticket.id], customerId });
     }
   };
 
   const handleLinkSingle = () => {
     if (!suggestionDialog) return;
-    const originalTicketId = Object.entries(selectedCustomers).find(
-      ([_, cId]) => cId === suggestionDialog.customerId
-    )?.[0];
-    
-    if (originalTicketId) {
-      linkTicketMutation.mutate({ 
-        ticketIds: [originalTicketId], 
-        customerId: suggestionDialog.customerId 
-      });
-    }
+    linkTicketMutation.mutate({ 
+      ticketIds: [suggestionDialog.originalTicketId], 
+      customerId: suggestionDialog.customerId 
+    });
   };
 
   const handleLinkAll = () => {
     if (!suggestionDialog) return;
-    const originalTicketId = Object.entries(selectedCustomers).find(
-      ([_, cId]) => cId === suggestionDialog.customerId
-    )?.[0];
-    
-    if (originalTicketId) {
-      const allTicketIds = [originalTicketId, ...suggestionDialog.relatedTickets.map((t) => t.id)];
-      linkTicketMutation.mutate({ 
-        ticketIds: allTicketIds, 
-        customerId: suggestionDialog.customerId 
-      });
-    }
+    const allTicketIds = [suggestionDialog.originalTicketId, ...suggestionDialog.relatedTickets.map((t) => t.id)];
+    linkTicketMutation.mutate({ 
+      ticketIds: allTicketIds, 
+      customerId: suggestionDialog.customerId 
+    });
   };
 
   const handleViewTicket = async (ticket: UnlinkedTicket) => {
@@ -238,6 +242,9 @@ export default function UnlinkedTickets() {
     return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
   };
 
+  // Filter out linked tickets from display
+  const visibleTickets = tickets?.filter((t) => !linkedTicketIds.has(t.id));
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -245,7 +252,7 @@ export default function UnlinkedTickets() {
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Tickets Não Vinculados</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {tickets?.length || 0} tickets sem cliente associado
+              {visibleTickets?.length || 0} tickets sem cliente associado
             </p>
           </div>
           <Button
@@ -267,7 +274,7 @@ export default function UnlinkedTickets() {
                 <TableHead className="w-[100px]">Status</TableHead>
                 <TableHead className="w-[120px]">Data</TableHead>
                 <TableHead className="w-[250px]">Vincular a</TableHead>
-                <TableHead className="w-[120px]">Ações</TableHead>
+                <TableHead className="w-[80px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -280,15 +287,22 @@ export default function UnlinkedTickets() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : tickets?.length === 0 ? (
+              ) : visibleTickets?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     Todos os tickets estão vinculados a clientes!
                   </TableCell>
                 </TableRow>
               ) : (
-                tickets?.map((ticket) => (
-                  <TableRow key={ticket.id}>
+                visibleTickets?.map((ticket) => (
+                  <TableRow 
+                    key={ticket.id}
+                    className={`transition-all duration-300 ${
+                      linkedTicketIds.has(ticket.id) 
+                        ? "opacity-0 bg-green-500/10 scale-95" 
+                        : "opacity-100"
+                    }`}
+                  >
                     <TableCell>
                       <div className="space-y-1">
                         <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
@@ -306,23 +320,29 @@ export default function UnlinkedTickets() {
                       {format(new Date(ticket.created_at), "dd/MM/yy", { locale: ptBR })}
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={selectedCustomers[ticket.id] || ""}
-                        onValueChange={(value) =>
-                          setSelectedCustomers((prev) => ({ ...prev, [ticket.id]: value }))
-                        }
-                      >
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder="Selecione um cliente..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {customers?.map((customer) => (
-                            <SelectItem key={customer.id} value={customer.id}>
-                              {customer.nome_fantasia}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="relative">
+                        {linkingTicketId === ticket.id ? (
+                          <div className="flex items-center gap-2 h-8 px-3 text-xs text-muted-foreground">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Vinculando...
+                          </div>
+                        ) : (
+                          <Select
+                            onValueChange={(value) => handleSelectCustomer(ticket, value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Selecione para vincular..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {customers?.map((customer) => (
+                                <SelectItem key={customer.id} value={customer.id}>
+                                  {customer.nome_fantasia}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -333,15 +353,6 @@ export default function UnlinkedTickets() {
                           title="Ver conversa"
                         >
                           <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleLink(ticket)}
-                          disabled={!selectedCustomers[ticket.id] || linkTicketMutation.isPending}
-                          title="Vincular"
-                        >
-                          <Link2 className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -445,7 +456,15 @@ export default function UnlinkedTickets() {
       </Dialog>
 
       {/* Suggestion Dialog */}
-      <Dialog open={!!suggestionDialog} onOpenChange={(open) => !open && setSuggestionDialog(null)}>
+      <Dialog 
+        open={!!suggestionDialog} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuggestionDialog(null);
+            setLinkingTicketId(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -476,9 +495,15 @@ export default function UnlinkedTickets() {
 
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={handleLinkSingle} disabled={linkTicketMutation.isPending}>
+              {linkTicketMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
               Vincular apenas 1
             </Button>
             <Button onClick={handleLinkAll} disabled={linkTicketMutation.isPending}>
+              {linkTicketMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
               Vincular todos ({(suggestionDialog?.relatedTickets.length || 0) + 1})
             </Button>
           </DialogFooter>
