@@ -45,8 +45,9 @@ function extractName(emailString: string): string {
 
 async function fetchEmailContent(emailId: string, resendApiKey: string): Promise<string | null> {
   try {
-    // Use the correct endpoint for RECEIVED emails (inbound)
-    const response = await fetch(`https://api.resend.com/emails/${emailId}/content`, {
+    // Use the correct endpoint for RECEIVED emails (inbound): /emails/receiving/:id
+    const response = await fetch(`https://api.resend.com/emails/receiving/${emailId}`, {
+      method: "GET",
       headers: {
         "Authorization": `Bearer ${resendApiKey}`,
       },
