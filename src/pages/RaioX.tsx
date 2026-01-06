@@ -748,40 +748,6 @@ const RaioX = () => {
                   )}
                 </div>
 
-                {/* Métricas */}
-                <div className="space-y-3">
-                  <h3 className="font-medium">Métricas</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground">MRR Atual</p>
-                      <p className="text-lg font-bold">{formatCurrency(metrics.mrrAtual)}</p>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground">LTV Realizado</p>
-                      <p className="text-lg font-bold">{formatCurrency(metrics.ltvRealizado)}</p>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground">LTV A Realizar</p>
-                      <p className="text-lg font-bold">{formatCurrency(metrics.ltvARealizar)}</p>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground">Valor Total Contratos</p>
-                      <p className="text-lg font-bold">{formatCurrency(metrics.valorTotalContratos)}</p>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground">Contratos Vigentes</p>
-                      <p className="text-lg font-bold">{metrics.contratosVigentes}/{metrics.totalContratos}</p>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground">Meses Ativo</p>
-                      <p className="text-lg font-bold">{metrics.mesesAtivo}</p>
-                    </div>
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground">Total Contratos</p>
-                      <p className="text-lg font-bold">{metrics.totalContratos}</p>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Contratos */}
                 <div className="space-y-3">
