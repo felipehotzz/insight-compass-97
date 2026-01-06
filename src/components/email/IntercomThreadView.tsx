@@ -34,7 +34,12 @@ export function IntercomThreadView({
   };
 
   const getAuthorLabel = (message: IntercomMessage) => {
+    // Always try to use author_name first, fallback to generic labels
     if (message.author_name) return message.author_name;
+    return isClientMessage(message.author_type) ? "Cliente" : "Suporte";
+  };
+
+  const getAuthorBadge = (message: IntercomMessage) => {
     return isClientMessage(message.author_type) ? "Cliente" : "Suporte";
   };
 
@@ -92,7 +97,7 @@ export function IntercomThreadView({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-foreground">
+                      <p className="text-sm font-medium text-foreground">
                         {getAuthorLabel(message)}
                       </p>
                       <span className={cn(
@@ -101,7 +106,7 @@ export function IntercomThreadView({
                           ? "bg-secondary text-muted-foreground" 
                           : "bg-primary/10 text-primary"
                       )}>
-                        {isClient ? "Cliente" : "Suporte"}
+                        {getAuthorBadge(message)}
                       </span>
                     </div>
                     <span className="text-xs text-muted-foreground flex-shrink-0">
