@@ -535,7 +535,7 @@ const RaioX = () => {
         <Collapsible open={dadosClienteOpen} onOpenChange={setDadosClienteOpen}>
           <Card>
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-3">
+              <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
                     {dadosClienteOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
