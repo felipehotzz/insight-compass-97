@@ -242,22 +242,22 @@ export default function CustomersDatabase() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Total Clientes</p>
-            <p className="text-2xl font-bold">{summaryMetrics.totalClientes}</p>
+            <p className="text-2xl">{summaryMetrics.totalClientes}</p>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Clientes Ativos</p>
-            <p className="text-2xl font-bold">{summaryMetrics.clientesAtivos}</p>
+            <p className="text-2xl">{summaryMetrics.clientesAtivos}</p>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">MRR Total</p>
-            <p className="text-2xl font-bold">{formatCurrency(summaryMetrics.mrrTotal)}</p>
+            <p className="text-2xl">{formatCurrency(summaryMetrics.mrrTotal)}</p>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">LTV Total</p>
-            <p className="text-2xl font-bold">{formatCurrency(summaryMetrics.ltvTotal)}</p>
+            <p className="text-2xl">{formatCurrency(summaryMetrics.ltvTotal)}</p>
           </div>
         </div>
 
