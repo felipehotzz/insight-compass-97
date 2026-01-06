@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TimeFilter } from "@/components/dashboard/FilterButtons";
+import { TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
+import { getDateRangeFromPeriod } from "@/components/dashboard/PeriodDropdown";
 import { format, subDays, subWeeks, subMonths, subQuarters, startOfDay, startOfWeek, startOfMonth, startOfQuarter, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, eachQuarterOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -17,25 +18,29 @@ interface TicketsByCustomer {
   value: number;
 }
 
-// Get date range and period config based on filter
-const getFilterConfig = (filter: TimeFilter) => {
+// Get date range and period config based on filter and period
+const getFilterConfig = (filter: TimeFilter, periodFilter: PeriodFilter = "last_3_months") => {
   const now = new Date();
+  const { startDate: periodStartDate } = getDateRangeFromPeriod(periodFilter);
+  
+  // Use the period filter to determine the base date range
+  const baseStartDate = periodStartDate || subMonths(now, 12); // Default to 12 months if "all"
   
   switch (filter) {
     case "day":
       return {
-        startDate: subDays(now, 6),
+        startDate: baseStartDate,
         getKey: (date: Date) => format(date, "yyyy-MM-dd"),
-        getLabel: (date: Date) => format(date, "EEE", { locale: ptBR }),
+        getLabel: (date: Date) => format(date, "dd/MM", { locale: ptBR }),
         getPeriods: (start: Date, end: Date) => 
           eachDayOfInterval({ start, end }).map(d => ({
             key: format(d, "yyyy-MM-dd"),
-            label: format(d, "EEE", { locale: ptBR }).charAt(0).toUpperCase() + format(d, "EEE", { locale: ptBR }).slice(1)
+            label: format(d, "dd/MM", { locale: ptBR })
           }))
       };
     case "week":
       return {
-        startDate: subWeeks(now, 5),
+        startDate: baseStartDate,
         getKey: (date: Date) => format(startOfWeek(date, { weekStartsOn: 0 }), "yyyy-MM-dd"),
         getLabel: (date: Date) => `Sem ${format(date, "w")}`,
         getPeriods: (start: Date, end: Date) => 
@@ -46,7 +51,7 @@ const getFilterConfig = (filter: TimeFilter) => {
       };
     case "month":
       return {
-        startDate: subMonths(now, 5),
+        startDate: baseStartDate,
         getKey: (date: Date) => format(date, "yyyy-MM"),
         getLabel: (date: Date) => format(date, "MMM", { locale: ptBR }),
         getPeriods: (start: Date, end: Date) => 
@@ -57,7 +62,7 @@ const getFilterConfig = (filter: TimeFilter) => {
       };
     case "quarter":
       return {
-        startDate: subQuarters(now, 3),
+        startDate: baseStartDate,
         getKey: (date: Date) => `${format(date, "yyyy")}-Q${Math.ceil((date.getMonth() + 1) / 3)}`,
         getLabel: (date: Date) => `Q${Math.ceil((date.getMonth() + 1) / 3)} ${format(date, "yy")}`,
         getPeriods: (start: Date, end: Date) => 
@@ -68,7 +73,7 @@ const getFilterConfig = (filter: TimeFilter) => {
       };
     default:
       return {
-        startDate: subMonths(now, 5),
+        startDate: baseStartDate,
         getKey: (date: Date) => format(date, "yyyy-MM"),
         getLabel: (date: Date) => format(date, "MMM", { locale: ptBR }),
         getPeriods: (start: Date, end: Date) => 
@@ -80,12 +85,12 @@ const getFilterConfig = (filter: TimeFilter) => {
   }
 };
 
-export const useSupportMetrics = (filter: TimeFilter) => {
-  const filterConfig = getFilterConfig(filter);
+export const useSupportMetrics = (filter: TimeFilter, periodFilter: PeriodFilter = "last_3_months") => {
+  const filterConfig = getFilterConfig(filter, periodFilter);
 
   // Fetch all ticket data
   const { data: ticketData, isLoading: ticketLoading } = useQuery({
-    queryKey: ["support-ticket-data", filter],
+    queryKey: ["support-ticket-data", filter, periodFilter],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets")
@@ -100,7 +105,7 @@ export const useSupportMetrics = (filter: TimeFilter) => {
 
   // Fetch tickets by customer
   const { data: customerData, isLoading: customerLoading } = useQuery({
-    queryKey: ["support-by-customer", filter],
+    queryKey: ["support-by-customer", filter, periodFilter],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets")

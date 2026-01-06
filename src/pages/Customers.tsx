@@ -276,7 +276,7 @@ const Customers = () => {
   const [renewalsPeriod, setRenewalsPeriod] = useState<"30" | "90" | "180">("30");
   const [selectedCS, setSelectedCS] = useState<string | null>(null);
 
-  const { openedTickets, closedTickets, backlogTickets, ticketsByCustomer } = useSupportMetrics(supportFilter);
+  const { openedTickets, closedTickets, backlogTickets, ticketsByCustomer } = useSupportMetrics(supportFilter, supportPeriod);
 
   const customerCompositionData = getCustomerCompositionData(compositionFilter);
   const planCompositionData = getPlanCompositionData(compositionFilter);
