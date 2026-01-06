@@ -9,6 +9,7 @@ import Presence from "./pages/Presence";
 import Customers from "./pages/Customers";
 import CustomersDatabase from "./pages/CustomersDatabase";
 import CustomerDetail from "./pages/CustomerDetail";
+import RaioX from "./pages/RaioX";
 import ActionRegistry from "./pages/ActionRegistry";
 import NewAction from "./pages/NewAction";
 import Auth from "./pages/Auth";
@@ -51,6 +52,7 @@ function AppContent() {
         <Route path="/growth" element={<ProtectedRoute><Presence /></ProtectedRoute>} />
         <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
         <Route path="/cdb" element={<ProtectedRoute><CustomersDatabase /></ProtectedRoute>} />
+        <Route path="/raio-x" element={<ProtectedRoute><RaioX /></ProtectedRoute>} />
         <Route path="/customer/:customerId" element={<ProtectedRoute><CustomerDetail /></ProtectedRoute>} />
         <Route path="/customer-detail" element={<ProtectedRoute><CustomerDetail /></ProtectedRoute>} />
         <Route path="/actions" element={<ProtectedRoute><ActionRegistry /></ProtectedRoute>} />
