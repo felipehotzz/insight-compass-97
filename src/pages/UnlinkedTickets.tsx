@@ -314,6 +314,11 @@ export default function UnlinkedTickets() {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const stripHtml = (html: string | null) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+  };
+
   // Separate tickets: with email (excluding internal and archived), internal (@comunica.in), without email, and archived
   const isInternalEmail = (email: string | null) => email?.toLowerCase().endsWith("@comunica.in");
   
@@ -411,7 +416,7 @@ export default function UnlinkedTickets() {
                       />
                     </TableCell>
                     <TableCell>
-                      <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                      <p className="text-sm line-clamp-2">{stripHtml(ticket.subject) || "Sem assunto"}</p>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-0.5">
@@ -523,7 +528,7 @@ export default function UnlinkedTickets() {
                     {ticketsWithoutEmail.map((ticket) => (
                       <TableRow key={ticket.id} className="opacity-75">
                         <TableCell>
-                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                          <p className="text-sm line-clamp-2">{stripHtml(ticket.subject) || "Sem assunto"}</p>
                         </TableCell>
                         <TableCell>
                           <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
@@ -601,7 +606,7 @@ export default function UnlinkedTickets() {
                     {internalTickets.map((ticket) => (
                       <TableRow key={ticket.id} className="opacity-75">
                         <TableCell>
-                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                          <p className="text-sm line-clamp-2">{stripHtml(ticket.subject) || "Sem assunto"}</p>
                         </TableCell>
                         <TableCell>
                           <div className="space-y-0.5">
@@ -682,7 +687,7 @@ export default function UnlinkedTickets() {
                     {archivedTickets.map((ticket) => (
                       <TableRow key={ticket.id} className="opacity-75">
                         <TableCell>
-                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                          <p className="text-sm line-clamp-2">{stripHtml(ticket.subject) || "Sem assunto"}</p>
                         </TableCell>
                         <TableCell>
                           <div className="space-y-0.5">
@@ -803,7 +808,7 @@ export default function UnlinkedTickets() {
               <div key={ticket.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
                 <div className="space-y-0.5">
                   <p className="text-sm font-medium">{ticket.from_name || ticket.from_email}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-1">{ticket.subject || "Sem assunto"}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">{stripHtml(ticket.subject) || "Sem assunto"}</p>
                 </div>
                 <Badge variant="outline" className="text-xs">
                   {format(new Date(ticket.created_at), "dd/MM/yy")}
