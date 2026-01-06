@@ -74,6 +74,7 @@ const NewAction = () => {
   const [actionType, setActionType] = useState("");
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
+  const [subject, setSubject] = useState("");
   const [date, setDate] = useState("");
   const [content, setContent] = useState("");
   const [responsibles, setResponsibles] = useState<string[]>([]);
@@ -280,11 +281,25 @@ const NewAction = () => {
           placeholder="Sem título"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full text-4xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/40 mb-8"
+          className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/40 mb-6"
         />
 
         {/* Properties row - inline like Notion */}
         <div className="space-y-3 mb-8 text-sm">
+          <div className="flex items-center gap-3 group">
+            <div className="flex items-center gap-2 text-muted-foreground w-28">
+              <Mail className="h-4 w-4" />
+              <span>Assunto</span>
+            </div>
+            <input
+              type="text"
+              placeholder="Assunto do e-mail..."
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="flex-1 text-sm bg-transparent border-none outline-none placeholder:text-muted-foreground/40 hover:bg-secondary/50 px-2 py-1 rounded-md"
+            />
+          </div>
+
           <div className="flex items-center gap-3 group">
             <div className="flex items-center gap-2 text-muted-foreground w-28">
               <Building2 className="h-4 w-4" />
