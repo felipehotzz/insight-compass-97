@@ -113,11 +113,11 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
   const queryClient = useQueryClient();
   const startDate = getDateRange(filter);
 
-  // Sync tickets from Intercom
+  // Sync ALL tickets from Intercom (not filtered by customer)
   const syncMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("sync-intercom-tickets", {
-        body: { customerId, limit: 100 },
+        body: { limit: 100 }, // Don't filter by customerId - sync all
       });
       if (error) throw error;
       return data;
@@ -125,7 +125,7 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
       queryClient.invalidateQueries({ queryKey: ["support-tickets-backlog"] });
-      toast.success(`Sincronizado: ${data.synced} tickets (${data.linkedToCustomers} vinculados)`);
+      toast.success(`Sincronizado: ${data.synced} tickets (${data.linkedToCustomers} vinculados a clientes)`);
     },
     onError: (error) => {
       toast.error("Erro ao sincronizar: " + error.message);
