@@ -955,40 +955,56 @@ const RaioX = () => {
                 {/* Champions (Contatos) */}
                 <div className="space-y-3">
                   <h3 className="font-medium">Champions (Contatos)</h3>
-                  <div className="space-y-2">
-                    {mockChampions.map((champion, index) => (
-                      <div key={index} className="flex items-center justify-between bg-muted/30 rounded-lg p-3">
-                        <span className="font-medium">{champion.name}</span>
-                        <div className="flex items-center gap-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  onClick={() => handleCopyEmail(champion.email)}
-                                >
-                                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead className="text-xs">Nome</TableHead>
+                          <TableHead className="text-xs">E-mail</TableHead>
+                          <TableHead className="text-xs">Telefone</TableHead>
+                          <TableHead className="text-xs text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {mockChampions.map((champion, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="text-sm font-medium">{champion.name}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{champion.email}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{champion.phone}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => handleCopyEmail(champion.email)}
+                                      >
+                                        <Mail className="h-4 w-4 text-muted-foreground" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="flex items-center gap-2">
+                                      <span>Copiar e-mail</span>
+                                      <Copy className="h-3 w-3" />
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Phone className="h-4 w-4 text-muted-foreground" />
                                 </Button>
-                              </TooltipTrigger>
-                              <TooltipContent className="flex items-center gap-2">
-                                <span>{champion.email}</span>
-                                <Copy className="h-3 w-3" />
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                            <a href={champion.linkedin} target="_blank" rel="noopener noreferrer">
-                              <Linkedin className="h-4 w-4 text-muted-foreground" />
-                            </a>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                                <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                                  <a href={champion.linkedin} target="_blank" rel="noopener noreferrer">
+                                    <Linkedin className="h-4 w-4 text-muted-foreground" />
+                                  </a>
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
               </CardContent>
