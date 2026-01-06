@@ -6,7 +6,7 @@ import { HorizontalBarChart } from "@/components/charts/HorizontalBarChart";
 import { SimpleBarChart } from "@/components/charts/SimpleBarChart";
 import { StackedBarChart } from "@/components/charts/StackedBarChart";
 import { ChannelBreakdownChart, generateGeneralChannelData, generateGeneralDispatchData } from "@/components/charts/ChannelBreakdownChart";
-import { SupportBreakdownChart, generateGeneralOpenedTicketsData, generateGeneralClosedTicketsData, generateGeneralBacklogData } from "@/components/charts/SupportBreakdownChart";
+import { SupportBreakdownChart } from "@/components/charts/SupportBreakdownChart";
 import { SimpleLineChart, generateGeneralUsersData, generateGeneralCollaboratorsData } from "@/components/charts/SimpleLineChart";
 import { ActionBreakdownChart, generateGlobalActionsData } from "@/components/charts/ActionBreakdownChart";
 import { MrrByPaymentChart } from "@/components/charts/MrrByPaymentChart";
@@ -27,9 +27,8 @@ import {
 import {
   customersByPlan,
   customersByCS,
-  ticketsByType,
-  ticketsByCustomer,
 } from "@/data/mockData";
+import { useSupportMetrics } from "@/hooks/useSupportMetrics";
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("pt-BR");
@@ -140,84 +139,6 @@ const getBottomCustomersByCommunications = (filter: TimeFilter) => {
       { name: "Eucatex", value: 12800 },
       { name: "Softplan", value: 16500 },
       { name: "Metro BH", value: 21500 },
-    ],
-  };
-  return data[filter] || data.month;
-};
-
-// Mock data for tickets by type based on filter
-const getTicketsByType = (filter: TimeFilter) => {
-  const data: Record<string, { name: string; value: number }[]> = {
-    day: [
-      { name: "In App", value: 3 },
-      { name: "Solicitação de Relatório", value: 2 },
-      { name: "Bounce", value: 1 },
-      { name: "Bug", value: 1 },
-      { name: "Colaborador sem acesso", value: 1 },
-      { name: "Dúvidas de Utilização", value: 1 },
-      { name: "Inclusão de Logo", value: 0 },
-    ],
-    week: [
-      { name: "In App", value: 14 },
-      { name: "Solicitação de Relatório", value: 7 },
-      { name: "Bounce", value: 5 },
-      { name: "Bug", value: 3 },
-      { name: "Colaborador sem acesso", value: 4 },
-      { name: "Dúvidas de Utilização", value: 4 },
-      { name: "Inclusão de Logo", value: 2 },
-    ],
-    month: [
-      { name: "In App", value: 52 },
-      { name: "Solicitação de Relatório", value: 28 },
-      { name: "Bounce", value: 18 },
-      { name: "Bug", value: 12 },
-      { name: "Colaborador sem acesso", value: 15 },
-      { name: "Dúvidas de Utilização", value: 16 },
-      { name: "Inclusão de Logo", value: 8 },
-    ],
-    quarter: [
-      { name: "In App", value: 156 },
-      { name: "Solicitação de Relatório", value: 84 },
-      { name: "Bounce", value: 54 },
-      { name: "Bug", value: 36 },
-      { name: "Colaborador sem acesso", value: 45 },
-      { name: "Dúvidas de Utilização", value: 48 },
-      { name: "Inclusão de Logo", value: 24 },
-    ],
-  };
-  return data[filter] || data.month;
-};
-
-// Mock data for tickets by customer based on filter
-const getTicketsByCustomer = (filter: TimeFilter) => {
-  const data: Record<string, { name: string; value: number }[]> = {
-    day: [
-      { name: "In App", value: 3 },
-      { name: "Comunica.In", value: 2 },
-      { name: "Jeffrey Group", value: 1 },
-      { name: "Alpargatas", value: 1 },
-      { name: "Mercedes Benz", value: 1 },
-    ],
-    week: [
-      { name: "In App", value: 14 },
-      { name: "Comunica.In", value: 12 },
-      { name: "Jeffrey Group", value: 7 },
-      { name: "Alpargatas", value: 4 },
-      { name: "Mercedes Benz", value: 3 },
-    ],
-    month: [
-      { name: "In App", value: 52 },
-      { name: "Comunica.In", value: 45 },
-      { name: "Jeffrey Group", value: 28 },
-      { name: "Alpargatas", value: 16 },
-      { name: "Mercedes Benz", value: 12 },
-    ],
-    quarter: [
-      { name: "In App", value: 156 },
-      { name: "Comunica.In", value: 135 },
-      { name: "Jeffrey Group", value: 84 },
-      { name: "Alpargatas", value: 48 },
-      { name: "Mercedes Benz", value: 36 },
     ],
   };
   return data[filter] || data.month;
@@ -351,6 +272,8 @@ const Customers = () => {
   const [renewalsOpen, setRenewalsOpen] = useState(false);
   const [renewalsPeriod, setRenewalsPeriod] = useState<"30" | "90" | "180">("30");
   const [selectedCS, setSelectedCS] = useState<string | null>(null);
+
+  const { openedTickets, closedTickets, backlogTickets, ticketsByCustomer } = useSupportMetrics(supportFilter);
 
   const customerCompositionData = getCustomerCompositionData(compositionFilter);
   const planCompositionData = getPlanCompositionData(compositionFilter);
@@ -732,38 +655,18 @@ const Customers = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <ChartCard title="Chamados Abertos" subtitle="Por nível">
-              <SupportBreakdownChart data={generateGeneralOpenedTicketsData(supportFilter)} />
+              <SupportBreakdownChart data={openedTickets} />
             </ChartCard>
             <ChartCard title="Chamados Fechados" subtitle="Por nível">
-              <SupportBreakdownChart data={generateGeneralClosedTicketsData(supportFilter)} />
+              <SupportBreakdownChart data={closedTickets} />
             </ChartCard>
             <ChartCard title="Backlog" subtitle="Por nível">
-              <SupportBreakdownChart data={generateGeneralBacklogData(supportFilter)} />
+              <SupportBreakdownChart data={backlogTickets} />
             </ChartCard>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard title="Volume por Tipo de Chamado">
-            <div className="flex flex-col h-[320px]">
-              <div className="grid grid-cols-2 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
-                <span>Tipo</span>
-                <span className="text-right">Quantidade</span>
-              </div>
-              <div className="divide-y divide-border flex-1 overflow-y-auto">
-                {getTicketsByType(supportFilter).sort((a, b) => b.value - a.value).map((ticket) => (
-                  <div key={ticket.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
-                    <span className="text-sm font-medium">{ticket.name}</span>
-                    <span className="text-sm text-right">{ticket.value}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20 mt-auto">
-                <span className="text-sm font-medium">Total</span>
-                <span className="text-sm font-medium text-right">{getTicketsByType(supportFilter).reduce((sum, t) => sum + t.value, 0)}</span>
-              </div>
-            </div>
-          </ChartCard>
           <ChartCard title="Chamados por Cliente">
             <div className="flex flex-col h-[320px]">
               <div className="grid grid-cols-2 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
@@ -771,7 +674,7 @@ const Customers = () => {
                 <span className="text-right">Chamados</span>
               </div>
               <div className="divide-y divide-border flex-1 overflow-y-auto">
-                {getTicketsByCustomer(supportFilter).sort((a, b) => b.value - a.value).map((customer) => (
+                {ticketsByCustomer.map((customer) => (
                   <div key={customer.name} className="grid grid-cols-2 gap-4 px-2 py-3 hover:bg-secondary/20 transition-colors">
                     <span className="text-sm font-medium">{customer.name}</span>
                     <span className="text-sm text-right">{customer.value}</span>
@@ -780,7 +683,7 @@ const Customers = () => {
               </div>
               <div className="grid grid-cols-2 gap-4 px-2 py-3 border-t border-border bg-secondary/20 mt-auto">
                 <span className="text-sm font-medium">Total</span>
-                <span className="text-sm font-medium text-right">{getTicketsByCustomer(supportFilter).reduce((sum, c) => sum + c.value, 0)}</span>
+                <span className="text-sm font-medium text-right">{ticketsByCustomer.reduce((sum, c) => sum + c.value, 0)}</span>
               </div>
             </div>
           </ChartCard>
