@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.get-intercom-conversation]
 verify_jwt = false
+
+[functions.resend-inbound]
+verify_jwt = false
+
+[functions.enrich-customer-domains]
+verify_jwt = false
