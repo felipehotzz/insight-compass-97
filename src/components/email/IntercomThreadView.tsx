@@ -114,7 +114,7 @@ export function IntercomThreadView({ messages, loading }: IntercomThreadViewProp
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium truncate">
+                      <p className="font-medium truncate text-foreground">
                         {getAuthorLabel(message)}
                       </p>
                       <span className={cn(
@@ -155,22 +155,22 @@ export function IntercomThreadView({ messages, loading }: IntercomThreadViewProp
                   <div className="text-sm space-y-1 mb-4 pb-4 border-b border-border">
                     <div className="flex gap-2">
                       <span className="text-muted-foreground w-20 flex-shrink-0">De:</span>
-                      <span className="flex-1">{getAuthorLabel(message)}</span>
+                      <span className="flex-1 text-foreground">{getAuthorLabel(message)}</span>
                     </div>
                     <div className="flex gap-2">
                       <span className="text-muted-foreground w-20 flex-shrink-0">Data:</span>
-                      <span className="flex-1">
+                      <span className="flex-1 text-foreground">
                         {format(new Date(message.created_at), "EEEE, d 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
                       </span>
                     </div>
                   </div>
 
                   {/* Message body */}
-                  <div className="prose prose-invert prose-sm max-w-none">
+                  <div className="prose prose-sm max-w-none text-foreground">
                     {message.body ? (
                       <div 
                         dangerouslySetInnerHTML={{ __html: message.body }} 
-                        className="email-content"
+                        className="email-content [&_p]:text-foreground [&_span]:text-foreground [&_div]:text-foreground [&_a]:text-primary [&_a]:underline"
                       />
                     ) : (
                       <p className="text-muted-foreground italic">Sem conteúdo</p>
