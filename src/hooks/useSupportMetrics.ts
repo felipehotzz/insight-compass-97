@@ -18,17 +18,17 @@ interface TicketsByCustomer {
 }
 
 export const useSupportMetrics = (filter: TimeFilter) => {
-  // Calculate start date - always get last 6 months of data
-  const startDate = subMonths(new Date(), 6);
+  // Calculate start date - get last 12 months to ensure we have all data
+  const startDate = subMonths(new Date(), 12);
 
   // Fetch all ticket data
   const { data: ticketData, isLoading: ticketLoading } = useQuery({
-    queryKey: ["support-ticket-data", filter],
+    queryKey: ["support-ticket-data"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets")
         .select("created_at, closed_at, status, priority")
-        .gte("created_at", startDate.toISOString())
+        .gte("created_at", "2025-01-01")
         .or("archived.is.null,archived.eq.false");
 
       if (error) throw error;
@@ -38,7 +38,7 @@ export const useSupportMetrics = (filter: TimeFilter) => {
 
   // Fetch tickets by customer
   const { data: customerData, isLoading: customerLoading } = useQuery({
-    queryKey: ["support-by-customer", filter],
+    queryKey: ["support-by-customer"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_tickets")
@@ -47,7 +47,7 @@ export const useSupportMetrics = (filter: TimeFilter) => {
           customer_id,
           customers!inner(nome_fantasia)
         `)
-        .gte("created_at", startDate.toISOString())
+        .gte("created_at", "2025-01-01")
         .or("archived.is.null,archived.eq.false")
         .not("customer_id", "is", null);
 
