@@ -370,7 +370,7 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
 
       {/* Conversation Modal */}
       <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
+        <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
@@ -389,7 +389,7 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
             </div>
           </DialogHeader>
 
-          <ScrollArea className="h-[50vh] pr-4">
+          <ScrollArea className="h-[70vh] pr-4">
             {isLoadingMessages ? (
               <div className="flex items-center justify-center py-8">
                 <RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -413,7 +413,7 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
                         <User className="h-4 w-4 text-muted-foreground" />
                       )}
                     </div>
-                    <div className={`flex-1 max-w-[80%] ${msg.author_type === "admin" || msg.author_type === "bot" ? "text-right" : ""}`}>
+                    <div className={`flex-1 max-w-[85%] ${msg.author_type === "admin" || msg.author_type === "bot" ? "text-right" : ""}`}>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-medium">
                           {msg.author_name || (msg.author_type === "admin" ? "Suporte" : "Cliente")}
@@ -422,12 +422,9 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange }: Su
                           {formatDate(msg.created_at)}
                         </span>
                       </div>
+                      {/* Force light background for email content to ensure readability */}
                       <div 
-                        className={`text-sm p-3 rounded-lg ${
-                          msg.author_type === "admin" || msg.author_type === "bot"
-                            ? "bg-primary/10 text-foreground" 
-                            : "bg-muted text-foreground"
-                        }`}
+                        className="text-sm p-4 rounded-lg bg-white text-gray-900 border border-border/50 [&_*]:!text-gray-900 [&_a]:!text-blue-600 [&_img]:max-w-full [&_img]:h-auto"
                         dangerouslySetInnerHTML={{ __html: msg.body || "" }}
                       />
                     </div>
