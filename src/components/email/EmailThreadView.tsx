@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Mail, ChevronDown, ChevronUp, Paperclip, Download, Loader2, FileText, Image, File } from "lucide-react";
+import { Mail, ChevronDown, ChevronUp, Paperclip, Download, Loader2, FileText, Image, File, FileSpreadsheet, FileCode, FileArchive } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -29,10 +29,31 @@ interface EmailThreadViewProps {
   actionId: string;
 }
 
-function getFileIcon(contentType: string) {
-  if (contentType.startsWith("image/")) return Image;
-  if (contentType === "application/pdf" || contentType.includes("document")) return FileText;
-  return File;
+function getFileIcon(contentType: string, filename: string) {
+  const ext = filename?.split('.').pop()?.toLowerCase() || '';
+  
+  // Images
+  if (contentType?.startsWith("image/")) return { icon: Image, color: "text-green-500", bg: "bg-green-500/10" };
+  
+  // PDFs
+  if (contentType === "application/pdf" || ext === "pdf") return { icon: FileText, color: "text-red-500", bg: "bg-red-500/10" };
+  
+  // Spreadsheets
+  if (contentType?.includes("spreadsheet") || contentType?.includes("excel") || 
+      ["csv", "xlsx", "xls"].includes(ext)) return { icon: FileSpreadsheet, color: "text-emerald-500", bg: "bg-emerald-500/10" };
+  
+  // Documents
+  if (contentType?.includes("document") || contentType?.includes("word") ||
+      ["doc", "docx", "txt", "rtf"].includes(ext)) return { icon: FileText, color: "text-blue-500", bg: "bg-blue-500/10" };
+  
+  // Code files
+  if (["js", "ts", "json", "xml", "html", "css"].includes(ext)) return { icon: FileCode, color: "text-yellow-500", bg: "bg-yellow-500/10" };
+  
+  // Archives
+  if (contentType?.includes("zip") || contentType?.includes("archive") ||
+      ["zip", "rar", "7z", "tar", "gz"].includes(ext)) return { icon: FileArchive, color: "text-purple-500", bg: "bg-purple-500/10" };
+  
+  return { icon: File, color: "text-muted-foreground", bg: "bg-muted" };
 }
 
 export function EmailThreadView({ actionId }: EmailThreadViewProps) {
@@ -263,9 +284,9 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
                         <Paperclip className="h-4 w-4" />
                         {message.attachments.length} anexo(s)
                       </p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         {message.attachments.map((att: Attachment, i: number) => {
-                          const FileIcon = getFileIcon(att.content_type || "");
+                          const { icon: FileIcon, color, bg } = getFileIcon(att.content_type || "", att.filename || "");
                           const isDownloading = downloadingAttachments.has(att.id);
                           
                           return (
@@ -273,16 +294,23 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
                               key={att.id || i}
                               onClick={() => handleDownloadAttachment(att, message.id)}
                               disabled={isDownloading}
-                              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors text-sm group"
+                              className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-left group"
                             >
-                              <FileIcon className="h-4 w-4 text-muted-foreground" />
-                              <span className="max-w-[200px] truncate">
-                                {att.filename || "Anexo"}
-                              </span>
+                              <div className={cn("flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center", bg)}>
+                                <FileIcon className={cn("h-5 w-5", color)} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">
+                                  {att.filename || "Anexo"}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {att.content_type?.split('/')[1]?.toUpperCase() || 'FILE'}
+                                </p>
+                              </div>
                               {isDownloading ? (
-                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground flex-shrink-0" />
                               ) : (
-                                <Download className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <Download className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                               )}
                             </button>
                           );
