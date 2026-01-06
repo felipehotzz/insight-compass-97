@@ -30,7 +30,13 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2, Check, ChevronDown, ChevronRight, Archive, Building2, ArchiveX } from "lucide-react";
+import { ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2, Check, ChevronDown, ChevronRight, Archive, Building2, ArchiveX, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Collapsible,
   CollapsibleContent,
@@ -325,8 +331,8 @@ export default function UnlinkedTickets() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Tickets Não Vinculados</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="text-lg font-semibold text-foreground">Tickets Não Vinculados</h1>
+            <p className="text-sm text-muted-foreground">
               {ticketsWithEmail?.length || 0} tickets sem cliente associado
             </p>
           </div>
@@ -367,12 +373,12 @@ export default function UnlinkedTickets() {
                     onCheckedChange={(checked) => handleSelectAll(!!checked)}
                   />
                 </TableHead>
-                <TableHead className="w-[200px]">Email / Nome</TableHead>
                 <TableHead>Assunto</TableHead>
+                <TableHead className="w-[200px]">Email / Nome</TableHead>
                 <TableHead className="w-[100px]">Status</TableHead>
-                <TableHead className="w-[120px]">Data</TableHead>
-                <TableHead className="w-[250px]">Vincular a</TableHead>
-                <TableHead className="w-[110px]">Ações</TableHead>
+                <TableHead className="w-[140px]">Data</TableHead>
+                <TableHead className="w-[200px]">Vincular a</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -408,18 +414,18 @@ export default function UnlinkedTickets() {
                       />
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-1">
+                      <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-0.5">
                         <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
                         <p className="text-xs text-muted-foreground">{ticket.from_email}</p>
                         <p className="text-xs text-primary">@{extractDomain(ticket.from_email)}</p>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
-                    </TableCell>
                     <TableCell>{getStatusBadge(ticket.status)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(ticket.created_at), "dd/MM/yy", { locale: ptBR })}
+                      {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
                     </TableCell>
                     <TableCell>
                       <div className="relative">
@@ -433,7 +439,7 @@ export default function UnlinkedTickets() {
                             onValueChange={(value) => handleSelectCustomer(ticket, value)}
                           >
                             <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="Selecione para vincular..." />
+                              <SelectValue placeholder="Selecione..." />
                             </SelectTrigger>
                             <SelectContent>
                               {customers?.map((customer) => (
@@ -447,39 +453,36 @@ export default function UnlinkedTickets() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewTicket(ticket)}
-                          title="Ver conversa"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild
-                          title="Abrir no Intercom"
-                        >
-                          <a
-                            href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${ticket.intercom_conversation_id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewTicket(ticket)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver conversa
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${ticket.intercom_conversation_id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Abrir no Intercom
+                            </a>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => archiveTicketMutation.mutate({ ticketId: ticket.id, archived: true })}
+                            disabled={archiveTicketMutation.isPending}
                           >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => archiveTicketMutation.mutate({ ticketId: ticket.id, archived: true })}
-                          title="Arquivar"
-                          disabled={archiveTicketMutation.isPending}
-                        >
-                          <ArchiveX className="h-4 w-4" />
-                        </Button>
-                      </div>
+                            <ArchiveX className="h-4 w-4 mr-2" />
+                            Arquivar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -512,51 +515,50 @@ export default function UnlinkedTickets() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[200px]">Nome</TableHead>
                       <TableHead>Assunto</TableHead>
+                      <TableHead className="w-[200px]">Nome</TableHead>
                       <TableHead className="w-[100px]">Status</TableHead>
-                      <TableHead className="w-[120px]">Data</TableHead>
-                      <TableHead className="w-[80px]">Ações</TableHead>
+                      <TableHead className="w-[140px]">Data</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {ticketsWithoutEmail.map((ticket) => (
                       <TableRow key={ticket.id} className="opacity-75">
                         <TableCell>
-                          <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
+                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
                         </TableCell>
                         <TableCell>
-                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                          <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
                         </TableCell>
                         <TableCell>{getStatusBadge(ticket.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {format(new Date(ticket.created_at), "dd/MM/yy", { locale: ptBR })}
+                          {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewTicket(ticket)}
-                              title="Ver conversa"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              asChild
-                              title="Abrir no Intercom"
-                            >
-                              <a
-                                href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${ticket.intercom_conversation_id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewTicket(ticket)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver conversa
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <a
+                                  href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${ticket.intercom_conversation_id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Abrir no Intercom
+                                </a>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -591,54 +593,53 @@ export default function UnlinkedTickets() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[200px]">Email / Nome</TableHead>
                       <TableHead>Assunto</TableHead>
+                      <TableHead className="w-[200px]">Email / Nome</TableHead>
                       <TableHead className="w-[100px]">Status</TableHead>
-                      <TableHead className="w-[120px]">Data</TableHead>
-                      <TableHead className="w-[80px]">Ações</TableHead>
+                      <TableHead className="w-[140px]">Data</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {internalTickets.map((ticket) => (
                       <TableRow key={ticket.id} className="opacity-75">
                         <TableCell>
-                          <div className="space-y-1">
+                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-0.5">
                             <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
                             <p className="text-xs text-muted-foreground">{ticket.from_email}</p>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
-                        </TableCell>
                         <TableCell>{getStatusBadge(ticket.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {format(new Date(ticket.created_at), "dd/MM/yy", { locale: ptBR })}
+                          {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewTicket(ticket)}
-                              title="Ver conversa"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              asChild
-                              title="Abrir no Intercom"
-                            >
-                              <a
-                                href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${ticket.intercom_conversation_id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewTicket(ticket)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver conversa
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <a
+                                  href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${ticket.intercom_conversation_id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Abrir no Intercom
+                                </a>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -673,51 +674,52 @@ export default function UnlinkedTickets() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[200px]">Email / Nome</TableHead>
                       <TableHead>Assunto</TableHead>
+                      <TableHead className="w-[200px]">Email / Nome</TableHead>
                       <TableHead className="w-[100px]">Status</TableHead>
-                      <TableHead className="w-[120px]">Data</TableHead>
-                      <TableHead className="w-[80px]">Ações</TableHead>
+                      <TableHead className="w-[140px]">Data</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {archivedTickets.map((ticket) => (
                       <TableRow key={ticket.id} className="opacity-75">
                         <TableCell>
-                          <div className="space-y-1">
+                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-0.5">
                             <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
                             {ticket.from_email && (
                               <p className="text-xs text-muted-foreground">{ticket.from_email}</p>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <p className="text-sm line-clamp-2">{ticket.subject || "Sem assunto"}</p>
-                        </TableCell>
                         <TableCell>{getStatusBadge(ticket.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {format(new Date(ticket.created_at), "dd/MM/yy", { locale: ptBR })}
+                          {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewTicket(ticket)}
-                              title="Ver conversa"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => archiveTicketMutation.mutate({ ticketId: ticket.id, archived: false })}
-                              title="Desarquivar"
-                              disabled={archiveTicketMutation.isPending}
-                            >
-                              <Archive className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewTicket(ticket)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver conversa
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => archiveTicketMutation.mutate({ ticketId: ticket.id, archived: false })}
+                                disabled={archiveTicketMutation.isPending}
+                              >
+                                <Archive className="h-4 w-4 mr-2" />
+                                Desarquivar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
