@@ -54,14 +54,6 @@ const categories = [
   { id: "relacionamento", label: "Relacionamento", icon: Heart },
 ];
 
-const defaultCustomers = [
-  { id: "1", name: "Grendene" },
-  { id: "2", name: "Ambev" },
-  { id: "3", name: "CBMM" },
-  { id: "4", name: "Localiza" },
-  { id: "5", name: "Natura" },
-];
-
 const teamMembers = [
   { id: "1", name: "Ana Silva", initials: "AS" },
   { id: "2", name: "Bruno Costa", initials: "BC" },
@@ -86,6 +78,22 @@ const NewAction = () => {
   const [responsibles, setResponsibles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [customers, setCustomers] = useState<{ id: string; nome_fantasia: string }[]>([]);
+
+  // Fetch customers from database
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("id, nome_fantasia")
+        .order("nome_fantasia");
+      
+      if (data && !error) {
+        setCustomers(data);
+      }
+    };
+    fetchCustomers();
+  }, []);
 
   useEffect(() => {
     if (editId) {
@@ -286,9 +294,9 @@ const NewAction = () => {
                 <SelectValue placeholder="Selecionar..." />
               </SelectTrigger>
               <SelectContent>
-                {defaultCustomers.map((c) => (
-                  <SelectItem key={c.id} value={c.name}>
-                    {c.name}
+                {customers.map((c) => (
+                  <SelectItem key={c.id} value={c.nome_fantasia}>
+                    {c.nome_fantasia}
                   </SelectItem>
                 ))}
               </SelectContent>
