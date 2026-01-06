@@ -216,6 +216,45 @@ export type Database = {
           },
         ]
       }
+      customer_domains: {
+        Row: {
+          created_at: string
+          customer_id: string
+          domain: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          domain: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          domain?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_domains_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_metrics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_domains_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           cnpj: string
@@ -487,6 +526,104 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      support_messages: {
+        Row: {
+          author_name: string | null
+          author_type: string
+          body: string | null
+          created_at: string
+          id: string
+          intercom_message_id: string | null
+          ticket_id: string
+        }
+        Insert: {
+          author_name?: string | null
+          author_type: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          intercom_message_id?: string | null
+          ticket_id: string
+        }
+        Update: {
+          author_name?: string | null
+          author_type?: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          intercom_message_id?: string | null
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assignee_name: string | null
+          closed_at: string | null
+          created_at: string
+          customer_id: string | null
+          from_email: string | null
+          from_name: string | null
+          id: string
+          intercom_conversation_id: string
+          priority: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          assignee_name?: string | null
+          closed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          intercom_conversation_id: string
+          priority?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assignee_name?: string | null
+          closed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          intercom_conversation_id?: string
+          priority?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_metrics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
