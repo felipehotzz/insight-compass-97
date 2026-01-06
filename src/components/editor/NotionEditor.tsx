@@ -19,6 +19,7 @@ interface Block {
 
 interface NotionEditorProps {
   onChange?: (blocks: Block[]) => void;
+  initialContent?: string;
 }
 
 const getVideoEmbed = (url: string): { type: "youtube" | "loom" | "google" | "other"; embedUrl: string } | null => {
@@ -60,10 +61,22 @@ const getLinkPreview = (url: string) => {
   }
 };
 
-export function NotionEditor({ onChange }: NotionEditorProps) {
-  const [blocks, setBlocks] = useState<Block[]>([
-    { id: "1", type: "text", content: "" },
-  ]);
+export function NotionEditor({ onChange, initialContent }: NotionEditorProps) {
+  const [blocks, setBlocks] = useState<Block[]>(() => {
+    // Try to parse as JSON blocks first
+    if (initialContent) {
+      try {
+        const parsed = JSON.parse(initialContent);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {
+        // If not JSON, treat as plain text content
+        return [{ id: "1", type: "text" as const, content: initialContent }];
+      }
+    }
+    return [{ id: "1", type: "text", content: "" }];
+  });
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);

@@ -403,7 +403,10 @@ const NewAction = () => {
         <div className="border-t border-border my-6" />
 
         {/* Content area - Notion-style editor */}
-        <NotionEditor onChange={(blocks) => setContent(JSON.stringify(blocks))} />
+        <NotionEditor 
+          initialContent={content} 
+          onChange={(blocks) => setContent(JSON.stringify(blocks))} 
+        />
       </div>
     </DashboardLayout>
   );
