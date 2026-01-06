@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NotionEditor } from "@/components/editor/NotionEditor";
 import { EmailThreadView } from "@/components/email/EmailThreadView";
+import { CustomerDropdown } from "@/components/actions/CustomerDropdown";
 import {
   Select,
   SelectContent,
@@ -289,18 +290,11 @@ const NewAction = () => {
               <Building2 className="h-4 w-4" />
               <span>Cliente</span>
             </div>
-            <Select value={customer} onValueChange={setCustomer}>
-              <SelectTrigger className="w-auto min-w-[160px] border-none bg-transparent hover:bg-secondary/50 h-8 px-2">
-                <SelectValue placeholder="Selecionar..." />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map((c) => (
-                  <SelectItem key={c.id} value={c.nome_fantasia}>
-                    {c.nome_fantasia}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CustomerDropdown
+              customers={customers}
+              value={customer}
+              onValueChange={setCustomer}
+            />
           </div>
 
           <div className="flex items-center gap-3 group">
