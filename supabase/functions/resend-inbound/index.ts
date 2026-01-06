@@ -24,6 +24,27 @@ interface ResendInboundPayload {
   };
 }
 
+interface EmailContentResponse {
+  object: string;
+  id: string;
+  to: string[];
+  from: string;
+  created_at: string;
+  subject: string;
+  html?: string;
+  text?: string;
+  headers?: Record<string, string>;
+  bcc: string[];
+  cc: string[];
+  reply_to: string[];
+  message_id: string;
+  attachments: Array<{
+    id: string;
+    filename: string;
+    content_type: string;
+  }>;
+}
+
 function extractDomain(email: string): string | null {
   const match = email.match(/@([^>]+)/);
   if (!match) return null;
@@ -43,9 +64,8 @@ function extractName(emailString: string): string {
   return extractEmail(emailString);
 }
 
-async function fetchEmailContent(emailId: string, resendApiKey: string): Promise<string | null> {
+async function fetchEmailContent(emailId: string, resendApiKey: string): Promise<EmailContentResponse | null> {
   try {
-    // Use the correct endpoint for RECEIVED emails (inbound): /emails/receiving/:id
     const response = await fetch(`https://api.resend.com/emails/receiving/${emailId}`, {
       method: "GET",
       headers: {
@@ -61,12 +81,37 @@ async function fetchEmailContent(emailId: string, resendApiKey: string): Promise
     const emailData = await response.json();
     console.log("Email content fetched:", JSON.stringify(emailData, null, 2));
     
-    // Return text or html content
-    return emailData.text || emailData.html || null;
+    return emailData;
   } catch (error) {
     console.error("Error fetching email content:", error);
     return null;
   }
+}
+
+async function findExistingThread(
+  supabase: any,
+  messageId: string,
+  inReplyTo: string | undefined,
+  senderEmail: string,
+  recipientEmails: string[]
+): Promise<string | null> {
+  // Try to find an existing thread by In-Reply-To header
+  if (inReplyTo) {
+    const { data: existingMessage } = await supabase
+      .from("email_messages")
+      .select("action_id")
+      .eq("message_id", inReplyTo)
+      .maybeSingle();
+    
+    if (existingMessage) {
+      console.log("Found existing thread by In-Reply-To:", existingMessage.action_id);
+      return existingMessage.action_id;
+    }
+  }
+
+  // Try to find a thread with same participants (within last 7 days for the same subject)
+  // This is a fallback for when In-Reply-To is not available
+  return null;
 }
 
 Deno.serve(async (req) => {
@@ -79,7 +124,6 @@ Deno.serve(async (req) => {
     
     console.log("Received Resend inbound webhook:", JSON.stringify(payload, null, 2));
 
-    // Verify it's an email.received event
     if (payload.type !== "email.received") {
       console.log("Ignoring non-email.received event:", payload.type);
       return new Response(JSON.stringify({ success: true, message: "Event ignored" }), {
@@ -88,28 +132,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Initialize clients
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch email content from Resend API
+    // Fetch full email content from Resend API
     const emailContent = await fetchEmailContent(payload.data.email_id, resendApiKey);
 
-    // Extract all recipient emails (To + CC)
-    const allRecipients: string[] = [];
-    
-    if (payload.data.to) {
-      allRecipients.push(...payload.data.to.map(extractEmail));
-    }
-    if (payload.data.cc) {
-      allRecipients.push(...payload.data.cc.map(extractEmail));
-    }
+    const senderEmail = extractEmail(payload.data.from);
+    const senderName = extractName(payload.data.from);
+    const toEmails = payload.data.to?.map(extractEmail) || [];
+    const ccEmails = payload.data.cc?.map(extractEmail) || [];
+    const allRecipients = [...toEmails, ...ccEmails];
 
-    console.log("All recipients:", allRecipients);
+    console.log("Sender:", senderEmail, "Recipients:", allRecipients);
 
-    // Extract unique domains from recipients (excluding resend.app domain)
+    // Extract domains (excluding resend.app)
     const domains = [...new Set(
       allRecipients
         .map(extractDomain)
@@ -118,7 +157,7 @@ Deno.serve(async (req) => {
     
     console.log("Domains found:", domains);
 
-    // Look up customer domains
+    // Look up customer
     const { data: customerDomains, error: domainError } = await supabase
       .from("customer_domains")
       .select("domain, customer_id, customers:customer_id(id, nome_fantasia)")
@@ -128,64 +167,104 @@ Deno.serve(async (req) => {
       console.error("Error looking up domains:", domainError);
     }
 
-    console.log("Customer domains found:", customerDomains);
-
-    // Build domain to customer map
-    const domainToCustomer = new Map<string, { id: string; nome_fantasia: string }>();
+    let matchedCustomer: { id: string; nome_fantasia: string } | null = null;
     if (customerDomains) {
       for (const cd of customerDomains) {
         const customer = cd.customers as unknown as { id: string; nome_fantasia: string } | null;
         if (customer) {
-          domainToCustomer.set(cd.domain, customer);
+          matchedCustomer = customer;
+          break;
         }
       }
     }
 
-    // Find matching customer
-    let matchedCustomer: { id: string; nome_fantasia: string } | null = null;
-    for (const domain of domains) {
-      if (domainToCustomer.has(domain)) {
-        matchedCustomer = domainToCustomer.get(domain)!;
-        break;
+    console.log("Customer matched:", matchedCustomer?.nome_fantasia);
+
+    // Extract In-Reply-To header for threading
+    const inReplyTo = emailContent?.headers?.["in-reply-to"] || emailContent?.headers?.["In-Reply-To"];
+    
+    // Try to find existing thread
+    let actionId = await findExistingThread(
+      supabase,
+      payload.data.message_id,
+      inReplyTo,
+      senderEmail,
+      allRecipients
+    );
+
+    let isNewThread = false;
+
+    // If no existing thread, create a new action
+    if (!actionId) {
+      isNewThread = true;
+      const actionData = {
+        action_date: new Date().toISOString().split('T')[0],
+        action_type: "email",
+        category: "comunicação",
+        title: payload.data.subject || "E-mail sem assunto",
+        description: `Thread de e-mail iniciada por ${senderName}`,
+        content: null, // Content will be in email_messages table
+        customer: matchedCustomer?.nome_fantasia || "Não identificado",
+        responsibles: [senderName],
+      };
+
+      console.log("Creating new action:", actionData);
+
+      const { data: action, error: actionError } = await supabase
+        .from("actions")
+        .insert(actionData)
+        .select()
+        .single();
+
+      if (actionError) {
+        console.error("Error creating action:", actionError);
+        throw actionError;
       }
+
+      actionId = action.id;
+      console.log("Action created successfully:", actionId);
+    } else {
+      console.log("Adding to existing thread:", actionId);
     }
 
-    // Extract sender info
-    const senderEmail = extractEmail(payload.data.from);
-    const senderName = extractName(payload.data.from);
-
-    // Prepare action data
-    const actionData = {
-      action_date: new Date().toISOString().split('T')[0],
-      action_type: "email",
-      category: "comunicação",
-      title: payload.data.subject || "E-mail sem assunto",
-      description: `De: ${senderName} (${senderEmail})\nPara: ${payload.data.to?.join(", ") || "N/A"}${payload.data.cc?.length ? `\nCC: ${payload.data.cc.join(", ")}` : ""}`,
-      content: emailContent,
-      customer: matchedCustomer?.nome_fantasia || "Não identificado",
-      responsibles: [senderName],
+    // Insert email message into thread
+    const emailMessageData = {
+      action_id: actionId,
+      message_id: payload.data.message_id,
+      in_reply_to: inReplyTo || null,
+      from_email: senderEmail,
+      from_name: senderName !== senderEmail ? senderName : null,
+      to_emails: toEmails,
+      cc_emails: ccEmails,
+      bcc_emails: payload.data.bcc?.map(extractEmail) || [],
+      subject: payload.data.subject,
+      body_text: emailContent?.text || null,
+      body_html: emailContent?.html || null,
+      sent_at: emailContent?.created_at || new Date().toISOString(),
+      attachments: payload.data.attachments || [],
     };
 
-    console.log("Creating action:", actionData);
+    console.log("Inserting email message:", emailMessageData);
 
-    // Insert action
-    const { data: action, error: actionError } = await supabase
-      .from("actions")
-      .insert(actionData)
+    const { data: emailMessage, error: emailError } = await supabase
+      .from("email_messages")
+      .insert(emailMessageData)
       .select()
       .single();
 
-    if (actionError) {
-      console.error("Error creating action:", actionError);
-      throw actionError;
+    if (emailError) {
+      console.error("Error inserting email message:", emailError);
+      throw emailError;
     }
 
-    console.log("Action created successfully:", action.id);
+    console.log("Email message inserted:", emailMessage.id);
 
     return new Response(
       JSON.stringify({
         success: true,
-        action_id: action.id,
+        action_id: actionId,
+        email_message_id: emailMessage.id,
+        is_new_thread: isNewThread,
         customer_matched: !!matchedCustomer,
         customer_name: matchedCustomer?.nome_fantasia || null,
       }),

@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NotionEditor } from "@/components/editor/NotionEditor";
+import { EmailThreadView } from "@/components/email/EmailThreadView";
 import {
   Select,
   SelectContent,
@@ -402,11 +403,15 @@ const NewAction = () => {
         {/* Divider */}
         <div className="border-t border-border my-6" />
 
-        {/* Content area - Notion-style editor */}
-        <NotionEditor 
-          initialContent={content} 
-          onChange={(blocks) => setContent(JSON.stringify(blocks))} 
-        />
+        {/* Content area - different view based on action type */}
+        {actionType === "email" && editId ? (
+          <EmailThreadView actionId={editId} />
+        ) : (
+          <NotionEditor 
+            initialContent={content} 
+            onChange={(blocks) => setContent(JSON.stringify(blocks))} 
+          />
+        )}
       </div>
     </DashboardLayout>
   );
