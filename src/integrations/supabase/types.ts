@@ -302,6 +302,68 @@ export type Database = {
           },
         ]
       }
+      email_messages: {
+        Row: {
+          action_id: string
+          attachments: Json | null
+          bcc_emails: string[] | null
+          body_html: string | null
+          body_text: string | null
+          cc_emails: string[] | null
+          created_at: string
+          from_email: string
+          from_name: string | null
+          id: string
+          in_reply_to: string | null
+          message_id: string | null
+          sent_at: string
+          subject: string | null
+          to_emails: string[]
+        }
+        Insert: {
+          action_id: string
+          attachments?: Json | null
+          bcc_emails?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[] | null
+          created_at?: string
+          from_email: string
+          from_name?: string | null
+          id?: string
+          in_reply_to?: string | null
+          message_id?: string | null
+          sent_at?: string
+          subject?: string | null
+          to_emails?: string[]
+        }
+        Update: {
+          action_id?: string
+          attachments?: Json | null
+          bcc_emails?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[] | null
+          created_at?: string
+          from_email?: string
+          from_name?: string | null
+          id?: string
+          in_reply_to?: string | null
+          message_id?: string | null
+          sent_at?: string
+          subject?: string | null
+          to_emails?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_messages_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_metrics: {
         Row: {
           arr: number | null
