@@ -264,6 +264,13 @@ serve(async (req) => {
       const cnpj = values[colMap['cnpj']]?.trim()
       if (!cnpj) continue
       
+      // Validate CNPJ format - should be numeric only (with optional dots/dashes)
+      const cnpjClean = cnpj.replace(/[\.\-\/]/g, '')
+      if (!/^\d{11,14}$/.test(cnpjClean)) {
+        console.log(`Skipping invalid CNPJ: ${cnpj}`)
+        continue
+      }
+      
       const razaoSocial = values[colMap['razao_social']]?.trim() || ''
       const nomeFantasia = values[colMap['nome_fantasia']]?.trim() || razaoSocial
       const statusCliente = values[colMap['status_cliente']]?.trim().toLowerCase() || 'ativo'
