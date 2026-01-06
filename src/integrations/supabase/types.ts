@@ -567,6 +567,7 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          archived: boolean | null
           assignee_name: string | null
           closed_at: string | null
           created_at: string
@@ -581,6 +582,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived?: boolean | null
           assignee_name?: string | null
           closed_at?: string | null
           created_at?: string
@@ -595,6 +597,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived?: boolean | null
           assignee_name?: string | null
           closed_at?: string | null
           created_at?: string
