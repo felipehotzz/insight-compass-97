@@ -554,8 +554,8 @@ const RaioX = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card className="bg-card">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">R$ Contrato</p>
-              <p className="text-2xl font-bold mt-1">{formatCurrencyShort(metrics.valorContrato)}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">MRR Atual</p>
+              <p className="text-2xl font-bold mt-1">{formatCurrencyShort(metrics.mrrAtual)}</p>
             </CardContent>
           </Card>
           <Card className="bg-card">
