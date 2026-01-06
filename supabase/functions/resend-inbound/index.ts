@@ -256,6 +256,7 @@ Deno.serve(async (req) => {
     // Insert email message into thread
     const emailMessageData = {
       action_id: actionId,
+      resend_email_id: payload.data.email_id, // Store Resend's email ID for attachment downloads
       message_id: payload.data.message_id,
       in_reply_to: inReplyTo || null,
       from_email: senderEmail,

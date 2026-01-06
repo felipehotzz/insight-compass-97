@@ -58,19 +58,15 @@ Deno.serve(async (req) => {
     if (!resendEmailId && messageId) {
       const { data: emailMessage } = await supabase
         .from("email_messages")
-        .select("message_id")
+        .select("resend_email_id")
         .eq("id", messageId)
         .single();
       
-      if (emailMessage?.message_id) {
-        // Extract Resend email ID from message_id (format: <resend-id@resend.dev>)
-        const match = emailMessage.message_id.match(/<([^@]+)@/);
-        resendEmailId = match ? match[1] : emailMessage.message_id;
-      }
+      resendEmailId = emailMessage?.resend_email_id;
     }
 
     if (!resendEmailId) {
-      throw new Error("Could not determine Resend email ID for attachment download");
+      throw new Error("Could not determine Resend email ID for attachment download. The email may have been received before this feature was added.");
     }
 
     console.log("Using Resend email ID:", resendEmailId);

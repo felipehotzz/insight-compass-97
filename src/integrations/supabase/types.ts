@@ -317,6 +317,7 @@ export type Database = {
           id: string
           in_reply_to: string | null
           message_id: string | null
+          resend_email_id: string | null
           sent_at: string
           subject: string | null
           to_emails: string[]
@@ -335,6 +336,7 @@ export type Database = {
           id?: string
           in_reply_to?: string | null
           message_id?: string | null
+          resend_email_id?: string | null
           sent_at?: string
           subject?: string | null
           to_emails?: string[]
@@ -353,6 +355,7 @@ export type Database = {
           id?: string
           in_reply_to?: string | null
           message_id?: string | null
+          resend_email_id?: string | null
           sent_at?: string
           subject?: string | null
           to_emails?: string[]
