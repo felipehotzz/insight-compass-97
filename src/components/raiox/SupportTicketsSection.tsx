@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { FilterButtons } from "@/components/dashboard/FilterButtons";
 import type { TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
 import { getDateRangeFromPeriod } from "@/components/dashboard/PeriodDropdown";
+import { SupportBreakdownChart } from "@/components/charts/SupportBreakdownChart";
+import { ChartCard } from "@/components/dashboard/ChartCard";
 import {
   Table,
   TableBody,
@@ -22,9 +24,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { format, subDays, subWeeks, subMonths, subQuarters } from "date-fns";
+import { format, subDays, subWeeks, subMonths, subQuarters, startOfWeek, startOfMonth, startOfQuarter, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, eachQuarterOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useMemo } from "react";
 import { RefreshCw, User, Headphones, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 
@@ -237,42 +238,162 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange, peri
     enabled: !!customerId,
   });
 
-  // Calculate chart data from real tickets
+  // Get period configuration based on granularity filter
+  const getFilterConfig = (timeFilter: TimeFilter) => {
+    const now = new Date();
+    const { startDate: periodStart } = getDateRangeFromPeriod(periodValue);
+    const baseStartDate = periodStart || subMonths(now, 12);
+
+    switch (timeFilter) {
+      case "day":
+        return {
+          startDate: baseStartDate,
+          getKey: (date: Date) => format(date, "yyyy-MM-dd"),
+          getLabel: (date: Date) => format(date, "dd/MM", { locale: ptBR }),
+          getPeriods: (start: Date, end: Date) =>
+            eachDayOfInterval({ start, end }).map((d) => ({
+              key: format(d, "yyyy-MM-dd"),
+              label: format(d, "dd/MM", { locale: ptBR }),
+            })),
+        };
+      case "week":
+        return {
+          startDate: baseStartDate,
+          getKey: (date: Date) => format(startOfWeek(date, { weekStartsOn: 0 }), "yyyy-MM-dd"),
+          getLabel: (date: Date) => `Sem ${format(date, "w")}`,
+          getPeriods: (start: Date, end: Date) =>
+            eachWeekOfInterval({ start, end }, { weekStartsOn: 0 }).map((d) => ({
+              key: format(d, "yyyy-MM-dd"),
+              label: `Sem ${format(d, "w")}`,
+            })),
+        };
+      case "month":
+        return {
+          startDate: baseStartDate,
+          getKey: (date: Date) => format(date, "yyyy-MM"),
+          getLabel: (date: Date) => format(date, "MMM", { locale: ptBR }).charAt(0).toUpperCase() + format(date, "MMM", { locale: ptBR }).slice(1),
+          getPeriods: (start: Date, end: Date) =>
+            eachMonthOfInterval({ start, end }).map((d) => ({
+              key: format(d, "yyyy-MM"),
+              label: format(d, "MMM", { locale: ptBR }).charAt(0).toUpperCase() + format(d, "MMM", { locale: ptBR }).slice(1),
+            })),
+        };
+      case "quarter":
+        return {
+          startDate: baseStartDate,
+          getKey: (date: Date) => `${format(date, "yyyy")}-Q${Math.ceil((date.getMonth() + 1) / 3)}`,
+          getLabel: (date: Date) => `Q${Math.ceil((date.getMonth() + 1) / 3)} ${format(date, "yy")}`,
+          getPeriods: (start: Date, end: Date) =>
+            eachQuarterOfInterval({ start, end }).map((d) => ({
+              key: `${format(d, "yyyy")}-Q${Math.ceil((d.getMonth() + 1) / 3)}`,
+              label: `Q${Math.ceil((d.getMonth() + 1) / 3)} ${format(d, "yy")}`,
+            })),
+        };
+      default:
+        return {
+          startDate: baseStartDate,
+          getKey: (date: Date) => format(date, "yyyy-MM"),
+          getLabel: (date: Date) => format(date, "MMM", { locale: ptBR }).charAt(0).toUpperCase() + format(date, "MMM", { locale: ptBR }).slice(1),
+          getPeriods: (start: Date, end: Date) =>
+            eachMonthOfInterval({ start, end }).map((d) => ({
+              key: format(d, "yyyy-MM"),
+              label: format(d, "MMM", { locale: ptBR }).charAt(0).toUpperCase() + format(d, "MMM", { locale: ptBR }).slice(1),
+            })),
+        };
+    }
+  };
+
+  // Calculate chart data from real tickets grouped by period
   const chartData = useMemo(() => {
     if (!tickets) return { opened: [], closed: [], backlog: [] };
 
-    // Group tickets by period
-    const openedByPriority: SupportData = { period: "Período", n1: 0, n2: 0, n3: 0, total: 0 };
-    const closedByPriority: SupportData = { period: "Período", n1: 0, n2: 0, n3: 0, total: 0 };
+    const filterConfig = getFilterConfig(filter);
+    const now = new Date();
+    const periods = filterConfig.getPeriods(filterConfig.startDate, now);
 
+    // Initialize data structure for each period
+    const periodData = new Map<
+      string,
+      { opened: { n1: number; n2: number; n3: number }; closed: { n1: number; n2: number; n3: number } }
+    >();
+    periods.forEach((p) => {
+      periodData.set(p.key, {
+        opened: { n1: 0, n2: 0, n3: 0 },
+        closed: { n1: 0, n2: 0, n3: 0 },
+      });
+    });
+
+    // Process tickets
     for (const ticket of tickets) {
-      const priority = ticket.priority || "n2";
-      const priorityKey = priority as "n1" | "n2" | "n3";
+      const createdKey = filterConfig.getKey(new Date(ticket.created_at));
 
-      openedByPriority[priorityKey]++;
-      openedByPriority.total++;
+      if (periodData.has(createdKey)) {
+        const entry = periodData.get(createdKey)!;
+        // Map priority: not_priority -> n1, n2 -> n2, n3/priority -> n3
+        let priorityKey: "n1" | "n2" | "n3" = "n2";
+        const priority = ticket.priority?.toLowerCase();
+        if (priority === "n1" || priority === "not_priority") priorityKey = "n1";
+        else if (priority === "n2") priorityKey = "n2";
+        else if (priority === "n3" || priority === "priority") priorityKey = "n3";
 
-      if (ticket.status === "closed") {
-        closedByPriority[priorityKey]++;
-        closedByPriority.total++;
+        entry.opened[priorityKey]++;
+
+        // Count closed tickets in the period they were closed
+        if (ticket.status === "closed" && ticket.closed_at) {
+          const closedKey = filterConfig.getKey(new Date(ticket.closed_at));
+          if (periodData.has(closedKey)) {
+            periodData.get(closedKey)!.closed[priorityKey]++;
+          }
+        }
       }
     }
 
-    // Backlog
-    const backlogByPriority: SupportData = { period: "Atual", n1: 0, n2: 0, n3: 0, total: 0 };
-    for (const ticket of backlogTickets || []) {
-      const priority = ticket.priority || "n2";
-      const priorityKey = priority as "n1" | "n2" | "n3";
-      backlogByPriority[priorityKey]++;
-      backlogByPriority.total++;
-    }
+    // Build result arrays
+    const opened: SupportData[] = [];
+    const closed: SupportData[] = [];
+    const backlog: SupportData[] = [];
 
-    return {
-      opened: [openedByPriority],
-      closed: [closedByPriority],
-      backlog: [backlogByPriority],
-    };
-  }, [tickets, backlogTickets]);
+    let runningBacklog = { n1: 0, n2: 0, n3: 0 };
+
+    periods.forEach((period) => {
+      const entry = periodData.get(period.key);
+      if (entry) {
+        const openedTotal = entry.opened.n1 + entry.opened.n2 + entry.opened.n3;
+        const closedTotal = entry.closed.n1 + entry.closed.n2 + entry.closed.n3;
+
+        opened.push({
+          period: period.label,
+          n1: entry.opened.n1,
+          n2: entry.opened.n2,
+          n3: entry.opened.n3,
+          total: openedTotal,
+        });
+
+        closed.push({
+          period: period.label,
+          n1: entry.closed.n1,
+          n2: entry.closed.n2,
+          n3: entry.closed.n3,
+          total: closedTotal,
+        });
+
+        // Calculate running backlog
+        runningBacklog.n1 = Math.max(0, runningBacklog.n1 + entry.opened.n1 - entry.closed.n1);
+        runningBacklog.n2 = Math.max(0, runningBacklog.n2 + entry.opened.n2 - entry.closed.n2);
+        runningBacklog.n3 = Math.max(0, runningBacklog.n3 + entry.opened.n3 - entry.closed.n3);
+
+        backlog.push({
+          period: period.label,
+          n1: runningBacklog.n1,
+          n2: runningBacklog.n2,
+          n3: runningBacklog.n3,
+          total: runningBacklog.n1 + runningBacklog.n2 + runningBacklog.n3,
+        });
+      }
+    });
+
+    return { opened, closed, backlog };
+  }, [tickets, filter, periodValue]);
 
   // State to control expanded view
   const [isExpanded, setIsExpanded] = useState(false);
@@ -301,50 +422,17 @@ export const SupportTicketsSection = ({ customerId, filter, onFilterChange, peri
         <FilterButtons value={filter} onChange={onFilterChange} periodValue={periodValue} onPeriodChange={onPeriodChange} />
       </div>
 
-      {/* Metrics Cards */}
+      {/* Metrics Cards with Charts */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Chamados Abertos</CardTitle>
-            <p className="text-xs text-muted-foreground">No período</p>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{chartData.opened[0]?.total || 0}</div>
-            <div className="flex gap-2 mt-2 text-xs">
-              <span className="text-red-500">N1: {chartData.opened[0]?.n1 || 0}</span>
-              <span className="text-orange-500">N2: {chartData.opened[0]?.n2 || 0}</span>
-              <span className="text-blue-500">N3: {chartData.opened[0]?.n3 || 0}</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Chamados Fechados</CardTitle>
-            <p className="text-xs text-muted-foreground">No período</p>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{chartData.closed[0]?.total || 0}</div>
-            <div className="flex gap-2 mt-2 text-xs">
-              <span className="text-red-500">N1: {chartData.closed[0]?.n1 || 0}</span>
-              <span className="text-orange-500">N2: {chartData.closed[0]?.n2 || 0}</span>
-              <span className="text-blue-500">N3: {chartData.closed[0]?.n3 || 0}</span>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium">Backlog</CardTitle>
-            <p className="text-xs text-muted-foreground">Em aberto</p>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{chartData.backlog[0]?.total || 0}</div>
-            <div className="flex gap-2 mt-2 text-xs">
-              <span className="text-red-500">N1: {chartData.backlog[0]?.n1 || 0}</span>
-              <span className="text-orange-500">N2: {chartData.backlog[0]?.n2 || 0}</span>
-              <span className="text-blue-500">N3: {chartData.backlog[0]?.n3 || 0}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <ChartCard title="Chamados Abertos" subtitle="Por nível">
+          <SupportBreakdownChart data={chartData.opened} height={220} />
+        </ChartCard>
+        <ChartCard title="Chamados Fechados" subtitle="Por nível">
+          <SupportBreakdownChart data={chartData.closed} height={220} />
+        </ChartCard>
+        <ChartCard title="Backlog" subtitle="Por nível">
+          <SupportBreakdownChart data={chartData.backlog} height={220} />
+        </ChartCard>
       </div>
 
       {/* Tickets List */}
