@@ -85,6 +85,27 @@ const formatDate = (dateStr: string | null) => {
   }
 };
 
+// Calcula meses entre duas datas
+const calculateMonthsBetween = (startDate: string | null, endDate: string | null): number => {
+  if (!startDate || !endDate) return 1;
+  try {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    return Math.max(1, months);
+  } catch {
+    return 1;
+  }
+};
+
+// Calcula meses de vigência usando meses_vigencia ou calculando pelas datas
+const getContractMonths = (contract: Contract): number => {
+  if (contract.meses_vigencia && contract.meses_vigencia > 0) {
+    return contract.meses_vigencia;
+  }
+  return calculateMonthsBetween(contract.vigencia_inicial, contract.vigencia_final);
+};
+
 export default function CustomersDatabase() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "ativo" | "inativo">("all");
@@ -123,7 +144,7 @@ export default function CustomersDatabase() {
 
         // LTV Total: soma de MRR × meses de vigência de TODOS os contratos
         const ltv_total = customerContracts.reduce(
-          (sum, c) => sum + (c.mrr || 0) * (c.meses_vigencia || 1),
+          (sum, c) => sum + (c.mrr || 0) * getContractMonths(c),
           0
         );
 
