@@ -215,28 +215,28 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
                   {/* Email metadata */}
                   <div className="text-sm space-y-1 mb-4 pb-4 border-b border-border">
                     <div className="flex gap-2">
-                      <span className="text-muted-foreground w-16">De:</span>
-                      <span>{formatSender(message)}</span>
+                      <span className="text-muted-foreground w-20 flex-shrink-0">De:</span>
+                      <span className="flex-1">{formatSender(message)}</span>
                     </div>
                     <div className="flex gap-2">
-                      <span className="text-muted-foreground w-16">Para:</span>
-                      <span>{message.to_emails.join(", ")}</span>
+                      <span className="text-muted-foreground w-20 flex-shrink-0">Para:</span>
+                      <span className="flex-1">{message.to_emails.join(", ")}</span>
                     </div>
                     {message.cc_emails.length > 0 && (
                       <div className="flex gap-2">
-                        <span className="text-muted-foreground w-16">CC:</span>
-                        <span>{message.cc_emails.join(", ")}</span>
+                        <span className="text-muted-foreground w-20 flex-shrink-0">CC:</span>
+                        <span className="flex-1">{message.cc_emails.join(", ")}</span>
                       </div>
                     )}
                     {message.subject && (
                       <div className="flex gap-2">
-                        <span className="text-muted-foreground w-16">Assunto:</span>
-                        <span className="font-medium">{message.subject}</span>
+                        <span className="text-muted-foreground w-20 flex-shrink-0">Assunto:</span>
+                        <span className="flex-1 font-medium">{message.subject}</span>
                       </div>
                     )}
                     <div className="flex gap-2">
-                      <span className="text-muted-foreground w-16">Data:</span>
-                      <span>
+                      <span className="text-muted-foreground w-20 flex-shrink-0">Data:</span>
+                      <span className="flex-1">
                         {format(new Date(message.sent_at), "EEEE, d 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
                       </span>
                     </div>
