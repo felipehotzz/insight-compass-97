@@ -6,10 +6,10 @@ const corsHeaders = {
 };
 
 interface AttachmentRequest {
-  emailId: string;
   attachmentId: string;
   filename: string;
   messageId: string;
+  emailId?: string; // Resend email ID (from message_id field)
 }
 
 Deno.serve(async (req) => {
@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { emailId, attachmentId, filename, messageId }: AttachmentRequest = await req.json();
+    const { attachmentId, filename, messageId, emailId }: AttachmentRequest = await req.json();
 
     console.log("Download attachment request:", { emailId, attachmentId, filename, messageId });
 
@@ -53,10 +53,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Download attachment from Resend API
-    console.log("Downloading attachment from Resend...");
-    const resendResponse = await fetch(
-      `https://api.resend.com/emails/receiving/attachments/${attachmentId}`,
+    // Get the Resend email ID from the database if not provided
+    let resendEmailId = emailId;
+    if (!resendEmailId && messageId) {
+      const { data: emailMessage } = await supabase
+        .from("email_messages")
+        .select("message_id")
+        .eq("id", messageId)
+        .single();
+      
+      if (emailMessage?.message_id) {
+        // Extract Resend email ID from message_id (format: <resend-id@resend.dev>)
+        const match = emailMessage.message_id.match(/<([^@]+)@/);
+        resendEmailId = match ? match[1] : emailMessage.message_id;
+      }
+    }
+
+    if (!resendEmailId) {
+      throw new Error("Could not determine Resend email ID for attachment download");
+    }
+
+    console.log("Using Resend email ID:", resendEmailId);
+
+    // First, get attachment info to obtain download_url
+    console.log("Getting attachment info from Resend...");
+    const attachmentInfoResponse = await fetch(
+      `https://api.resend.com/emails/receiving/${resendEmailId}/attachments/${attachmentId}`,
       {
         method: "GET",
         headers: {
@@ -65,15 +87,32 @@ Deno.serve(async (req) => {
       }
     );
 
+    if (!attachmentInfoResponse.ok) {
+      const errorText = await attachmentInfoResponse.text();
+      console.error("Resend attachment info error:", attachmentInfoResponse.status, errorText);
+      throw new Error(`Failed to get attachment info from Resend: ${attachmentInfoResponse.status}`);
+    }
+
+    const attachmentInfo = await attachmentInfoResponse.json();
+    console.log("Attachment info:", attachmentInfo);
+
+    if (!attachmentInfo.download_url) {
+      throw new Error("No download_url in attachment info");
+    }
+
+    // Download the file using the download_url
+    console.log("Downloading attachment from:", attachmentInfo.download_url);
+    const resendResponse = await fetch(attachmentInfo.download_url);
+
     if (!resendResponse.ok) {
       const errorText = await resendResponse.text();
-      console.error("Resend API error:", resendResponse.status, errorText);
-      throw new Error(`Failed to download attachment from Resend: ${resendResponse.status}`);
+      console.error("Download error:", resendResponse.status, errorText);
+      throw new Error(`Failed to download attachment: ${resendResponse.status}`);
     }
 
     // Get the file content as blob
     const fileBlob = await resendResponse.blob();
-    const contentType = resendResponse.headers.get("content-type") || "application/octet-stream";
+    const contentType = attachmentInfo.content_type || resendResponse.headers.get("content-type") || "application/octet-stream";
     
     console.log("Downloaded attachment:", {
       size: fileBlob.size,
