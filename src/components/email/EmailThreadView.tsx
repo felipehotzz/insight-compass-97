@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Mail, ChevronDown, ChevronUp, Paperclip, Download, Loader2, FileText, Image, File, FileSpreadsheet, FileCode, FileArchive } from "lucide-react";
+import { Mail, ChevronDown, ChevronUp, Paperclip, Download, Loader2, FileText, Image, File, FileSpreadsheet, FileCode, FileArchive, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { AttachmentPreview } from "./AttachmentPreview";
 
 interface Attachment {
   id: string;
@@ -61,6 +62,10 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
   const [loading, setLoading] = useState(true);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
   const [downloadingAttachments, setDownloadingAttachments] = useState<Set<string>>(new Set());
+  const [previewAttachment, setPreviewAttachment] = useState<{ attachment: Attachment; messageId: string } | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
   useEffect(() => {
     fetchMessages();
   }, [actionId]);
@@ -99,10 +104,8 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
     });
   };
 
-  const handleDownloadAttachment = async (attachment: Attachment, messageId: string) => {
+  const fetchAttachmentUrl = async (attachment: Attachment, messageId: string): Promise<string | null> => {
     try {
-      setDownloadingAttachments(prev => new Set(prev).add(attachment.id));
-
       const { data, error } = await supabase.functions.invoke("download-attachment", {
         body: {
           attachmentId: attachment.id,
@@ -112,11 +115,37 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
       });
 
       if (error) throw error;
+      return data?.url || null;
+    } catch (error: any) {
+      console.error("Error fetching attachment URL:", error);
+      toast({
+        title: "Erro ao carregar anexo",
+        description: error.message || "Não foi possível carregar o anexo",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
 
-      if (data?.url) {
-        // Open the file in a new tab or trigger download
+  const handlePreviewAttachment = async (attachment: Attachment, messageId: string) => {
+    setPreviewAttachment({ attachment, messageId });
+    setPreviewUrl(null);
+    setPreviewLoading(true);
+
+    const url = await fetchAttachmentUrl(attachment, messageId);
+    setPreviewUrl(url);
+    setPreviewLoading(false);
+  };
+
+  const handleDownloadAttachment = async (attachment: Attachment, messageId: string) => {
+    try {
+      setDownloadingAttachments(prev => new Set(prev).add(attachment.id));
+
+      const url = await fetchAttachmentUrl(attachment, messageId);
+
+      if (url) {
         const link = document.createElement("a");
-        link.href = data.url;
+        link.href = url;
         link.download = attachment.filename;
         link.target = "_blank";
         document.body.appendChild(link);
@@ -128,19 +157,24 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
           description: `${attachment.filename}`,
         });
       }
-    } catch (error: any) {
-      console.error("Error downloading attachment:", error);
-      toast({
-        title: "Erro ao baixar anexo",
-        description: error.message || "Não foi possível baixar o anexo",
-        variant: "destructive",
-      });
     } finally {
       setDownloadingAttachments(prev => {
         const newSet = new Set(prev);
         newSet.delete(attachment.id);
         return newSet;
       });
+    }
+  };
+
+  const handleClosePreview = () => {
+    setPreviewAttachment(null);
+    setPreviewUrl(null);
+    setPreviewLoading(false);
+  };
+
+  const handleDownloadFromPreview = () => {
+    if (previewAttachment) {
+      handleDownloadAttachment(previewAttachment.attachment, previewAttachment.messageId);
     }
   };
 
@@ -290,29 +324,48 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
                           const isDownloading = downloadingAttachments.has(att.id);
                           
                           return (
-                            <button
+                            <div
                               key={att.id || i}
-                              onClick={() => handleDownloadAttachment(att, message.id)}
-                              disabled={isDownloading}
-                              className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-left group"
+                              className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors group"
                             >
-                              <div className={cn("flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center", bg)}>
-                                <FileIcon className={cn("h-5 w-5", color)} />
+                              <button
+                                onClick={() => handlePreviewAttachment(att, message.id)}
+                                className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                              >
+                                <div className={cn("flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center", bg)}>
+                                  <FileIcon className={cn("h-5 w-5", color)} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    {att.filename || "Anexo"}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {att.content_type?.split('/')[1]?.toUpperCase() || 'FILE'}
+                                  </p>
+                                </div>
+                              </button>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <button
+                                  onClick={() => handlePreviewAttachment(att, message.id)}
+                                  className="p-1.5 rounded hover:bg-background/50 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Visualizar"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDownloadAttachment(att, message.id)}
+                                  disabled={isDownloading}
+                                  className="p-1.5 rounded hover:bg-background/50 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Download"
+                                >
+                                  {isDownloading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Download className="h-4 w-4" />
+                                  )}
+                                </button>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">
-                                  {att.filename || "Anexo"}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {att.content_type?.split('/')[1]?.toUpperCase() || 'FILE'}
-                                </p>
-                              </div>
-                              {isDownloading ? (
-                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground flex-shrink-0" />
-                              ) : (
-                                <Download className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                              )}
-                            </button>
+                            </div>
                           );
                         })}
                       </div>
@@ -324,6 +377,15 @@ export function EmailThreadView({ actionId }: EmailThreadViewProps) {
           );
         })}
       </div>
+
+      {/* Attachment Preview Modal */}
+      <AttachmentPreview
+        attachment={previewAttachment?.attachment || null}
+        url={previewUrl}
+        isLoading={previewLoading}
+        onClose={handleClosePreview}
+        onDownload={handleDownloadFromPreview}
+      />
     </div>
   );
 }
