@@ -12,6 +12,7 @@ import {
   Settings,
   User,
   Database,
+  Ticket,
 } from "lucide-react";
 import {
   Popover,
@@ -33,6 +34,7 @@ const navigation: { name: string; href: string; icon: any; permission: AppPage }
   { name: "CDB", href: "/cdb", icon: Database, permission: "clientes" },
   { name: "Raio-X", href: "/raio-x", icon: UserCircle, permission: "raio_x" },
   { name: "Ações", href: "/actions", icon: ClipboardList, permission: "acoes" },
+  { name: "Tickets", href: "/tickets/unlinked", icon: Ticket, permission: "raio_x" },
 ];
 
 export function Sidebar() {
