@@ -323,7 +323,8 @@ const RaioX = () => {
     if (!contracts || !selectedCustomer) {
       return { 
         mrrAtual: 0, 
-        ltvTotal: 0, 
+        ltvRealizado: 0,
+        ltvARealizar: 0,
         valorTotalContratos: 0,
         contratosVigentes: 0,
         totalContratos: 0,
@@ -334,17 +335,47 @@ const RaioX = () => {
       };
     }
 
+    const now = new Date();
     const activeContracts = contracts.filter(c => c.status_contrato?.toLowerCase() === "vigente");
     const mrrAtual = activeContracts.reduce((sum, c) => sum + (c.mrr || 0), 0);
     const valorContrato = activeContracts.reduce((sum, c) => sum + (c.valor_contrato || 0), 0);
-    const ltvTotal = contracts.reduce((sum, c) => {
-      const months = getContractMonths(c);
-      return sum + (c.mrr || 0) * months;
-    }, 0);
+    
+    // Calculate LTV Realizado (what already happened)
+    let ltvRealizado = 0;
+    // Calculate LTV A Realizar (what's still to come)
+    let ltvARealizar = 0;
+    
+    contracts.forEach(c => {
+      const mrr = c.mrr || 0;
+      const startDate = c.vigencia_inicial ? new Date(c.vigencia_inicial) : null;
+      const endDate = c.vigencia_final ? new Date(c.vigencia_final) : null;
+      
+      if (!startDate) return;
+      
+      if (c.status_contrato?.toLowerCase() === "vencido" || (endDate && endDate < now)) {
+        // Entire contract is in the past - all is realized
+        const months = getContractMonths(c);
+        ltvRealizado += mrr * months;
+      } else if (startDate <= now) {
+        // Contract has started - part realized, part to realize
+        const monthsElapsed = Math.max(0, Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+        const monthsRemaining = endDate 
+          ? Math.max(0, Math.floor((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30)))
+          : 0;
+        
+        ltvRealizado += mrr * monthsElapsed;
+        ltvARealizar += mrr * monthsRemaining;
+      } else {
+        // Contract hasn't started yet - all is to realize
+        const months = getContractMonths(c);
+        ltvARealizar += mrr * months;
+      }
+    });
+    
     const valorTotalContratos = contracts.reduce((sum, c) => sum + (c.valor_contrato || 0), 0);
     const mesesAtivo = calculateMonthsBetween(selectedCustomer.data_cohort, null);
     
-    // Get current plan from latest contract
+    // Get current plan from latest active contract
     const latestContract = activeContracts
       .sort((a, b) => new Date(b.vigencia_inicial || 0).getTime() - new Date(a.vigencia_inicial || 0).getTime())[0];
     
@@ -358,7 +389,8 @@ const RaioX = () => {
 
     return { 
       mrrAtual,
-      ltvTotal, 
+      ltvRealizado,
+      ltvARealizar,
       valorTotalContratos,
       contratosVigentes: activeContracts.length,
       totalContratos: contracts.length,
@@ -528,8 +560,14 @@ const RaioX = () => {
           </Card>
           <Card className="bg-card">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV Total (R$)</p>
-              <p className="text-2xl font-bold mt-1">{formatCurrencyShort(metrics.ltvTotal)}</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV Realizado</p>
+              <p className="text-2xl font-bold mt-1">{formatCurrencyShort(metrics.ltvRealizado)}</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV A Realizar</p>
+              <p className="text-2xl font-bold mt-1">{formatCurrencyShort(metrics.ltvARealizar)}</p>
             </CardContent>
           </Card>
           <Card className="bg-card">
@@ -719,8 +757,12 @@ const RaioX = () => {
                       <p className="text-lg font-bold">{formatCurrency(metrics.mrrAtual)}</p>
                     </div>
                     <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground">LTV Total</p>
-                      <p className="text-lg font-bold">{formatCurrency(metrics.ltvTotal)}</p>
+                      <p className="text-xs text-muted-foreground">LTV Realizado</p>
+                      <p className="text-lg font-bold">{formatCurrency(metrics.ltvRealizado)}</p>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground">LTV A Realizar</p>
+                      <p className="text-lg font-bold">{formatCurrency(metrics.ltvARealizar)}</p>
                     </div>
                     <div className="bg-muted/30 rounded-lg p-3">
                       <p className="text-xs text-muted-foreground">Valor Total Contratos</p>
