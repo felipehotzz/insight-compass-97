@@ -27,9 +27,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Link2, ExternalLink, RefreshCw, Users } from "lucide-react";
+import { Link2, ExternalLink, RefreshCw, Users, Eye, MessageCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface UnlinkedTicket {
@@ -54,10 +55,28 @@ interface SuggestionData {
   relatedTickets: UnlinkedTicket[];
 }
 
+interface ConversationMessage {
+  id: string;
+  author_type: string;
+  author_name: string | null;
+  body: string | null;
+  created_at: string;
+}
+
+interface ConversationDetail {
+  id: string;
+  title: string | null;
+  state: string;
+  messages: ConversationMessage[];
+}
+
 export default function UnlinkedTickets() {
   const queryClient = useQueryClient();
   const [selectedCustomers, setSelectedCustomers] = useState<Record<string, string>>({});
   const [suggestionDialog, setSuggestionDialog] = useState<SuggestionData | null>(null);
+  const [viewingTicket, setViewingTicket] = useState<UnlinkedTicket | null>(null);
+  const [conversationDetail, setConversationDetail] = useState<ConversationDetail | null>(null);
+  const [loadingConversation, setLoadingConversation] = useState(false);
 
   const { data: tickets, isLoading: ticketsLoading } = useQuery({
     queryKey: ["unlinked-tickets"],
@@ -100,10 +119,8 @@ export default function UnlinkedTickets() {
     return allTickets.filter((t) => {
       if (t.id === linkedTicket.id) return false;
       
-      // Same email match
       if (email && t.from_email?.toLowerCase() === email) return true;
       
-      // Same domain match (excluding common domains)
       if (domain && !["gmail.com", "hotmail.com", "outlook.com", "yahoo.com"].includes(domain)) {
         const ticketDomain = extractDomain(t.from_email);
         if (ticketDomain === domain) return true;
@@ -144,7 +161,6 @@ export default function UnlinkedTickets() {
     const relatedTickets = tickets ? findRelatedTickets(ticket, tickets) : [];
 
     if (relatedTickets.length > 0) {
-      // Show suggestion dialog
       setSuggestionDialog({
         customerId,
         customerName: customer?.nome_fantasia || "",
@@ -152,14 +168,12 @@ export default function UnlinkedTickets() {
         relatedTickets,
       });
     } else {
-      // Link only this ticket
       linkTicketMutation.mutate({ ticketIds: [ticket.id], customerId });
     }
   };
 
   const handleLinkSingle = () => {
     if (!suggestionDialog) return;
-    // Find the original ticket (the one that triggered the suggestion)
     const originalTicketId = Object.entries(selectedCustomers).find(
       ([_, cId]) => cId === suggestionDialog.customerId
     )?.[0];
@@ -187,6 +201,28 @@ export default function UnlinkedTickets() {
     }
   };
 
+  const handleViewTicket = async (ticket: UnlinkedTicket) => {
+    setViewingTicket(ticket);
+    setConversationDetail(null);
+    setLoadingConversation(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("get-intercom-conversation", {
+        body: { conversationId: ticket.intercom_conversation_id },
+      });
+
+      if (error) throw error;
+      if (data?.conversation) {
+        setConversationDetail(data.conversation);
+      }
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      toast.error("Erro ao carregar detalhes da conversa");
+    } finally {
+      setLoadingConversation(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
       open: { variant: "default", label: "Aberto" },
@@ -195,6 +231,11 @@ export default function UnlinkedTickets() {
     };
     const config = variants[status] || { variant: "outline" as const, label: status };
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const stripHtml = (html: string | null) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
   };
 
   return (
@@ -226,7 +267,7 @@ export default function UnlinkedTickets() {
                 <TableHead className="w-[100px]">Status</TableHead>
                 <TableHead className="w-[120px]">Data</TableHead>
                 <TableHead className="w-[250px]">Vincular a</TableHead>
-                <TableHead className="w-[100px]">Ações</TableHead>
+                <TableHead className="w-[120px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -288,8 +329,17 @@ export default function UnlinkedTickets() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => handleViewTicket(ticket)}
+                          title="Ver conversa"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleLink(ticket)}
                           disabled={!selectedCustomers[ticket.id] || linkTicketMutation.isPending}
+                          title="Vincular"
                         >
                           <Link2 className="h-4 w-4" />
                         </Button>
@@ -297,6 +347,7 @@ export default function UnlinkedTickets() {
                           variant="ghost"
                           size="sm"
                           asChild
+                          title="Abrir no Intercom"
                         >
                           <a
                             href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${ticket.intercom_conversation_id}`}
@@ -315,6 +366,83 @@ export default function UnlinkedTickets() {
           </Table>
         </div>
       </div>
+
+      {/* View Ticket Dialog */}
+      <Dialog open={!!viewingTicket} onOpenChange={(open) => !open && setViewingTicket(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              {viewingTicket?.subject || "Conversa"}
+            </DialogTitle>
+            <DialogDescription className="flex items-center gap-2">
+              <span>{viewingTicket?.from_name}</span>
+              {viewingTicket?.from_email && (
+                <>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-muted-foreground">{viewingTicket.from_email}</span>
+                </>
+              )}
+              <span className="text-muted-foreground">•</span>
+              {viewingTicket && format(new Date(viewingTicket.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[400px] pr-4">
+            {loadingConversation ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : conversationDetail?.messages?.length ? (
+              <div className="space-y-4">
+                {conversationDetail.messages.map((message, index) => (
+                  <div
+                    key={message.id || index}
+                    className={`p-4 rounded-lg ${
+                      message.author_type === "user" || message.author_type === "lead"
+                        ? "bg-secondary/50 ml-0 mr-8"
+                        : "bg-primary/10 ml-8 mr-0"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">
+                        {message.author_name || (message.author_type === "admin" ? "Suporte" : "Cliente")}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(message.created_at), "dd/MM/yy HH:mm")}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground/90 whitespace-pre-wrap">
+                      {stripHtml(message.body)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <MessageCircle className="h-8 w-8 mb-2 opacity-50" />
+                <p>Nenhuma mensagem encontrada</p>
+              </div>
+            )}
+          </ScrollArea>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewingTicket(null)}>
+              Fechar
+            </Button>
+            <Button asChild>
+              <a
+                href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${viewingTicket?.intercom_conversation_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Abrir no Intercom
+              </a>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Suggestion Dialog */}
       <Dialog open={!!suggestionDialog} onOpenChange={(open) => !open && setSuggestionDialog(null)}>
