@@ -56,6 +56,7 @@ interface Contract {
   tipo_movimento: string | null;
   valor_contrato: number | null;
   vendedor: string | null;
+  condicao_pagamento: string | null;
 }
 
 interface CustomerWithMetrics extends Customer {
@@ -65,6 +66,7 @@ interface CustomerWithMetrics extends Customer {
   total_contratos: number;
   contratos_vigentes: number;
   meses_ativo: number;
+  formato_pagamento: string | null;
 }
 
 const formatCurrency = (value: number) => {
@@ -177,6 +179,13 @@ export default function CustomersDatabase() {
           );
         }
 
+        // Formato de pagamento: pegar do contrato vigente principal (maior MRR)
+        const contratoVigentePrincipal = customerContracts
+          .filter((c) => c.status_contrato?.toLowerCase() === "vigente")
+          .sort((a, b) => (b.mrr || 0) - (a.mrr || 0))[0];
+        
+        const formato_pagamento = contratoVigentePrincipal?.condicao_pagamento || null;
+
         return {
           ...customer,
           contracts: customerContracts,
@@ -185,6 +194,7 @@ export default function CustomersDatabase() {
           total_contratos: customerContracts.length,
           contratos_vigentes,
           meses_ativo: Math.max(0, meses_ativo),
+          formato_pagamento,
         };
       });
 
@@ -309,6 +319,7 @@ export default function CustomersDatabase() {
                 <TableHead className="w-10"></TableHead>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Pagamento</TableHead>
                 <TableHead className="text-right">MRR Atual</TableHead>
                 <TableHead className="text-right">LTV Total</TableHead>
                 <TableHead className="text-center">Contratos</TableHead>
@@ -318,7 +329,7 @@ export default function CustomersDatabase() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     <div className="flex items-center justify-center gap-2 text-muted-foreground">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                       Carregando...
@@ -327,7 +338,7 @@ export default function CustomersDatabase() {
                 </TableRow>
               ) : filteredCustomers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nenhum cliente encontrado
                   </TableCell>
                 </TableRow>
@@ -370,6 +381,9 @@ export default function CustomersDatabase() {
                             {customer.status === "ativo" ? "Ativo" : "Inativo"}
                           </Badge>
                         </TableCell>
+                        <TableCell>
+                          {customer.formato_pagamento || "-"}
+                        </TableCell>
                         <TableCell className="text-right font-medium">
                           {customer.mrr_atual_total > 0
                             ? formatCurrency(customer.mrr_atual_total)
@@ -387,7 +401,7 @@ export default function CustomersDatabase() {
 
                       <CollapsibleContent asChild>
                         <TableRow className="bg-muted/20">
-                          <TableCell colSpan={7} className="p-0">
+                          <TableCell colSpan={8} className="p-0">
                             <div className="p-4 space-y-3">
                               <div className="flex items-center justify-between">
                                 <h4 className="font-medium text-sm">
