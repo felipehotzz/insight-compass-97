@@ -401,13 +401,14 @@ export default function UnlinkedTickets() {
                 ticketsWithEmail?.map((ticket) => (
                   <TableRow 
                     key={ticket.id}
-                    className={`transition-all duration-300 ${
+                    className={`transition-all duration-300 cursor-pointer ${
                       linkedTicketIds.has(ticket.id) 
                         ? "opacity-0 bg-green-500/10 scale-95" 
-                        : "opacity-100"
+                        : "opacity-100 hover:bg-muted/50"
                     }`}
+                    onClick={() => handleViewTicket(ticket)}
                   >
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={selectedTickets.has(ticket.id)}
                         onCheckedChange={(checked) => handleSelectTicket(ticket.id, !!checked)}
@@ -427,7 +428,7 @@ export default function UnlinkedTickets() {
                     <TableCell className="text-sm text-muted-foreground">
                       {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="relative">
                         {linkingTicketId === ticket.id ? (
                           <div className="flex items-center gap-2 h-8 px-3 text-xs text-muted-foreground">
@@ -452,7 +453,7 @@ export default function UnlinkedTickets() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
