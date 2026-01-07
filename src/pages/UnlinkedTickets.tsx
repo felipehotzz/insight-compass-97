@@ -375,7 +375,7 @@ export default function UnlinkedTickets() {
                     onCheckedChange={(checked) => handleSelectAll(!!checked)}
                   />
                 </TableHead>
-                <TableHead className="w-[30px]">Status</TableHead>
+                <TableHead className="w-[30px]"></TableHead>
                 <TableHead className="w-[200px]">De</TableHead>
                 <TableHead>Assunto</TableHead>
                 <TableHead className="w-[140px]">Data</TableHead>
