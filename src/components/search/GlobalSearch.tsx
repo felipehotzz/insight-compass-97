@@ -185,7 +185,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   };
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
+    <CommandDialog open={open} onOpenChange={onOpenChange} shouldFilter={false}>
       <CommandInput
         placeholder="Buscar por cliente, ação ou palavra-chave..."
         value={search}
