@@ -713,26 +713,44 @@ export default function UnlinkedTickets() {
       {/* View Ticket Dialog */}
       <Dialog open={!!viewingTicket} onOpenChange={(open) => !open && setViewingTicket(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] [&>button]:hidden focus:outline-none focus-visible:outline-none focus-visible:ring-0">
-          <div className="relative">
+          {/* Header matching list design */}
+          <div className="flex items-center gap-4 pb-4 border-b border-border mb-4">
+            {/* Status indicator */}
+            {viewingTicket && getStatusIndicator(viewingTicket.status)}
+            
+            {/* Sender */}
+            <div className="w-[200px] flex-shrink-0">
+              <p className="text-sm font-medium truncate">
+                {viewingTicket?.from_name || viewingTicket?.from_email}
+              </p>
+            </div>
+            
+            {/* Subject */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm truncate">{stripHtml(viewingTicket?.subject) || "Sem assunto"}</p>
+            </div>
+            
+            {/* Date */}
+            <div className="flex-shrink-0 text-sm text-muted-foreground whitespace-nowrap">
+              {viewingTicket && format(new Date(viewingTicket.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+            </div>
+            
+            {/* Intercom link */}
             <a
               href={`https://app.intercom.com/a/inbox/gzgj8crd/inbox/conversation/${viewingTicket?.intercom_conversation_id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="absolute top-0 right-0 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
             >
               <ExternalLink className="h-3 w-3" />
               Intercom
             </a>
           </div>
 
-          <ScrollArea className="h-[70vh] pr-4">
+          <ScrollArea className="h-[65vh] pr-4">
             <IntercomThreadView 
               messages={conversationDetail?.messages || []} 
               loading={loadingConversation}
-              subject={stripHtml(viewingTicket?.subject) || undefined}
-              fromName={viewingTicket?.from_name || undefined}
-              fromEmail={viewingTicket?.from_email || undefined}
-              createdAt={viewingTicket?.created_at}
             />
           </ScrollArea>
         </DialogContent>
