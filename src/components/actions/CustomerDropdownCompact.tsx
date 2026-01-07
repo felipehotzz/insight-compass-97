@@ -79,7 +79,7 @@ export function CustomerDropdownCompact({
               placeholder="Buscar cliente..."
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              className="pl-8 bg-secondary border-border h-8 text-sm"
+              className="pl-8 bg-secondary border-border h-8 text-sm focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
             />
           </div>
         </div>
