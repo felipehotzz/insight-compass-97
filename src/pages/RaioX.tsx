@@ -27,6 +27,9 @@ import { Plus, ChevronDown, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 
 type CustomerFase = 'onboarding' | 'ongoing' | 'renovacao' | 'recuperacao' | 'expansao';
+type CustomerPlano = 'Intelligence' | 'Intelligence PRO' | 'PRO' | 'Enterprise';
+
+const PLANOS: CustomerPlano[] = ['Intelligence', 'Intelligence PRO', 'PRO', 'Enterprise'];
 
 interface Customer {
   id: string;
@@ -38,6 +41,7 @@ interface Customer {
   cs_responsavel: string | null;
   fase: CustomerFase | null;
   fase_changed_at: string | null;
+  plano: CustomerPlano | null;
   created_at: string;
   updated_at: string;
 }
@@ -416,6 +420,24 @@ const RaioX = () => {
     queryClient.invalidateQueries({ queryKey: ["customers-raiox"] });
   };
 
+  // Handle plan change
+  const handlePlanoChange = async (newPlano: CustomerPlano) => {
+    if (!selectedCustomer) return;
+    
+    const { error } = await supabase
+      .from("customers")
+      .update({ plano: newPlano })
+      .eq("id", selectedCustomer.id);
+    
+    if (error) {
+      toast.error("Erro ao atualizar plano");
+      return;
+    }
+    
+    toast.success("Plano atualizado com sucesso");
+    queryClient.invalidateQueries({ queryKey: ["customers-raiox"] });
+  };
+
   if (!selectedCustomer) {
     return (
       <DashboardLayout>
@@ -550,7 +572,25 @@ const RaioX = () => {
             <Card className="bg-card">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano Atual</p>
-                <p className="text-2xl font-medium mt-1">{metrics.planoAtual}</p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-2xl font-medium px-0 h-auto py-0 mt-1 hover:bg-transparent gap-1">
+                      {selectedCustomer.plano || "-"}
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48 bg-popover">
+                    {PLANOS.map((plano) => (
+                      <DropdownMenuItem
+                        key={plano}
+                        onClick={() => handlePlanoChange(plano)}
+                        className={selectedCustomer.plano === plano ? "bg-muted" : ""}
+                      >
+                        {plano}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </CardContent>
             </Card>
             <Card className="bg-card">
