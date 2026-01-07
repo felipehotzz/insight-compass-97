@@ -799,6 +799,7 @@ export type Database = {
         | "acoes"
         | "convidar"
         | "perfis_acesso"
+        | "tickets"
       app_role: "admin" | "editor" | "viewer" | "customer_success" | "growth"
     }
     CompositeTypes: {
@@ -936,6 +937,7 @@ export const Constants = {
         "acoes",
         "convidar",
         "perfis_acesso",
+        "tickets",
       ],
       app_role: ["admin", "editor", "viewer", "customer_success", "growth"],
     },

@@ -24,7 +24,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import logoImg from "@/assets/logo-comunica.png";
 
-type AppPage = "visao_geral" | "pipeline" | "growth" | "clientes" | "raio_x" | "acoes";
+type AppPage = "visao_geral" | "pipeline" | "growth" | "clientes" | "raio_x" | "acoes" | "tickets";
 
 const navigation: { name: string; href: string; icon: any; permission: AppPage }[] = [
   { name: "Visão Geral", href: "/", icon: BarChart3, permission: "visao_geral" },
@@ -34,7 +34,7 @@ const navigation: { name: string; href: string; icon: any; permission: AppPage }
   { name: "CDB", href: "/cdb", icon: Database, permission: "clientes" },
   { name: "Raio-X", href: "/raio-x", icon: UserCircle, permission: "raio_x" },
   { name: "Ações", href: "/actions", icon: ClipboardList, permission: "acoes" },
-  { name: "Tickets", href: "/tickets/unlinked", icon: Ticket, permission: "raio_x" },
+  { name: "Tickets", href: "/tickets/unlinked", icon: Ticket, permission: "tickets" },
 ];
 
 export function Sidebar() {

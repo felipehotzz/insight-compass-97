@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { 
   BarChart3, 
@@ -8,98 +8,124 @@ import {
   Globe, 
   ClipboardList,
   UserPlus,
-  KeyRound
+  KeyRound,
+  Ticket,
+  Loader2
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const pages = [
-  { id: "visao-geral", name: "Visão Geral", icon: BarChart3 },
+type AppPage = "visao_geral" | "pipeline" | "growth" | "clientes" | "raio_x" | "acoes" | "convidar" | "perfis_acesso" | "tickets";
+type AppRole = "admin" | "editor" | "viewer" | "customer_success" | "growth";
+
+const pages: { id: AppPage; name: string; icon: any }[] = [
+  { id: "visao_geral", name: "Visão Geral", icon: BarChart3 },
   { id: "pipeline", name: "Pipeline", icon: TrendingUp },
   { id: "growth", name: "Growth", icon: Share2 },
   { id: "clientes", name: "Clientes", icon: Users },
-  { id: "raio-x", name: "Raio-X", icon: Globe },
+  { id: "raio_x", name: "Raio-X", icon: Globe },
   { id: "acoes", name: "Ações", icon: ClipboardList },
+  { id: "tickets", name: "Tickets", icon: Ticket },
   { id: "convidar", name: "Convidar pessoas", icon: UserPlus },
-  { id: "perfis-acesso", name: "Perfis de Acesso", icon: KeyRound },
+  { id: "perfis_acesso", name: "Perfis de Acesso", icon: KeyRound },
 ];
 
-const roles = [
+const roles: { id: AppRole; name: string }[] = [
   { id: "admin", name: "Admin" },
   { id: "editor", name: "Editor" },
   { id: "viewer", name: "Visualizador" },
-  { id: "customer-success", name: "Customer Success" },
+  { id: "customer_success", name: "Customer Success" },
   { id: "growth", name: "Growth" },
 ];
 
-// Mock initial permissions (all enabled for admin, some for others)
-const initialPermissions: Record<string, Record<string, boolean>> = {
-  admin: {
-    "visao-geral": true,
-    "pipeline": true,
-    "growth": true,
-    "clientes": true,
-    "raio-x": true,
-    "acoes": true,
-    "convidar": true,
-    "perfis-acesso": true,
-  },
-  editor: {
-    "visao-geral": true,
-    "pipeline": true,
-    "growth": true,
-    "clientes": true,
-    "raio-x": false,
-    "acoes": true,
-    "convidar": false,
-    "perfis-acesso": false,
-  },
-  viewer: {
-    "visao-geral": true,
-    "pipeline": false,
-    "growth": false,
-    "clientes": true,
-    "raio-x": false,
-    "acoes": false,
-    "convidar": false,
-    "perfis-acesso": false,
-  },
-  "customer-success": {
-    "visao-geral": true,
-    "pipeline": false,
-    "growth": false,
-    "clientes": true,
-    "raio-x": true,
-    "acoes": true,
-    "convidar": false,
-    "perfis-acesso": false,
-  },
-  growth: {
-    "visao-geral": true,
-    "pipeline": true,
-    "growth": true,
-    "clientes": false,
-    "raio-x": false,
-    "acoes": false,
-    "convidar": false,
-    "perfis-acesso": false,
-  },
-};
-
 export function AccessProfileSettings() {
-  const [permissions, setPermissions] = useState(initialPermissions);
-  const [activeRole, setActiveRole] = useState("admin");
+  const [permissions, setPermissions] = useState<Record<string, Record<string, boolean>>>({});
+  const [activeRole, setActiveRole] = useState<AppRole>("admin");
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
 
-  const togglePermission = (pageId: string) => {
-    setPermissions((prev) => {
-      const currentRolePermissions = prev[activeRole] || {};
-      return {
+  useEffect(() => {
+    fetchPermissions();
+  }, []);
+
+  const fetchPermissions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("role_permissions")
+        .select("role, page, can_view");
+
+      if (error) throw error;
+
+      // Group permissions by role
+      const grouped: Record<string, Record<string, boolean>> = {};
+      roles.forEach(role => {
+        grouped[role.id] = {};
+        pages.forEach(page => {
+          grouped[role.id][page.id] = false;
+        });
+      });
+
+      data?.forEach((item) => {
+        if (grouped[item.role]) {
+          grouped[item.role][item.page] = item.can_view;
+        }
+      });
+
+      setPermissions(grouped);
+    } catch (error) {
+      console.error("Error fetching permissions:", error);
+      toast.error("Erro ao carregar permissões");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const togglePermission = async (pageId: AppPage) => {
+    const currentValue = permissions[activeRole]?.[pageId] ?? false;
+    const newValue = !currentValue;
+
+    // Optimistic update
+    setPermissions((prev) => ({
+      ...prev,
+      [activeRole]: {
+        ...prev[activeRole],
+        [pageId]: newValue,
+      },
+    }));
+
+    setUpdating(pageId);
+
+    try {
+      const { error } = await supabase
+        .from("role_permissions")
+        .update({ can_view: newValue })
+        .eq("role", activeRole as any)
+        .eq("page", pageId as any);
+
+      if (error) throw error;
+    } catch (error) {
+      // Revert on error
+      setPermissions((prev) => ({
         ...prev,
         [activeRole]: {
-          ...currentRolePermissions,
-          [pageId]: !currentRolePermissions[pageId],
+          ...prev[activeRole],
+          [pageId]: currentValue,
         },
-      };
-    });
+      }));
+      console.error("Error updating permission:", error);
+      toast.error("Erro ao atualizar permissão");
+    } finally {
+      setUpdating(null);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -111,7 +137,7 @@ export function AccessProfileSettings() {
       </div>
 
       {/* Role Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 flex-wrap">
         {roles.map((role) => (
           <button
             key={role.id}
@@ -132,6 +158,7 @@ export function AccessProfileSettings() {
         {pages.map((page) => {
           const Icon = page.icon;
           const isEnabled = permissions[activeRole]?.[page.id] ?? false;
+          const isUpdating = updating === page.id;
           
           return (
             <div
@@ -147,6 +174,7 @@ export function AccessProfileSettings() {
               <Switch
                 checked={isEnabled}
                 onCheckedChange={() => togglePermission(page.id)}
+                disabled={isUpdating}
               />
             </div>
           );
