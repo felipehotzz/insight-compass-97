@@ -43,6 +43,7 @@ const actionTypes = [
   { id: "email", label: "E-mail", icon: Mail },
   { id: "call", label: "Ligação", icon: Phone },
   { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
+  { id: "comment", label: "Comentário", icon: MessageSquare },
 ];
 
 const categories = [
