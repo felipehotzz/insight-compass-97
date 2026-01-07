@@ -491,7 +491,7 @@ const RaioX = () => {
         {/* Metrics cards */}
         <TooltipProvider>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            <Card className="bg-card col-span-2">
+            <Card className="bg-card">
               <CardContent className="p-4">
                 <div className="flex items-center gap-1.5">
                   <p className="text-xs text-muted-foreground uppercase tracking-wide">Fase</p>
@@ -545,7 +545,7 @@ const RaioX = () => {
                 )}
               </CardContent>
             </Card>
-            <Card className="bg-card">
+            <Card className="bg-card col-span-2">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano</p>
                 <DropdownMenu>
