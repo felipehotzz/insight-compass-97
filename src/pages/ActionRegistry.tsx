@@ -4,6 +4,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -18,6 +19,8 @@ import {
   Phone,
   MessageSquare,
   Search,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -65,6 +68,8 @@ const ActionRegistry = () => {
   const [actions, setActions] = useState<Action[]>([]);
   const [customers, setCustomers] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedActions, setSelectedActions] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchActions();
@@ -106,6 +111,57 @@ const ActionRegistry = () => {
       filterCustomer === "all" || action.customer === filterCustomer;
     return matchesSearch && matchesType && matchesCustomer;
   });
+
+  const handleSelectAction = (actionId: string, checked: boolean) => {
+    setSelectedActions((prev) => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(actionId);
+      } else {
+        newSet.delete(actionId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedActions(new Set(filteredActions.map((a) => a.id)));
+    } else {
+      setSelectedActions(new Set());
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedActions.size === 0) return;
+
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("actions")
+        .delete()
+        .in("id", Array.from(selectedActions));
+
+      if (error) throw error;
+
+      toast({
+        title: "Sucesso",
+        description: `${selectedActions.size} ação(ões) excluída(s) com sucesso`,
+      });
+
+      setSelectedActions(new Set());
+      fetchActions();
+    } catch (error) {
+      console.error("Error deleting actions:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir as ações",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <DashboardLayout title="">
@@ -152,10 +208,27 @@ const ActionRegistry = () => {
             </Select>
           </div>
 
-          <Button className="shrink-0" onClick={() => navigate("/actions/new")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Ação
-          </Button>
+          <div className="flex items-center gap-2">
+            {selectedActions.size > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Trash2 className="h-4 w-4 mr-2" />
+                )}
+                Excluir {selectedActions.size}
+              </Button>
+            )}
+            <Button className="shrink-0" onClick={() => navigate("/actions/new")}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Ação
+            </Button>
+          </div>
         </div>
 
         {/* Counter */}
@@ -166,7 +239,13 @@ const ActionRegistry = () => {
         {/* Actions list */}
         <div className="glass-card p-5">
           <div className="space-y-0">
-            <div className="grid grid-cols-5 gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+            <div className="grid grid-cols-[40px_1fr_1fr_100px_120px_100px] gap-4 px-2 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border">
+              <div className="flex items-center">
+                <Checkbox
+                  checked={filteredActions.length > 0 && selectedActions.size === filteredActions.length}
+                  onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                />
+              </div>
               <span>Ação</span>
               <span>Cliente</span>
               <span>Tipo</span>
@@ -186,10 +265,20 @@ const ActionRegistry = () => {
                 filteredActions.map((action) => (
                   <div 
                     key={action.id} 
-                    className="grid grid-cols-5 gap-4 px-2 py-3 cursor-pointer hover:bg-secondary/30 transition-colors"
-                    onClick={() => navigate(`/actions/new?edit=${action.id}`)}
+                    className="grid grid-cols-[40px_1fr_1fr_100px_120px_100px] gap-4 px-2 py-3 hover:bg-secondary/30 transition-colors"
                   >
-                    <span className="text-sm font-medium truncate">{action.title}</span>
+                    <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedActions.has(action.id)}
+                        onCheckedChange={(checked) => handleSelectAction(action.id, !!checked)}
+                      />
+                    </div>
+                    <span 
+                      className="text-sm font-medium truncate cursor-pointer"
+                      onClick={() => navigate(`/actions/new?edit=${action.id}`)}
+                    >
+                      {action.title}
+                    </span>
                     <span className="text-sm text-muted-foreground truncate">{action.customer}</span>
                     <Badge variant="outline" className="w-fit text-xs">
                       {actionTypeLabels[action.action_type] || action.action_type}
