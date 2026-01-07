@@ -58,6 +58,7 @@ function AppContent() {
         <Route path="/customer-detail" element={<ProtectedRoute><CustomerDetail /></ProtectedRoute>} />
         <Route path="/actions" element={<ProtectedRoute><ActionRegistry /></ProtectedRoute>} />
         <Route path="/actions/new" element={<ProtectedRoute><NewAction /></ProtectedRoute>} />
+        <Route path="/actions/:id" element={<ProtectedRoute><NewAction /></ProtectedRoute>} />
         <Route path="/tickets/unlinked" element={<ProtectedRoute><UnlinkedTickets /></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

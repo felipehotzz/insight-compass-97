@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,8 +68,9 @@ const teamMembers = [
 const NewAction = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { id: routeId } = useParams();
   const preselectedCustomer = searchParams.get("customer") || "";
-  const editId = searchParams.get("edit");
+  const editId = routeId || searchParams.get("edit");
   const { user } = useAuth();
 
   const [customer, setCustomer] = useState(preselectedCustomer);
