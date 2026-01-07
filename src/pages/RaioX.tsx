@@ -449,42 +449,6 @@ const RaioX = () => {
         {/* Metrics cards */}
         <TooltipProvider>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            <Card className="bg-card">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">MRR Atual</p>
-                <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.mrrAtual)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV Realizado</p>
-                <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.ltvRealizado)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV A Realizar</p>
-                <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.ltvARealizar)}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Tempo Ativo</p>
-                <p className="text-2xl font-medium mt-1">{metrics.mesesAtivo} meses</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano Atual</p>
-                <p className="text-2xl font-medium mt-1">{metrics.planoAtual}</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Meses Restantes</p>
-                <p className="text-2xl font-medium mt-1">{metrics.mesesRestantes}</p>
-              </CardContent>
-            </Card>
             <Card className="bg-card col-span-2">
               <CardContent className="p-4">
                 <div className="flex items-center gap-1.5">
@@ -530,6 +494,42 @@ const RaioX = () => {
                 {faseTimeLabel && (
                   <p className="text-xs text-muted-foreground mt-0.5">{faseTimeLabel}</p>
                 )}
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">MRR Atual</p>
+                <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.mrrAtual)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV Realizado</p>
+                <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.ltvRealizado)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV A Realizar</p>
+                <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.ltvARealizar)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Tempo Ativo</p>
+                <p className="text-2xl font-medium mt-1">{metrics.mesesAtivo} meses</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano Atual</p>
+                <p className="text-2xl font-medium mt-1">{metrics.planoAtual}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Meses Restantes</p>
+                <p className="text-2xl font-medium mt-1">{metrics.mesesRestantes}</p>
               </CardContent>
             </Card>
           </div>
