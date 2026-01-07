@@ -92,19 +92,21 @@ export default function UnlinkedTickets() {
   const [archivedCollapsed, setArchivedCollapsed] = useState(true);
   const [selectedTickets, setSelectedTickets] = useState<Set<string>>(new Set());
 
-  // Query para buscar o último ticket sincronizado (para mostrar data do último sync)
+  // Query para buscar o último sync da tabela sync_history
   const { data: lastSyncDate } = useQuery({
     queryKey: ["last-sync-date"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("support_tickets")
-        .select("updated_at")
-        .order("updated_at", { ascending: false })
+        .from("sync_history")
+        .select("completed_at, total_synced, status")
+        .eq("sync_type", "intercom_tickets")
+        .eq("status", "completed")
+        .order("completed_at", { ascending: false })
         .limit(1)
         .single();
 
       if (error) return null;
-      return data?.updated_at;
+      return data;
     },
   });
 
@@ -116,7 +118,9 @@ export default function UnlinkedTickets() {
       return data;
     },
     onSuccess: (data) => {
-      toast.success(`Sync concluído! ${data?.totalSynced || 0} tickets sincronizados.`);
+      const synced = data?.synced || 0;
+      const processed = data?.totalProcessed || 0;
+      toast.success(`Sync concluído! ${synced} novos tickets de ${processed} verificados.`);
       queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] });
       queryClient.invalidateQueries({ queryKey: ["last-sync-date"] });
     },
@@ -367,9 +371,9 @@ export default function UnlinkedTickets() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {lastSyncDate && (
+            {lastSyncDate?.completed_at && (
               <span className="text-xs text-muted-foreground">
-                Último sync: {format(new Date(lastSyncDate), "dd/MM HH:mm", { locale: ptBR })}
+                Último sync: {format(new Date(lastSyncDate.completed_at), "dd/MM HH:mm", { locale: ptBR })}
               </span>
             )}
             {selectedTickets.size > 0 && (

@@ -246,6 +246,23 @@ Deno.serve(async (req) => {
 
     console.log("Starting Intercom sync with params:", { batchSize, cursor, maxBatches });
 
+    // Create sync history record
+    const { data: syncRecord, error: syncInsertError } = await supabase
+      .from("sync_history")
+      .insert({
+        sync_type: "intercom_tickets",
+        status: "running",
+        metadata: { batchSize, maxBatches }
+      })
+      .select()
+      .single();
+
+    if (syncInsertError) {
+      console.error("Error creating sync record:", syncInsertError);
+    }
+
+    const syncId = syncRecord?.id;
+
     // Fetch all customer domains for mapping
     const { data: domains, error: domainsError } = await supabase
       .from("customer_domains")
@@ -253,6 +270,14 @@ Deno.serve(async (req) => {
 
     if (domainsError) {
       console.error("Error fetching domains:", domainsError);
+      // Update sync history with error
+      if (syncId) {
+        await supabase.from("sync_history").update({
+          status: "error",
+          completed_at: new Date().toISOString(),
+          error_message: domainsError.message
+        }).eq("id", syncId);
+      }
       throw domainsError;
     }
 
@@ -267,6 +292,7 @@ Deno.serve(async (req) => {
     // Process multiple batches
     let totalSynced = 0;
     let totalLinked = 0;
+    let totalProcessed = 0;
     let currentCursor = cursor;
     let hasMore = true;
     let batchCount = 0;
@@ -282,6 +308,7 @@ Deno.serve(async (req) => {
 
       totalSynced += result.synced;
       totalLinked += result.linked;
+      totalProcessed += batchSize;
       currentCursor = result.nextCursor;
       hasMore = result.hasMore;
       batchCount++;
@@ -294,6 +321,18 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Update sync history with success
+    if (syncId) {
+      await supabase.from("sync_history").update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+        total_processed: totalProcessed,
+        total_synced: totalSynced,
+        total_linked: totalLinked,
+        metadata: { batchSize, maxBatches, batchesProcessed: batchCount, hasMore, nextCursor: currentCursor }
+      }).eq("id", syncId);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -302,6 +341,7 @@ Deno.serve(async (req) => {
         batchesProcessed: batchCount,
         hasMore: hasMore,
         nextCursor: currentCursor,
+        totalProcessed: totalProcessed,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
