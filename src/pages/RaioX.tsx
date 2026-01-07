@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,12 +12,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
 import { CustomerDataTab } from "@/components/raiox/CustomerDataTab";
 import { RelationshipTab } from "@/components/raiox/RelationshipTab";
 import { UsageTab } from "@/components/raiox/UsageTab";
 import { SupportTicketsSection } from "@/components/raiox/SupportTicketsSection";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, HelpCircle } from "lucide-react";
+import { toast } from "sonner";
+
+type CustomerFase = 'onboarding' | 'ongoing' | 'renovacao' | 'recuperacao' | 'expansao';
 
 interface Customer {
   id: string;
@@ -27,9 +36,34 @@ interface Customer {
   status: string;
   data_cohort: string | null;
   cs_responsavel: string | null;
+  fase: CustomerFase | null;
+  fase_changed_at: string | null;
   created_at: string;
   updated_at: string;
 }
+
+const FASES_CONFIG: Record<CustomerFase, { label: string; tooltip: string }> = {
+  onboarding: {
+    label: "Onboarding",
+    tooltip: "Cliente em fase de implantação e configuração inicial da plataforma."
+  },
+  ongoing: {
+    label: "Ongoing",
+    tooltip: "Cliente em operação regular, utilizando a plataforma normalmente."
+  },
+  renovacao: {
+    label: "Renovação",
+    tooltip: "Cliente entrando em período de renovação (90 dias antes do vencimento do contrato)."
+  },
+  recuperacao: {
+    label: "Recuperação",
+    tooltip: "Cliente que sinalizou intenção de churn e está em processo de recuperação."
+  },
+  expansao: {
+    label: "Expansão",
+    tooltip: "Cliente em tratativas comerciais para upsell de produtos ou serviços."
+  }
+};
 
 interface Contract {
   id: string;
@@ -112,6 +146,7 @@ const getContractMonths = (contract: Contract): number => {
 
 const RaioX = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   
   const customerIdFromUrl = searchParams.get("customer");
@@ -242,16 +277,20 @@ const RaioX = () => {
     enabled: !!selectedCustomer,
   });
 
-  // Calculate metrics
-  const metrics = useMemo(() => {
+  // Calculate metrics and phase
+  const { metrics, effectiveFase, faseTimeLabel } = useMemo(() => {
     if (!contracts || !selectedCustomer) {
       return { 
-        mrrAtual: 0, 
-        ltvRealizado: 0,
-        ltvARealizar: 0,
-        mesesAtivo: 0, 
-        planoAtual: "-", 
-        mesesRestantes: 0,
+        metrics: {
+          mrrAtual: 0, 
+          ltvRealizado: 0,
+          ltvARealizar: 0,
+          mesesAtivo: 0, 
+          planoAtual: "-", 
+          mesesRestantes: 0,
+        },
+        effectiveFase: 'onboarding' as CustomerFase,
+        faseTimeLabel: ''
       };
     }
 
@@ -296,16 +335,66 @@ const RaioX = () => {
     const mesesRestantes = latestContract?.vigencia_final
       ? calculateMonthsRemaining(latestContract.vigencia_final)
       : 0;
+    
+    // Calculate days remaining for renewal check
+    const diasRestantes = latestContract?.vigencia_final
+      ? Math.max(0, Math.floor((new Date(latestContract.vigencia_final).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+      : 0;
+    
+    // Determine effective phase (auto-trigger renovacao if within 90 days)
+    let currentFase = selectedCustomer.fase || 'onboarding';
+    if (diasRestantes > 0 && diasRestantes <= 90 && currentFase !== 'recuperacao' && currentFase !== 'expansao') {
+      currentFase = 'renovacao';
+    }
+    
+    // Calculate time in phase label
+    let timeLabel = '';
+    if (currentFase === 'renovacao' && diasRestantes > 0 && diasRestantes <= 90) {
+      timeLabel = `${diasRestantes} dias para renovação`;
+    } else if (selectedCustomer.fase_changed_at) {
+      const daysInPhase = Math.floor((now.getTime() - new Date(selectedCustomer.fase_changed_at).getTime()) / (1000 * 60 * 60 * 24));
+      if (daysInPhase < 30) {
+        timeLabel = `há ${daysInPhase} dia${daysInPhase !== 1 ? 's' : ''} nessa fase`;
+      } else {
+        const monthsInPhase = Math.floor(daysInPhase / 30);
+        timeLabel = `há ${monthsInPhase} ${monthsInPhase === 1 ? 'mês' : 'meses'} nessa fase`;
+      }
+    }
 
     return { 
-      mrrAtual,
-      ltvRealizado,
-      ltvARealizar,
-      mesesAtivo, 
-      planoAtual, 
-      mesesRestantes,
+      metrics: {
+        mrrAtual,
+        ltvRealizado,
+        ltvARealizar,
+        mesesAtivo, 
+        planoAtual, 
+        mesesRestantes,
+      },
+      effectiveFase: currentFase as CustomerFase,
+      faseTimeLabel: timeLabel
     };
   }, [contracts, selectedCustomer]);
+
+  // Handle phase change
+  const handleFaseChange = async (newFase: CustomerFase) => {
+    if (!selectedCustomer) return;
+    
+    const { error } = await supabase
+      .from("customers")
+      .update({ 
+        fase: newFase, 
+        fase_changed_at: new Date().toISOString() 
+      })
+      .eq("id", selectedCustomer.id);
+    
+    if (error) {
+      toast.error("Erro ao atualizar fase");
+      return;
+    }
+    
+    toast.success("Fase atualizada com sucesso");
+    queryClient.invalidateQueries({ queryKey: ["customers-raiox"] });
+  };
 
   if (!selectedCustomer) {
     return (
@@ -358,44 +447,93 @@ const RaioX = () => {
         </div>
 
         {/* Metrics cards */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">MRR Atual</p>
-              <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.mrrAtual)}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV Realizado</p>
-              <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.ltvRealizado)}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV A Realizar</p>
-              <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.ltvARealizar)}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Tempo Ativo</p>
-              <p className="text-2xl font-medium mt-1">{metrics.mesesAtivo} meses</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano Atual</p>
-              <p className="text-2xl font-medium mt-1">{metrics.planoAtual}</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-card">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Meses Restantes</p>
-              <p className="text-2xl font-medium mt-1">{metrics.mesesRestantes}</p>
-            </CardContent>
-          </Card>
-        </div>
+        <TooltipProvider>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">MRR Atual</p>
+                <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.mrrAtual)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV Realizado</p>
+                <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.ltvRealizado)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">LTV A Realizar</p>
+                <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.ltvARealizar)}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Tempo Ativo</p>
+                <p className="text-2xl font-medium mt-1">{metrics.mesesAtivo} meses</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano Atual</p>
+                <p className="text-2xl font-medium mt-1">{metrics.planoAtual}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Meses Restantes</p>
+                <p className="text-2xl font-medium mt-1">{metrics.mesesRestantes}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card col-span-2">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Fase</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{FASES_CONFIG[effectiveFase].tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-2xl font-medium px-0 h-auto py-0 mt-1 hover:bg-transparent gap-1">
+                      {FASES_CONFIG[effectiveFase].label}
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    {(Object.keys(FASES_CONFIG) as CustomerFase[]).map((fase) => (
+                      <DropdownMenuItem
+                        key={fase}
+                        onClick={() => handleFaseChange(fase)}
+                        className={effectiveFase === fase ? "bg-muted" : ""}
+                      >
+                        <div className="flex items-center justify-between w-full gap-2">
+                          <span>{FASES_CONFIG[fase].label}</span>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-xs">
+                              <p>{FASES_CONFIG[fase].tooltip}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {faseTimeLabel && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{faseTimeLabel}</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TooltipProvider>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

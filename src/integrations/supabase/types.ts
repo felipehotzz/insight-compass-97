@@ -261,6 +261,8 @@ export type Database = {
           created_at: string
           cs_responsavel: string | null
           data_cohort: string | null
+          fase: string | null
+          fase_changed_at: string | null
           id: string
           import_id: string | null
           nome_fantasia: string
@@ -273,6 +275,8 @@ export type Database = {
           created_at?: string
           cs_responsavel?: string | null
           data_cohort?: string | null
+          fase?: string | null
+          fase_changed_at?: string | null
           id?: string
           import_id?: string | null
           nome_fantasia: string
@@ -285,6 +289,8 @@ export type Database = {
           created_at?: string
           cs_responsavel?: string | null
           data_cohort?: string | null
+          fase?: string | null
+          fase_changed_at?: string | null
           id?: string
           import_id?: string | null
           nome_fantasia?: string
