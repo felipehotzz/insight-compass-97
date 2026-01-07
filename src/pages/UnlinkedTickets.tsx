@@ -92,6 +92,40 @@ export default function UnlinkedTickets() {
   const [archivedCollapsed, setArchivedCollapsed] = useState(true);
   const [selectedTickets, setSelectedTickets] = useState<Set<string>>(new Set());
 
+  // Query para buscar o último ticket sincronizado (para mostrar data do último sync)
+  const { data: lastSyncDate } = useQuery({
+    queryKey: ["last-sync-date"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("support_tickets")
+        .select("updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) return null;
+      return data?.updated_at;
+    },
+  });
+
+  // Mutation para sincronizar tickets do Intercom
+  const syncTicketsMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("sync-intercom-tickets");
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Sync concluído! ${data?.totalSynced || 0} tickets sincronizados.`);
+      queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["last-sync-date"] });
+    },
+    onError: (error) => {
+      console.error("Sync error:", error);
+      toast.error("Erro ao sincronizar tickets");
+    },
+  });
+
   const { data: tickets, isLoading: ticketsLoading } = useQuery({
     queryKey: ["unlinked-tickets"],
     queryFn: async () => {
@@ -332,7 +366,12 @@ export default function UnlinkedTickets() {
               {ticketsWithEmail?.length || 0} tickets sem cliente associado
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {lastSyncDate && (
+              <span className="text-xs text-muted-foreground">
+                Último sync: {format(new Date(lastSyncDate), "dd/MM HH:mm", { locale: ptBR })}
+              </span>
+            )}
             {selectedTickets.size > 0 && (
               <Button
                 variant="outline"
@@ -351,9 +390,14 @@ export default function UnlinkedTickets() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => queryClient.invalidateQueries({ queryKey: ["unlinked-tickets"] })}
+              onClick={() => syncTicketsMutation.mutate()}
+              disabled={syncTicketsMutation.isPending}
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
+              {syncTicketsMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
               Atualizar
             </Button>
           </div>
