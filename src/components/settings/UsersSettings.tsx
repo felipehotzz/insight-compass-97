@@ -161,6 +161,7 @@ export function UsersSettings() {
           emails,
           role: inviteRole,
           invitedBy: session.user.id,
+          appUrl: "https://insight-compass-97.lovable.app",
         },
       });
 

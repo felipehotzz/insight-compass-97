@@ -14,6 +14,7 @@ interface InviteRequest {
   emails: string[];
   role: string;
   invitedBy: string;
+  appUrl?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -69,10 +70,11 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { emails, role, invitedBy }: InviteRequest = await req.json();
+    const { emails, role, invitedBy, appUrl }: InviteRequest = await req.json();
     console.log("Inviting emails:", emails, "with role:", role);
 
-    const baseUrl = req.headers.get("origin") || "https://comunica.in";
+    // Use explicit appUrl if provided, otherwise fallback
+    const baseUrl = appUrl || "https://insight-compass-97.lovable.app";
     const results = [];
 
     for (const email of emails) {
