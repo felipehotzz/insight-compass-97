@@ -62,7 +62,7 @@ export function CustomerDropdownCompact({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="flex items-center justify-between gap-2 w-full h-8 px-3 rounded-md border border-border bg-transparent hover:bg-muted/50 transition-colors text-left text-xs text-muted-foreground">
+        <button className="flex items-center justify-between gap-2 w-full h-8 px-3 rounded-md border border-white/20 bg-transparent hover:bg-muted/50 hover:border-white/30 transition-colors text-left text-xs text-muted-foreground">
           <span>{placeholder}</span>
           <ChevronDown className="h-3 w-3 text-muted-foreground" />
         </button>
