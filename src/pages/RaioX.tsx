@@ -42,26 +42,36 @@ interface Customer {
   updated_at: string;
 }
 
-const FASES_CONFIG: Record<CustomerFase, { label: string; tooltip: string }> = {
+const FASES_CONFIG: Record<CustomerFase, { label: string; tooltip: string; color: string; dotColor: string }> = {
   onboarding: {
     label: "Onboarding",
-    tooltip: "Cliente em fase de implantação e configuração inicial da plataforma."
+    tooltip: "Cliente em fase de implantação e configuração inicial da plataforma.",
+    color: "text-blue-400",
+    dotColor: "bg-blue-400"
   },
   ongoing: {
     label: "Ongoing",
-    tooltip: "Cliente em operação regular, utilizando a plataforma normalmente."
+    tooltip: "Cliente em operação regular, utilizando a plataforma normalmente.",
+    color: "text-emerald-400",
+    dotColor: "bg-emerald-400"
   },
   renovacao: {
     label: "Renovação",
-    tooltip: "Cliente entrando em período de renovação (90 dias antes do vencimento do contrato)."
+    tooltip: "Cliente entrando em período de renovação (90 dias antes do vencimento do contrato).",
+    color: "text-amber-400",
+    dotColor: "bg-amber-400"
   },
   recuperacao: {
     label: "Recuperação",
-    tooltip: "Cliente que sinalizou intenção de churn e está em processo de recuperação."
+    tooltip: "Cliente que sinalizou intenção de churn e está em processo de recuperação.",
+    color: "text-red-400",
+    dotColor: "bg-red-400"
   },
   expansao: {
     label: "Expansão",
-    tooltip: "Cliente em tratativas comerciais para upsell de produtos ou serviços."
+    tooltip: "Cliente em tratativas comerciais para upsell de produtos ou serviços.",
+    color: "text-violet-400",
+    dotColor: "bg-violet-400"
   }
 };
 
@@ -464,7 +474,8 @@ const RaioX = () => {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-2xl font-medium px-0 h-auto py-0 mt-1 hover:bg-transparent gap-1">
+                    <Button variant="ghost" className={`text-2xl font-medium px-0 h-auto py-0 mt-1 hover:bg-transparent gap-1.5 ${FASES_CONFIG[effectiveFase].color}`}>
+                      <span className={`w-2 h-2 rounded-full ${FASES_CONFIG[effectiveFase].dotColor}`} />
                       {FASES_CONFIG[effectiveFase].label}
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -477,7 +488,10 @@ const RaioX = () => {
                         className={effectiveFase === fase ? "bg-muted" : ""}
                       >
                         <div className="flex items-center justify-between w-full gap-2">
-                          <span>{FASES_CONFIG[fase].label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${FASES_CONFIG[fase].dotColor}`} />
+                            <span className={FASES_CONFIG[fase].color}>{FASES_CONFIG[fase].label}</span>
+                          </div>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
