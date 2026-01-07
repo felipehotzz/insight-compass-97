@@ -547,6 +547,30 @@ const RaioX = () => {
             </Card>
             <Card className="bg-card">
               <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano</p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="text-2xl font-medium px-0 h-auto py-0 mt-1 hover:bg-transparent gap-1">
+                      {selectedCustomer.plano || "-"}
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48 bg-popover">
+                    {PLANOS.map((plano) => (
+                      <DropdownMenuItem
+                        key={plano}
+                        onClick={() => handlePlanoChange(plano)}
+                        className={selectedCustomer.plano === plano ? "bg-muted" : ""}
+                      >
+                        {plano}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </CardContent>
+            </Card>
+            <Card className="bg-card">
+              <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">MRR Atual</p>
                 <p className="text-2xl font-medium mt-1">{formatCurrencyShort(metrics.mrrAtual)}</p>
               </CardContent>
@@ -571,31 +595,17 @@ const RaioX = () => {
             </Card>
             <Card className="bg-card">
               <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano Atual</p>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-2xl font-medium px-0 h-auto py-0 mt-1 hover:bg-transparent gap-1">
-                      {selectedCustomer.plano || "-"}
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48 bg-popover">
-                    {PLANOS.map((plano) => (
-                      <DropdownMenuItem
-                        key={plano}
-                        onClick={() => handlePlanoChange(plano)}
-                        className={selectedCustomer.plano === plano ? "bg-muted" : ""}
-                      >
-                        {plano}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </CardContent>
-            </Card>
-            <Card className="bg-card">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Meses Restantes</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Restante</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Meses restantes até o vencimento do contrato vigente do cliente.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <p className="text-2xl font-medium mt-1">{metrics.mesesRestantes}</p>
               </CardContent>
             </Card>
