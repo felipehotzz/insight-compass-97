@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,8 +21,6 @@ import {
   Globe,
   Loader2
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
 interface Customer {
@@ -75,16 +73,6 @@ const formatCurrency = (value: number) => {
     maximumFractionDigits: 0,
   }).format(value);
 };
-
-const formatDate = (dateStr: string | null) => {
-  if (!dateStr) return "-";
-  try {
-    return format(new Date(dateStr), "dd/MM/yyyy", { locale: ptBR });
-  } catch {
-    return "-";
-  }
-};
-
 // Calcula meses entre duas datas
 const calculateMonthsBetween = (startDate: string | null, endDate: string | null): number => {
   if (!startDate || !endDate) return 1;
