@@ -90,19 +90,27 @@ export function Sidebar() {
               </kbd>
             </button>
 
-            {filteredNavigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`nav-item ${isActive ? "nav-item-active" : ""}`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="text-sm">{item.name}</span>
-                </Link>
-              );
-            })}
+            {permissionsLoading ? (
+              <div className="space-y-2 py-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-8 bg-secondary/30 rounded animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              filteredNavigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`nav-item ${isActive ? "nav-item-active" : ""}`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="text-sm">{item.name}</span>
+                  </Link>
+                );
+              })
+            )}
           </nav>
 
           {/* Footer */}
