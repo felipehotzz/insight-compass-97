@@ -305,13 +305,13 @@ export default function UnlinkedTickets() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
-      open: { variant: "default", label: "Aberto" },
-      closed: { variant: "secondary", label: "Fechado" },
-      snoozed: { variant: "outline", label: "Adiado" },
+    const statusConfig: Record<string, { className: string; label: string }> = {
+      open: { className: "bg-amber-500/20 text-amber-500 border-amber-500/30", label: "Aberto" },
+      closed: { className: "bg-green-500/20 text-green-500 border-green-500/30", label: "Fechado" },
+      snoozed: { className: "bg-blue-500/20 text-blue-500 border-blue-500/30", label: "Adiado" },
     };
-    const config = variants[status] || { variant: "outline" as const, label: status };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const config = statusConfig[status] || { className: "bg-muted text-muted-foreground", label: status };
+    return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
   };
 
   const stripHtml = (html: string | null) => {
