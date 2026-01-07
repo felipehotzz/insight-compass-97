@@ -137,6 +137,21 @@ Deno.serve(async (req) => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Idempotency check: verify if this email was already processed
+    const { data: existingEmail } = await supabase
+      .from("email_messages")
+      .select("id")
+      .eq("resend_email_id", payload.data.email_id)
+      .maybeSingle();
+
+    if (existingEmail) {
+      console.log("Email already processed, skipping:", payload.data.email_id);
+      return new Response(JSON.stringify({ success: true, message: "Email already processed", email_message_id: existingEmail.id }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // Fetch full email content from Resend API
     const emailContent = await fetchEmailContent(payload.data.email_id, resendApiKey);
 
