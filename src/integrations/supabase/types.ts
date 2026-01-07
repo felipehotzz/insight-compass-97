@@ -696,6 +696,45 @@ export type Database = {
           },
         ]
       }
+      sync_history: {
+        Row: {
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          started_at: string
+          status: string
+          sync_type: string
+          total_linked: number | null
+          total_processed: number | null
+          total_synced: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          started_at?: string
+          status?: string
+          sync_type: string
+          total_linked?: number | null
+          total_processed?: number | null
+          total_synced?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          started_at?: string
+          status?: string
+          sync_type?: string
+          total_linked?: number | null
+          total_processed?: number | null
+          total_synced?: number | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
