@@ -14,15 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { 
   Search, 
-  ChevronDown, 
-  ChevronRight, 
   Filter,
   Download,
   Globe,
@@ -40,6 +33,7 @@ interface Customer {
   status: string;
   data_cohort: string | null;
   cs_responsavel: string | null;
+  plano: string | null;
   created_at: string;
 }
 
@@ -115,7 +109,6 @@ const getContractMonths = (contract: Contract): number => {
 export default function CustomersDatabase() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "ativo" | "inativo">("all");
-  const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
   const [enrichingDomains, setEnrichingDomains] = useState(false);
   const [cleaningDomains, setCleaningDomains] = useState(false);
   const navigate = useNavigate();
@@ -245,16 +238,8 @@ export default function CustomersDatabase() {
     ltvTotal: filteredCustomers.reduce((sum, c) => sum + c.ltv_total, 0),
   };
 
-  const toggleExpanded = (customerId: string) => {
-    setExpandedCustomers((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(customerId)) {
-        newSet.delete(customerId);
-      } else {
-        newSet.add(customerId);
-      }
-      return newSet;
-    });
+  const handleOpenRaioX = (customerId: string) => {
+    navigate(`/raio-x?customer=${customerId}`);
   };
 
   const handleCleanupDomains = async () => {
@@ -425,12 +410,12 @@ export default function CustomersDatabase() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="w-10"></TableHead>
                 <TableHead>Cliente</TableHead>
+                <TableHead>Plano</TableHead>
                 <TableHead>Domínio</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Pagamento</TableHead>
-                <TableHead className="text-right">MRR Atual</TableHead>
+                <TableHead className="text-right">MRR</TableHead>
                 <TableHead className="text-right">LTV Total</TableHead>
                 <TableHead className="text-center">Contratos</TableHead>
                 <TableHead className="text-center">Meses Ativo</TableHead>
@@ -454,166 +439,61 @@ export default function CustomersDatabase() {
                 </TableRow>
               ) : (
                 filteredCustomers.map((customer) => (
-                  <Collapsible
+                  <TableRow 
                     key={customer.id}
-                    open={expandedCustomers.has(customer.id)}
-                    onOpenChange={() => toggleExpanded(customer.id)}
-                    asChild
+                    className="cursor-pointer hover:bg-muted/30"
+                    onClick={() => handleOpenRaioX(customer.id)}
                   >
-                    <>
-                      <TableRow 
-                        className="cursor-pointer hover:bg-muted/30"
-                        onClick={() => toggleExpanded(customer.id)}
+                    <TableCell>
+                      <p className="font-medium">{customer.nome_fantasia}</p>
+                    </TableCell>
+                    <TableCell>
+                      {customer.plano || "-"}
+                    </TableCell>
+                    <TableCell>
+                      {customer.domain ? (
+                        <a 
+                          href={`https://${customer.domain}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {customer.domain}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={customer.status === "ativo" ? "default" : "secondary"}
+                        className={
+                          customer.status === "ativo"
+                            ? "bg-green-500/20 text-green-500 hover:bg-green-500/30"
+                            : ""
+                        }
                       >
-                        <TableCell>
-                          <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="sm" className="p-0 h-6 w-6">
-                              {expandedCustomers.has(customer.id) ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </CollapsibleTrigger>
-                        </TableCell>
-                        <TableCell>
-                          <p className="font-medium">{customer.nome_fantasia}</p>
-                        </TableCell>
-                        <TableCell>
-                          {customer.domain ? (
-                            <a 
-                              href={`https://${customer.domain}`} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-400 hover:text-blue-300 hover:underline"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {customer.domain}
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={customer.status === "ativo" ? "default" : "secondary"}
-                            className={
-                              customer.status === "ativo"
-                                ? "bg-green-500/20 text-green-500 hover:bg-green-500/30"
-                                : ""
-                            }
-                          >
-                            {customer.status === "ativo" ? "Ativo" : "Inativo"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {customer.formato_pagamento || "-"}
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {customer.mrr_atual_total > 0
-                            ? formatCurrency(customer.mrr_atual_total)
-                            : "-"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(customer.ltv_total)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-medium">{customer.contratos_vigentes}</span>
-                          <span className="text-muted-foreground">/{customer.total_contratos}</span>
-                        </TableCell>
-                        <TableCell className="text-center">{customer.meses_ativo}</TableCell>
-                      </TableRow>
-
-                      <CollapsibleContent asChild>
-                        <TableRow className="bg-muted/20">
-                          <TableCell colSpan={8} className="p-0">
-                            <div className="p-4 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-medium text-sm">
-                                  Contratos ({customer.total_contratos})
-                                </h4>
-                                <Button
-                                  variant="link"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/raio-x?customer=${customer.id}`);
-                                  }}
-                                >
-                                  Ver detalhes completos →
-                                </Button>
-                              </div>
-
-                              {customer.contracts.length > 0 ? (
-                                <div className="border border-border rounded-md overflow-hidden">
-                                  <Table>
-                                    <TableHeader>
-                                      <TableRow className="bg-muted/30">
-                                        <TableHead className="text-xs">ID Financeiro</TableHead>
-                                        <TableHead className="text-xs">Tipo</TableHead>
-                                        <TableHead className="text-xs">Status</TableHead>
-                                        <TableHead className="text-xs">Vigência</TableHead>
-                                        <TableHead className="text-xs text-right">MRR</TableHead>
-                                        <TableHead className="text-xs text-right">Valor Contrato</TableHead>
-                                        <TableHead className="text-xs">Vendedor</TableHead>
-                                      </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                      {customer.contracts.slice(0, 5).map((contract) => (
-                                        <TableRow key={contract.id} className="text-sm">
-                                          <TableCell className="font-mono text-xs">
-                                            {contract.id_financeiro || "-"}
-                                          </TableCell>
-                                          <TableCell className="text-xs">
-                                            {contract.tipo_documento || "-"}
-                                          </TableCell>
-                                          <TableCell>
-                                            <Badge
-                                              variant="outline"
-                                              className={
-                                                contract.status_contrato?.toLowerCase() === "vigente"
-                                                  ? "border-green-500/50 text-green-500"
-                                                  : "border-muted-foreground/50"
-                                              }
-                                            >
-                                              {contract.status_contrato || "-"}
-                                            </Badge>
-                                          </TableCell>
-                                          <TableCell className="text-xs">
-                                            {formatDate(contract.vigencia_inicial)} - {formatDate(contract.vigencia_final)}
-                                          </TableCell>
-                                          <TableCell className="text-right text-xs">
-                                            {contract.mrr ? formatCurrency(contract.mrr) : "-"}
-                                          </TableCell>
-                                          <TableCell className="text-right text-xs">
-                                            {contract.valor_contrato
-                                              ? formatCurrency(contract.valor_contrato)
-                                              : "-"}
-                                          </TableCell>
-                                          <TableCell className="text-xs">
-                                            {contract.vendedor || "-"}
-                                          </TableCell>
-                                        </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
-                                  {customer.contracts.length > 5 && (
-                                    <div className="p-2 text-center text-xs text-muted-foreground bg-muted/20">
-                                      + {customer.contracts.length - 5} contratos
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-muted-foreground">
-                                  Nenhum contrato registrado
-                                </p>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      </CollapsibleContent>
-                    </>
-                  </Collapsible>
+                        {customer.status === "ativo" ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {customer.formato_pagamento || "-"}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {customer.mrr_atual_total > 0
+                        ? formatCurrency(customer.mrr_atual_total)
+                        : "-"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(customer.ltv_total)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="font-medium">{customer.contratos_vigentes}</span>
+                      <span className="text-muted-foreground">/{customer.total_contratos}</span>
+                    </TableCell>
+                    <TableCell className="text-center">{customer.meses_ativo}</TableCell>
+                  </TableRow>
                 ))
               )}
             </TableBody>
