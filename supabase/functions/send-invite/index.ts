@@ -129,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
         const emailResponse = await resend.emails.send({
           from: "Compass <noreply@compass.comunica.in>",
           to: [email.trim()],
-          subject: "Você foi convidado para o Comunica.in",
+          subject: "Você foi convidado para o Compass Comunica.In",
           html: `
             <!DOCTYPE html>
             <html>
