@@ -157,10 +157,10 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     navigate(`/actions/new?edit=${actionId}`);
   };
 
-  const handleSelectCustomer = (customerId: string, customerName: string) => {
+  const handleSelectCustomer = (customerId: string) => {
     onOpenChange(false);
     setSearch("");
-    navigate(`/customer-detail?id=${customerId}&name=${encodeURIComponent(customerName)}`);
+    navigate(`/raio-x?customer=${customerId}`);
   };
 
   const handleSelectTicket = (ticketId: string) => {
@@ -207,7 +207,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             <CommandGroup heading="Clientes">
               <CommandItem
                 key={matchedCustomer.id}
-                onSelect={() => handleSelectCustomer(matchedCustomer.id, matchedCustomer.nome_fantasia)}
+                onSelect={() => handleSelectCustomer(matchedCustomer.id)}
                 className="cursor-pointer"
               >
                 <div className="h-6 w-6 rounded bg-secondary border border-border flex items-center justify-center flex-shrink-0 mr-2">
@@ -272,7 +272,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 {filteredCustomers.map((customer) => (
                   <CommandItem
                     key={customer.id}
-                    onSelect={() => handleSelectCustomer(customer.id, customer.nome_fantasia)}
+                    onSelect={() => handleSelectCustomer(customer.id)}
                     className="cursor-pointer"
                   >
                     <div className="h-6 w-6 rounded bg-secondary border border-border flex items-center justify-center flex-shrink-0 mr-2">
