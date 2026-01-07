@@ -9,7 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Video, Mail, Phone, MessageSquare, FileText, Ticket, Building2 } from "lucide-react";
+import { Video, Mail, Phone, MessageSquare, FileText, Ticket, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -55,7 +55,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const [search, setSearch] = useState("");
 
   // Fetch customers
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [], isLoading: customersLoading } = useQuery({
     queryKey: ["search-customers"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -70,7 +70,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   });
 
   // Fetch actions
-  const { data: actions = [] } = useQuery({
+  const { data: actions = [], isLoading: actionsLoading } = useQuery({
     queryKey: ["search-actions"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -85,7 +85,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   });
 
   // Fetch tickets
-  const { data: tickets = [] } = useQuery({
+  const { data: tickets = [], isLoading: ticketsLoading } = useQuery({
     queryKey: ["search-tickets"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -98,6 +98,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
     enabled: open,
   });
+
+  const isLoading = customersLoading || actionsLoading || ticketsLoading;
 
   // Filter based on search
   const searchLower = search.toLowerCase().trim();
@@ -191,11 +193,17 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         className="focus:ring-0 focus:outline-none"
       />
       <CommandList className="max-h-[400px]">
-        <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
-        
-        {/* Show matched customer first */}
-        {matchedCustomer && (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-6">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-sm text-muted-foreground">Carregando...</span>
+          </div>
+        ) : (
           <>
+            <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+            {/* Show matched customer first */}
+            {matchedCustomer && (
+              <>
             <CommandGroup heading="Clientes">
               <CommandItem
                 key={matchedCustomer.id}
@@ -253,12 +261,12 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 ))}
               </CommandGroup>
             )}
-          </>
-        )}
+              </>
+            )}
 
-        {/* If no matched customer, show general results */}
-        {!matchedCustomer && (
-          <>
+            {/* If no matched customer, show general results */}
+            {!matchedCustomer && (
+              <>
             {filteredCustomers.length > 0 && (
               <CommandGroup heading="Clientes">
                 {filteredCustomers.map((customer) => (
@@ -319,7 +327,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                   </CommandItem>
                 ))}
               </CommandGroup>
-            )}
+              )}
+            </>
+          )}
           </>
         )}
       </CommandList>
