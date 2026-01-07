@@ -116,7 +116,7 @@ const RaioX = () => {
   
   const customerIdFromUrl = searchParams.get("customer");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(customerIdFromUrl);
-  const [activeTab, setActiveTab] = useState("dados");
+  const [activeTab, setActiveTab] = useState("relacionamento");
   
   // Filter states for each tab
   const [relacionamentoFilter, setRelacionamentoFilter] = useState<TimeFilter>("month");
@@ -400,10 +400,6 @@ const RaioX = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 max-w-lg">
-            <TabsTrigger value="dados" className="gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Dados</span>
-            </TabsTrigger>
             <TabsTrigger value="relacionamento" className="gap-2">
               <Share2 className="h-4 w-4" />
               <span className="hidden sm:inline">Relacionamento</span>
@@ -415,6 +411,10 @@ const RaioX = () => {
             <TabsTrigger value="suporte" className="gap-2">
               <Ticket className="h-4 w-4" />
               <span className="hidden sm:inline">Suporte</span>
+            </TabsTrigger>
+            <TabsTrigger value="dados" className="gap-2">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Dados cadastrais</span>
             </TabsTrigger>
           </TabsList>
 
