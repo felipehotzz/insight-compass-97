@@ -545,7 +545,7 @@ const RaioX = () => {
                 )}
               </CardContent>
             </Card>
-            <Card className="bg-card col-span-2">
+            <Card className="bg-card">
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano</p>
                 <DropdownMenu>
