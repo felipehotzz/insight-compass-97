@@ -304,14 +304,15 @@ export default function UnlinkedTickets() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { className: string; label: string }> = {
-      open: { className: "bg-amber-500/20 text-amber-500 border-amber-500/30", label: "Aberto" },
-      closed: { className: "bg-green-500/20 text-green-500 border-green-500/30", label: "Fechado" },
-      snoozed: { className: "bg-blue-500/20 text-blue-500 border-blue-500/30", label: "Adiado" },
+  const getStatusIndicator = (status: string) => {
+    const colors: Record<string, string> = {
+      open: "bg-amber-500",
+      closed: "bg-green-500",
+      snoozed: "bg-blue-500",
     };
-    const config = statusConfig[status] || { className: "bg-muted text-muted-foreground", label: status };
-    return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
+    return (
+      <div className={`w-2 h-2 rounded-full ${colors[status] || "bg-muted"}`} title={status === "open" ? "Aberto" : status === "closed" ? "Fechado" : "Adiado"} />
+    );
   };
 
   const stripHtml = (html: string | null) => {
@@ -374,9 +375,9 @@ export default function UnlinkedTickets() {
                     onCheckedChange={(checked) => handleSelectAll(!!checked)}
                   />
                 </TableHead>
+                <TableHead className="w-[30px]"></TableHead>
                 <TableHead className="w-[200px]">De</TableHead>
                 <TableHead>Assunto</TableHead>
-                <TableHead className="w-[100px]">Status</TableHead>
                 <TableHead className="w-[140px]">Data</TableHead>
                 <TableHead className="w-[200px]">Vincular a</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
@@ -385,7 +386,7 @@ export default function UnlinkedTickets() {
             <TableBody>
               {ticketsLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <div className="flex items-center justify-center gap-2">
                       <RefreshCw className="h-4 w-4 animate-spin" />
                       Carregando...
@@ -394,7 +395,7 @@ export default function UnlinkedTickets() {
                 </TableRow>
               ) : ticketsWithEmail?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     Todos os tickets com email estão vinculados a clientes!
                   </TableCell>
                 </TableRow>
@@ -415,6 +416,9 @@ export default function UnlinkedTickets() {
                         onCheckedChange={(checked) => handleSelectTicket(ticket.id, !!checked)}
                       />
                     </TableCell>
+                    <TableCell className="w-[30px]">
+                      {getStatusIndicator(ticket.status)}
+                    </TableCell>
                     <TableCell>
                       <p className="text-sm font-medium truncate max-w-[180px]">
                         {ticket.from_name || ticket.from_email}
@@ -423,7 +427,6 @@ export default function UnlinkedTickets() {
                     <TableCell>
                       <p className="text-sm line-clamp-1">{stripHtml(ticket.subject) || "Sem assunto"}</p>
                     </TableCell>
-                    <TableCell>{getStatusBadge(ticket.status)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
                     </TableCell>
@@ -531,7 +534,7 @@ export default function UnlinkedTickets() {
                         <TableCell>
                           <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
                         </TableCell>
-                        <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                        <TableCell>{getStatusIndicator(ticket.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
                         </TableCell>
@@ -612,7 +615,7 @@ export default function UnlinkedTickets() {
                             <p className="text-xs text-muted-foreground">{ticket.from_email}</p>
                           </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                        <TableCell>{getStatusIndicator(ticket.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
                         </TableCell>
@@ -695,7 +698,7 @@ export default function UnlinkedTickets() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                        <TableCell>{getStatusIndicator(ticket.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
                         </TableCell>
