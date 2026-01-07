@@ -266,6 +266,7 @@ export type Database = {
           id: string
           import_id: string | null
           nome_fantasia: string
+          plano: string | null
           razao_social: string
           status: string
           updated_at: string
@@ -280,6 +281,7 @@ export type Database = {
           id?: string
           import_id?: string | null
           nome_fantasia: string
+          plano?: string | null
           razao_social: string
           status?: string
           updated_at?: string
@@ -294,6 +296,7 @@ export type Database = {
           id?: string
           import_id?: string | null
           nome_fantasia?: string
+          plano?: string | null
           razao_social?: string
           status?: string
           updated_at?: string
