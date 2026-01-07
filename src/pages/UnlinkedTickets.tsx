@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { CustomerDropdownCompact } from "@/components/actions/CustomerDropdownCompact";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +24,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ExternalLink, RefreshCw, Users, Eye, Mail, Loader2, Check, ChevronDown, ChevronRight, Archive, Building2, ArchiveX, MoreHorizontal } from "lucide-react";
+import { ExternalLink, RefreshCw, Users, Eye, Loader2, Check, ChevronDown, ChevronRight, Archive, Building2, ArchiveX, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -431,29 +425,11 @@ export default function UnlinkedTickets() {
                       {format(new Date(ticket.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="relative">
-                        {linkingTicketId === ticket.id ? (
-                          <div className="flex items-center gap-2 h-8 px-3 text-xs text-muted-foreground">
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                            Vinculando...
-                          </div>
-                        ) : (
-                          <Select
-                            onValueChange={(value) => handleSelectCustomer(ticket, value)}
-                          >
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue placeholder="Selecione..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {customers?.map((customer) => (
-                                <SelectItem key={customer.id} value={customer.id}>
-                                  {customer.nome_fantasia}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </div>
+                      <CustomerDropdownCompact
+                        customers={customers || []}
+                        onValueChange={(customerId) => handleSelectCustomer(ticket, customerId)}
+                        isLoading={linkingTicketId === ticket.id}
+                      />
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
