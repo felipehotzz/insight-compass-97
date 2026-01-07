@@ -459,7 +459,7 @@ const RaioX = () => {
         {/* Metrics cards */}
         <TooltipProvider>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            <Card className="bg-card">
+            <Card className="bg-card col-span-2 lg:col-span-1">
               <CardContent className="p-4">
                 <div className="flex items-center gap-1.5">
                   <p className="text-xs text-muted-foreground uppercase tracking-wide">Fase</p>
@@ -474,8 +474,7 @@ const RaioX = () => {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className={`text-2xl font-medium px-0 h-auto py-0 mt-1 hover:bg-transparent gap-1.5 ${FASES_CONFIG[effectiveFase].color}`}>
-                      <span className={`w-2 h-2 rounded-full ${FASES_CONFIG[effectiveFase].dotColor}`} />
+                    <Button variant="ghost" className={`text-2xl font-medium px-0 h-auto py-0 mt-1 hover:bg-transparent gap-1 ${FASES_CONFIG[effectiveFase].color}`}>
                       {FASES_CONFIG[effectiveFase].label}
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -488,10 +487,7 @@ const RaioX = () => {
                         className={effectiveFase === fase ? "bg-muted" : ""}
                       >
                         <div className="flex items-center justify-between w-full gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full ${FASES_CONFIG[fase].dotColor}`} />
-                            <span className={FASES_CONFIG[fase].color}>{FASES_CONFIG[fase].label}</span>
-                          </div>
+                          <span className={FASES_CONFIG[fase].color}>{FASES_CONFIG[fase].label}</span>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
