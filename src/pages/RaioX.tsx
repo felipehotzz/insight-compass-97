@@ -7,11 +7,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
@@ -23,7 +29,7 @@ import { CustomerDataTab } from "@/components/raiox/CustomerDataTab";
 import { RelationshipTab } from "@/components/raiox/RelationshipTab";
 import { UsageTab } from "@/components/raiox/UsageTab";
 import { SupportTicketsSection } from "@/components/raiox/SupportTicketsSection";
-import { Plus, ChevronDown, HelpCircle } from "lucide-react";
+import { Plus, ChevronDown, HelpCircle, Search } from "lucide-react";
 import { toast } from "sonner";
 
 type CustomerFase = 'onboarding' | 'ongoing' | 'renovacao' | 'recuperacao' | 'expansao';
@@ -166,6 +172,8 @@ const RaioX = () => {
   const customerIdFromUrl = searchParams.get("customer");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(customerIdFromUrl);
   const [activeTab, setActiveTab] = useState("relacionamento");
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
   
   // Filter states for each tab
   const [relacionamentoFilter, setRelacionamentoFilter] = useState<TimeFilter>("month");
@@ -203,6 +211,15 @@ const RaioX = () => {
     }
     return customers[0];
   }, [customers, selectedCustomerId]);
+
+  // Filtered customers for search
+  const filteredCustomers = useMemo(() => {
+    if (!customers) return [];
+    if (!customerSearch.trim()) return customers;
+    return customers.filter((c) =>
+      c.nome_fantasia.toLowerCase().includes(customerSearch.toLowerCase())
+    );
+  }, [customers, customerSearch]);
 
   // Keyboard shortcuts for navigating between customers (Ctrl+J next, Ctrl+K previous)
   useEffect(() => {
@@ -457,30 +474,53 @@ const RaioX = () => {
             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-sm font-medium">
               {getInitials(selectedCustomer.nome_fantasia)}
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <Popover open={customerDropdownOpen} onOpenChange={setCustomerDropdownOpen}>
+              <PopoverTrigger asChild>
                 <Button variant="ghost" className="text-xl font-medium gap-2 px-2 hover:bg-transparent">
                   {selectedCustomer.nome_fantasia}
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64 max-h-80 overflow-y-auto bg-popover">
-                {customers?.map((customer) => (
-                  <DropdownMenuItem
-                    key={customer.id}
-                    onClick={() => setSelectedCustomerId(customer.id)}
-                    className={customer.id === selectedCustomer.id ? "bg-muted" : ""}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-xs font-medium">
-                        {getInitials(customer.nome_fantasia)}
-                      </div>
-                      <span>{customer.nome_fantasia}</span>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-72 p-0 bg-popover border-border">
+                <div className="p-2 border-b border-border">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar cliente..."
+                      value={customerSearch}
+                      onChange={(e) => setCustomerSearch(e.target.value)}
+                      className="pl-8 bg-secondary border-border"
+                    />
+                  </div>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {filteredCustomers.length === 0 ? (
+                    <div className="p-3 text-sm text-muted-foreground text-center">
+                      Nenhum cliente encontrado
                     </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  ) : (
+                    filteredCustomers.map((customer) => (
+                      <button
+                        key={customer.id}
+                        onClick={() => {
+                          setSelectedCustomerId(customer.id);
+                          setCustomerDropdownOpen(false);
+                          setCustomerSearch("");
+                        }}
+                        className={`w-full flex items-center gap-2 px-3 py-2.5 hover:bg-secondary transition-colors text-left ${
+                          customer.id === selectedCustomer.id ? "bg-muted" : ""
+                        }`}
+                      >
+                        <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-xs font-medium flex-shrink-0">
+                          {getInitials(customer.nome_fantasia)}
+                        </div>
+                        <span className="text-sm truncate">{customer.nome_fantasia}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
           <Button onClick={() => navigate(`/actions/new?customer=${encodeURIComponent(selectedCustomer.nome_fantasia)}`)}>
             <Plus className="h-4 w-4 mr-2" />
