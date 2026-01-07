@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -166,7 +166,10 @@ const initialContractForm: NewContractForm = {
 };
 
 const CustomerDetail = () => {
-  const { customerId } = useParams<{ customerId: string }>();
+  const { customerId: customerIdFromParams } = useParams<{ customerId: string }>();
+  const [searchParams] = useSearchParams();
+  const customerIdFromQuery = searchParams.get("id");
+  const customerId = customerIdFromParams || customerIdFromQuery;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
