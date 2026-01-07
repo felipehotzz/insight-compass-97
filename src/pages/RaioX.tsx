@@ -490,7 +490,7 @@ const RaioX = () => {
 
         {/* Metrics cards */}
         <TooltipProvider>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <Card className="bg-card">
               <CardContent className="p-4">
                 <div className="flex items-center gap-1.5">
