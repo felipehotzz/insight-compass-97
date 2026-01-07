@@ -427,8 +427,8 @@ export default function UnlinkedTickets() {
                     <TableCell>
                       <p className="text-sm line-clamp-1">{stripHtml(ticket.subject) || "Sem assunto"}</p>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(ticket.created_at), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                      {format(new Date(ticket.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="relative">
