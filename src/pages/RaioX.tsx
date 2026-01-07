@@ -288,7 +288,7 @@ const RaioX = () => {
   });
 
   // Calculate metrics and phase
-  const { metrics, effectiveFase, faseTimeLabel } = useMemo(() => {
+  const { metrics, effectiveFase, faseTimeLabel, ongoingYear } = useMemo(() => {
     if (!contracts || !selectedCustomer) {
       return { 
         metrics: {
@@ -300,7 +300,8 @@ const RaioX = () => {
           mesesRestantes: 0,
         },
         effectiveFase: 'onboarding' as CustomerFase,
-        faseTimeLabel: ''
+        faseTimeLabel: '',
+        ongoingYear: 0
       };
     }
 
@@ -357,6 +358,14 @@ const RaioX = () => {
       currentFase = 'renovacao';
     }
     
+    // Calculate year for Ongoing phase based on cohort date
+    let ongoingYear = 0;
+    if (currentFase === 'ongoing' && selectedCustomer.data_cohort) {
+      const cohortDate = new Date(selectedCustomer.data_cohort);
+      const yearsActive = Math.floor((now.getTime() - cohortDate.getTime()) / (1000 * 60 * 60 * 24 * 365));
+      ongoingYear = Math.max(1, yearsActive + 1); // Year 1 = first year, Year 2 = second year, etc.
+    }
+    
     // Calculate time in phase label
     let timeLabel = '';
     if (currentFase === 'renovacao' && diasRestantes > 0 && diasRestantes <= 90) {
@@ -381,7 +390,8 @@ const RaioX = () => {
         mesesRestantes,
       },
       effectiveFase: currentFase as CustomerFase,
-      faseTimeLabel: timeLabel
+      faseTimeLabel: timeLabel,
+      ongoingYear
     };
   }, [contracts, selectedCustomer]);
 
@@ -475,7 +485,9 @@ const RaioX = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className={`text-2xl font-medium px-0 h-auto py-0 mt-1 hover:bg-transparent gap-1 ${FASES_CONFIG[effectiveFase].color}`}>
-                      {FASES_CONFIG[effectiveFase].label}
+                      {effectiveFase === 'ongoing' && ongoingYear > 0 
+                        ? `${FASES_CONFIG[effectiveFase].label} ${ongoingYear}` 
+                        : FASES_CONFIG[effectiveFase].label}
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
