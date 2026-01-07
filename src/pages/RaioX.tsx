@@ -478,7 +478,12 @@ const RaioX = () => {
                       <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
-                      <p>{FASES_CONFIG[effectiveFase].tooltip}</p>
+                      <p>
+                        {FASES_CONFIG[effectiveFase].tooltip}
+                        {effectiveFase === 'ongoing' && ongoingYear > 0 && (
+                          <> O número indica em qual ano de contrato o cliente está (Ongoing {ongoingYear} = {ongoingYear}º ano).</>
+                        )}
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
