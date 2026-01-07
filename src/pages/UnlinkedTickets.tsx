@@ -374,8 +374,8 @@ export default function UnlinkedTickets() {
                     onCheckedChange={(checked) => handleSelectAll(!!checked)}
                   />
                 </TableHead>
+                <TableHead className="w-[200px]">De</TableHead>
                 <TableHead>Assunto</TableHead>
-                <TableHead className="w-[200px]">Email / Nome</TableHead>
                 <TableHead className="w-[100px]">Status</TableHead>
                 <TableHead className="w-[140px]">Data</TableHead>
                 <TableHead className="w-[200px]">Vincular a</TableHead>
@@ -416,14 +416,12 @@ export default function UnlinkedTickets() {
                       />
                     </TableCell>
                     <TableCell>
-                      <p className="text-sm line-clamp-2">{stripHtml(ticket.subject) || "Sem assunto"}</p>
+                      <p className="text-sm font-medium truncate max-w-[180px]">
+                        {ticket.from_name || ticket.from_email}
+                      </p>
                     </TableCell>
                     <TableCell>
-                      <div className="space-y-0.5">
-                        <p className="text-sm font-medium">{ticket.from_name || "—"}</p>
-                        <p className="text-xs text-muted-foreground">{ticket.from_email}</p>
-                        <p className="text-xs text-primary">@{extractDomain(ticket.from_email)}</p>
-                      </div>
+                      <p className="text-sm line-clamp-1">{stripHtml(ticket.subject) || "Sem assunto"}</p>
                     </TableCell>
                     <TableCell>{getStatusBadge(ticket.status)}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">
