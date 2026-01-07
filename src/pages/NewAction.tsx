@@ -55,6 +55,7 @@ const categories = [
   { id: "suporte", label: "Suporte / Dúvidas", icon: HelpCircle },
   { id: "tecnica", label: "Técnica", icon: Wrench },
   { id: "relacionamento", label: "Relacionamento", icon: Heart },
+  { id: "faturamento", label: "Faturamento", icon: Building2 },
 ];
 
 const teamMembers = [
