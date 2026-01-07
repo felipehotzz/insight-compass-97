@@ -117,7 +117,11 @@ export function RelationshipTab({
             <TableBody>
               {actions && actions.length > 0 ? (
                 actions.map((action) => (
-                  <TableRow key={action.id} className="hover:bg-muted/30">
+                  <TableRow 
+                    key={action.id} 
+                    className="hover:bg-muted/30 cursor-pointer"
+                    onClick={() => navigate(`/actions/${action.id}`)}
+                  >
                     <TableCell className="font-medium">{action.title}</TableCell>
                     <TableCell className="text-muted-foreground">{action.customer}</TableCell>
                     <TableCell>
