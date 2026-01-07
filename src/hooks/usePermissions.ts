@@ -12,12 +12,12 @@ interface Permission {
 export function usePermissions() {
   const { userRole, loading: authLoading } = useAuth();
   const [permissions, setPermissions] = useState<Record<AppPage, boolean>>({
-    visao_geral: true,
-    pipeline: true,
-    growth: true,
-    clientes: true,
-    raio_x: true,
-    acoes: true,
+    visao_geral: false,
+    pipeline: false,
+    growth: false,
+    clientes: false,
+    raio_x: false,
+    acoes: false,
     convidar: false,
     perfis_acesso: false,
   });
