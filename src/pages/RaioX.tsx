@@ -17,7 +17,7 @@ import { CustomerDataTab } from "@/components/raiox/CustomerDataTab";
 import { RelationshipTab } from "@/components/raiox/RelationshipTab";
 import { UsageTab } from "@/components/raiox/UsageTab";
 import { SupportTicketsSection } from "@/components/raiox/SupportTicketsSection";
-import { Plus, ChevronDown, User, Share2, BarChart3, Ticket } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -399,22 +399,30 @@ const RaioX = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-lg">
-            <TabsTrigger value="relacionamento" className="gap-2">
-              <Share2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Relacionamento</span>
+          <TabsList className="h-auto bg-transparent p-0 gap-1 justify-start">
+            <TabsTrigger 
+              value="relacionamento" 
+              className="px-3 py-1.5 text-sm font-medium text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none rounded-md"
+            >
+              Relacionamento
             </TabsTrigger>
-            <TabsTrigger value="utilizacao" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Utilização</span>
+            <TabsTrigger 
+              value="utilizacao" 
+              className="px-3 py-1.5 text-sm font-medium text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none rounded-md"
+            >
+              Utilização
             </TabsTrigger>
-            <TabsTrigger value="suporte" className="gap-2">
-              <Ticket className="h-4 w-4" />
-              <span className="hidden sm:inline">Suporte</span>
+            <TabsTrigger 
+              value="suporte" 
+              className="px-3 py-1.5 text-sm font-medium text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none rounded-md"
+            >
+              Suporte
             </TabsTrigger>
-            <TabsTrigger value="dados" className="gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Dados cadastrais</span>
+            <TabsTrigger 
+              value="dados" 
+              className="px-3 py-1.5 text-sm font-medium text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:shadow-none rounded-md"
+            >
+              Dados cadastrais
             </TabsTrigger>
           </TabsList>
 
