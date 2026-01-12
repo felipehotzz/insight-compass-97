@@ -38,6 +38,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTeamMembers } from "@/hooks/useTeamMembers";
 
 const actionTypes = [
   { id: "meeting", label: "Reunião", icon: Video },
@@ -58,14 +59,6 @@ const categories = [
   { id: "faturamento", label: "Faturamento", icon: Building2 },
 ];
 
-const teamMembers = [
-  { id: "1", name: "Ana Silva", initials: "AS" },
-  { id: "2", name: "Bruno Costa", initials: "BC" },
-  { id: "3", name: "Carla Dias", initials: "CD" },
-  { id: "4", name: "Diego Oliveira", initials: "DO" },
-  { id: "5", name: "Elena Santos", initials: "ES" },
-];
-
 const NewAction = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -73,6 +66,7 @@ const NewAction = () => {
   const preselectedCustomer = searchParams.get("customer") || "";
   const editId = routeId || searchParams.get("edit");
   const { user } = useAuth();
+  const { teamMembers } = useTeamMembers();
 
   const [customer, setCustomer] = useState(preselectedCustomer);
   const [actionType, setActionType] = useState("");
