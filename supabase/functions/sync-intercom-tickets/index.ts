@@ -159,9 +159,10 @@ async function syncTicketsIncremental(
   intercomToken: string,
   domainMap: Map<string, string>,
   batchSize: number,
-  cursor?: string
-): Promise<{ synced: number; linked: number; nextCursor?: string; hasMore: boolean }> {
-  console.log("Fetching batch with cursor:", cursor || "start");
+  cursor?: string,
+  forceUpdate: boolean = false
+): Promise<{ synced: number; linked: number; updated: number; nextCursor?: string; hasMore: boolean }> {
+  console.log("Fetching batch with cursor:", cursor || "start", "forceUpdate:", forceUpdate);
   
   const url = new URL("https://api.intercom.io/conversations");
   url.searchParams.set("per_page", String(batchSize));
@@ -192,34 +193,63 @@ async function syncTicketsIncremental(
   const conversationIds = conversations.map(c => c.id);
   const { data: existingTickets } = await supabase
     .from("support_tickets")
-    .select("intercom_conversation_id")
+    .select("intercom_conversation_id, updated_at")
     .in("intercom_conversation_id", conversationIds);
 
-  const existingIds = new Set(existingTickets?.map(t => t.intercom_conversation_id) || []);
-  const newConversations = conversations.filter(c => !existingIds.has(c.id));
+  const existingMap = new Map<string, string>();
+  for (const t of existingTickets || []) {
+    existingMap.set(t.intercom_conversation_id, t.updated_at);
+  }
 
-  console.log(`New conversations to process: ${newConversations.length} (${existingIds.size} already exist)`);
+  // Filter conversations that need to be processed
+  // - New conversations (don't exist)
+  // - Or if forceUpdate is true, process all
+  // - Or if updated_at is different (conversation was updated)
+  const conversationsToProcess = conversations.filter(c => {
+    const existingUpdatedAt = existingMap.get(c.id);
+    if (!existingUpdatedAt) return true; // New conversation
+    if (forceUpdate) return true; // Force update all
+    
+    // Check if conversation was updated in Intercom
+    const intercomUpdatedAt = new Date(c.updated_at * 1000).toISOString();
+    return intercomUpdatedAt > existingUpdatedAt;
+  });
+
+  const newCount = conversations.filter(c => !existingMap.has(c.id)).length;
+  const updateCount = conversationsToProcess.length - newCount;
+
+  console.log(`Processing: ${conversationsToProcess.length} total (${newCount} new, ${updateCount} updates, ${conversations.length - conversationsToProcess.length} unchanged)`);
 
   let syncedCount = 0;
   let linkedCount = 0;
+  let updatedCount = 0;
 
-  // Process new conversations in parallel (small batch)
+  // Process conversations in parallel (small batch)
   const results = await Promise.allSettled(
-    newConversations.map(conv => processConversation(conv, supabase, intercomToken, domainMap))
+    conversationsToProcess.map(async conv => {
+      const isNew = !existingMap.has(conv.id);
+      const result = await processConversation(conv, supabase, intercomToken, domainMap);
+      return { ...result, isNew };
+    })
   );
 
   for (const result of results) {
     if (result.status === "fulfilled" && result.value.synced) {
-      syncedCount++;
+      if (result.value.isNew) {
+        syncedCount++;
+      } else {
+        updatedCount++;
+      }
       if (result.value.linked) linkedCount++;
     }
   }
 
-  console.log(`Batch complete: ${syncedCount} synced, ${linkedCount} linked`);
+  console.log(`Batch complete: ${syncedCount} new, ${updatedCount} updated, ${linkedCount} linked`);
 
   return {
     synced: syncedCount,
     linked: linkedCount,
+    updated: updatedCount,
     nextCursor: data.pages?.next?.starting_after,
     hasMore: !!data.pages?.next?.starting_after,
   };
@@ -242,9 +272,9 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json().catch(() => ({}));
-    const { batchSize = 20, cursor, maxBatches = 10 } = body;
+    const { batchSize = 20, cursor, maxBatches = 10, forceUpdate = false } = body;
 
-    console.log("Starting Intercom sync with params:", { batchSize, cursor, maxBatches });
+    console.log("Starting Intercom sync with params:", { batchSize, cursor, maxBatches, forceUpdate });
 
     // Create sync history record
     const { data: syncRecord, error: syncInsertError } = await supabase
@@ -292,6 +322,7 @@ Deno.serve(async (req) => {
     // Process multiple batches
     let totalSynced = 0;
     let totalLinked = 0;
+    let totalUpdated = 0;
     let totalProcessed = 0;
     let currentCursor = cursor;
     let hasMore = true;
@@ -303,17 +334,19 @@ Deno.serve(async (req) => {
         intercomToken,
         domainMap,
         batchSize,
-        currentCursor
+        currentCursor,
+        forceUpdate
       );
 
       totalSynced += result.synced;
       totalLinked += result.linked;
+      totalUpdated += result.updated;
       totalProcessed += batchSize;
       currentCursor = result.nextCursor;
       hasMore = result.hasMore;
       batchCount++;
 
-      console.log(`Completed batch ${batchCount}/${maxBatches}, total synced: ${totalSynced}`);
+      console.log(`Completed batch ${batchCount}/${maxBatches}, new: ${totalSynced}, updated: ${totalUpdated}`);
 
       // Small delay between batches
       if (hasMore && batchCount < maxBatches) {
@@ -329,7 +362,7 @@ Deno.serve(async (req) => {
         total_processed: totalProcessed,
         total_synced: totalSynced,
         total_linked: totalLinked,
-        metadata: { batchSize, maxBatches, batchesProcessed: batchCount, hasMore, nextCursor: currentCursor }
+        metadata: { batchSize, maxBatches, batchesProcessed: batchCount, hasMore, nextCursor: currentCursor, totalUpdated }
       }).eq("id", syncId);
     }
 
@@ -337,6 +370,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         synced: totalSynced,
+        updated: totalUpdated,
         linkedToCustomers: totalLinked,
         batchesProcessed: batchCount,
         hasMore: hasMore,
