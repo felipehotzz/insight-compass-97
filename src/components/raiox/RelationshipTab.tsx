@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/table";
 import { FilterButtons } from "@/components/dashboard/FilterButtons";
 import type { TimeFilter, PeriodFilter } from "@/components/dashboard/FilterButtons";
-import { ActionBreakdownChart, generateActionsData } from "@/components/charts/ActionBreakdownChart";
-import { ActionThemeChart, generateActionsThemeData } from "@/components/charts/ActionThemeChart";
+import { ActionBreakdownChart } from "@/components/charts/ActionBreakdownChart";
+import { ActionThemeChart } from "@/components/charts/ActionThemeChart";
+import { useActionChartData } from "@/hooks/useActionChartData";
 import { ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -54,6 +55,9 @@ export function RelationshipTab({
   onPeriodChange,
 }: RelationshipTabProps) {
   const navigate = useNavigate();
+  
+  // Process real actions data for charts
+  const { typeData, themeData } = useActionChartData(actions, filter, periodValue);
 
   return (
     <div className="space-y-6">
@@ -75,7 +79,7 @@ export function RelationshipTab({
             <CardTitle className="text-base font-medium">Ações por tipo</CardTitle>
           </CardHeader>
           <CardContent>
-            <ActionBreakdownChart data={generateActionsData(filter)} height={280} />
+            <ActionBreakdownChart data={typeData} height={280} />
           </CardContent>
         </Card>
         <Card>
@@ -83,7 +87,7 @@ export function RelationshipTab({
             <CardTitle className="text-base font-medium">Ações por tema</CardTitle>
           </CardHeader>
           <CardContent>
-            <ActionThemeChart data={generateActionsThemeData(filter)} height={280} />
+            <ActionThemeChart data={themeData} height={280} />
           </CardContent>
         </Card>
       </div>
