@@ -234,7 +234,7 @@ const NewAction = () => {
 
   if (loading) {
     return (
-      <DashboardLayout title="">
+      <DashboardLayout>
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -243,7 +243,7 @@ const NewAction = () => {
   }
 
   return (
-    <DashboardLayout title="">
+    <DashboardLayout>
       <div className="animate-fade-in max-w-3xl mx-auto py-8">
         {/* Minimal top bar */}
         <div className="flex items-center justify-between mb-12">

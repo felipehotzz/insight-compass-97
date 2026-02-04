@@ -337,7 +337,7 @@ const Growth = () => {
   };
 
   return (
-    <DashboardLayout title="">
+    <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <h1 className="text-xl text-foreground">Pipeline</h1>

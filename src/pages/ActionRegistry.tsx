@@ -166,7 +166,7 @@ const ActionRegistry = () => {
   };
 
   return (
-    <DashboardLayout title="">
+    <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
         <h1 className="text-xl text-foreground">Ações</h1>
         
