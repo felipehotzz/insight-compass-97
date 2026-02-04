@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, Trash2, History, RefreshCw } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, Trash2, History, RefreshCw, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -455,17 +455,9 @@ export function ImportDataSettings() {
                 key={item.id}
                 className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg"
               >
-                <div 
-                  className={`flex-1 ${item.csv_preview ? 'cursor-pointer hover:opacity-80' : ''}`}
-                  onClick={() => {
-                    if (item.csv_preview) {
-                      setSelectedImport(item);
-                      setPreviewDialogOpen(true);
-                    }
-                  }}
-                >
+                <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className={`font-medium text-sm ${item.csv_preview ? 'underline underline-offset-2 decoration-muted-foreground/50' : ''}`}>
+                    <p className="font-medium text-sm">
                       {item.file_name}
                     </p>
                     <span
@@ -489,17 +481,42 @@ export function ImportDataSettings() {
                     )}
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => {
-                    setImportToDelete(item);
-                    setDeleteDialogOpen(true);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  {item.csv_preview ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        setSelectedImport(item);
+                        setPreviewDialogOpen(true);
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground/50 cursor-not-allowed"
+                      disabled
+                      title="Preview não disponível para importações antigas"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => {
+                      setImportToDelete(item);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
