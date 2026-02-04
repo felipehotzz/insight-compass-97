@@ -27,6 +27,7 @@ interface ImportResult {
   customersUpdated?: number;
   contractsCreated?: number;
   contractsUpdated?: number;
+  contractsDeleted?: number;
   totalCustomers?: number;
   errors?: string[];
   importId?: string;
@@ -399,6 +400,11 @@ export function ImportDataSettings() {
                 <span className="font-medium">{(customersResult.contractsCreated || 0) + (customersResult.contractsUpdated || 0)}</span> contratos processados
                 ({customersResult.contractsCreated} novos, {customersResult.contractsUpdated} atualizados)
               </p>
+              {(customersResult.contractsDeleted ?? 0) > 0 && (
+                <p className="text-sm text-amber-500">
+                  <span className="font-medium">{customersResult.contractsDeleted}</span> contratos removidos (não estavam no CSV)
+                </p>
+              )}
               {customersResult.errors && customersResult.errors.length > 0 && (
                 <p className="text-xs text-amber-500 mt-2">
                   ⚠️ {customersResult.errors.length} avisos durante importação
