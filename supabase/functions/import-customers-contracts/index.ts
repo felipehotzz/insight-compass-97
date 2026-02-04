@@ -167,6 +167,14 @@ serve(async (req) => {
       throw new Error('CSV content is required')
     }
 
+    // Create CSV preview (first 20 rows)
+    const previewLines = csvContent.split(/\r?\n/).filter((line: string) => line.trim()).slice(0, 21) // header + 20 rows
+    const previewSeparator = detectSeparator(previewLines[0] || '')
+    const csvPreview = {
+      headers: previewLines[0] ? parseCSVLine(previewLines[0], previewSeparator) : [],
+      rows: previewLines.slice(1).map((line: string) => parseCSVLine(line, previewSeparator))
+    }
+
     // Create import history record
     const { data: importRecord, error: importError } = await supabase
       .from('import_history')
@@ -174,7 +182,8 @@ serve(async (req) => {
         import_type: 'customers_contracts',
         file_name: fileName || 'import.csv',
         imported_by: userId || null,
-        status: 'processing'
+        status: 'processing',
+        csv_preview: csvPreview
       })
       .select('id')
       .single()

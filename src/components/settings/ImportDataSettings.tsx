@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2, Trash2, History, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { CsvPreviewDialog } from "./CsvPreviewDialog";
 
 type ImportStatus = "idle" | "reading" | "importing" | "success" | "error";
 
@@ -31,6 +32,11 @@ interface ImportResult {
   importId?: string;
 }
 
+interface CsvPreview {
+  headers: string[];
+  rows: string[][];
+}
+
 interface ImportHistoryItem {
   id: string;
   import_type: string;
@@ -43,6 +49,7 @@ interface ImportHistoryItem {
   status: string;
   error_message: string | null;
   created_at: string;
+  csv_preview: CsvPreview | null;
 }
 
 export function ImportDataSettings() {
@@ -61,6 +68,8 @@ export function ImportDataSettings() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [importToDelete, setImportToDelete] = useState<ImportHistoryItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [selectedImport, setSelectedImport] = useState<ImportHistoryItem | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -75,7 +84,7 @@ export function ImportDataSettings() {
         .limit(20);
 
       if (error) throw error;
-      return data as ImportHistoryItem[];
+      return data as unknown as ImportHistoryItem[];
     },
   });
 
@@ -446,9 +455,19 @@ export function ImportDataSettings() {
                 key={item.id}
                 className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg"
               >
-                <div className="flex-1">
+                <div 
+                  className={`flex-1 ${item.csv_preview ? 'cursor-pointer hover:opacity-80' : ''}`}
+                  onClick={() => {
+                    if (item.csv_preview) {
+                      setSelectedImport(item);
+                      setPreviewDialogOpen(true);
+                    }
+                  }}
+                >
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">{item.file_name}</p>
+                    <p className={`font-medium text-sm ${item.csv_preview ? 'underline underline-offset-2 decoration-muted-foreground/50' : ''}`}>
+                      {item.file_name}
+                    </p>
                     <span
                       className={`text-xs px-2 py-0.5 rounded ${
                         item.status === "completed"
@@ -524,6 +543,14 @@ export function ImportDataSettings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* CSV Preview Dialog */}
+      <CsvPreviewDialog
+        open={previewDialogOpen}
+        onOpenChange={setPreviewDialogOpen}
+        fileName={selectedImport?.file_name || ""}
+        csvPreview={selectedImport?.csv_preview || null}
+      />
     </div>
   );
 }
