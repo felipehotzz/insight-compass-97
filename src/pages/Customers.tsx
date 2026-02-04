@@ -300,7 +300,7 @@ const Customers = () => {
 
 
   return (
-    <DashboardLayout title="">
+    <DashboardLayout>
       <div className="space-y-6 animate-fade-in">
         {/* Customer Composition Charts */}
         <div>

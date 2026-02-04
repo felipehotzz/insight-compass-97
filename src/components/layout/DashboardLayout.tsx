@@ -3,7 +3,6 @@ import { Sidebar } from "./Sidebar";
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  title?: string | ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
