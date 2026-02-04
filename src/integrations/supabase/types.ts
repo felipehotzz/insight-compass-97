@@ -471,6 +471,7 @@ export type Database = {
           contracts_created: number | null
           contracts_updated: number | null
           created_at: string
+          csv_preview: Json | null
           customers_created: number | null
           customers_updated: number | null
           error_message: string | null
@@ -486,6 +487,7 @@ export type Database = {
           contracts_created?: number | null
           contracts_updated?: number | null
           created_at?: string
+          csv_preview?: Json | null
           customers_created?: number | null
           customers_updated?: number | null
           error_message?: string | null
@@ -501,6 +503,7 @@ export type Database = {
           contracts_created?: number | null
           contracts_updated?: number | null
           created_at?: string
+          csv_preview?: Json | null
           customers_created?: number | null
           customers_updated?: number | null
           error_message?: string | null
