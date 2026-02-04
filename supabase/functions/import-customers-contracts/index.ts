@@ -236,6 +236,37 @@ serve(async (req) => {
     const headers = parseCSVLine(lines[0], separator).map((h: string) => h.toLowerCase().trim())
     console.log('Header columns:', headers.length, headers.slice(0, 5))
     
+    // Function to parse CNPJ that might be in scientific notation from Excel
+    function parseCNPJ(value: string): string | null {
+      if (!value || value.trim() === '' || value.trim() === '-') return null
+      
+      let cleaned = value.trim()
+      
+      // Check if it's scientific notation (e.g., "1,20355E+12" or "1.20355E+12")
+      const scientificMatch = cleaned.match(/^[\d,\.]+E\+?\d+$/i)
+      if (scientificMatch) {
+        // Replace comma with dot for parsing
+        cleaned = cleaned.replace(',', '.')
+        const numValue = parseFloat(cleaned)
+        if (!isNaN(numValue)) {
+          // Convert to integer string (CNPJ)
+          cleaned = Math.round(numValue).toString()
+        }
+      }
+      
+      // Remove any formatting characters
+      cleaned = cleaned.replace(/[\.\-\/\s]/g, '')
+      
+      // Pad with leading zeros if needed (CNPJ should be 14 digits, CPF 11)
+      if (/^\d+$/.test(cleaned)) {
+        if (cleaned.length >= 11 && cleaned.length <= 14) {
+          return cleaned.padStart(14, '0')
+        }
+      }
+      
+      return null
+    }
+    
     // Column mapping
     const colMap: Record<string, number> = {}
     
@@ -322,13 +353,13 @@ serve(async (req) => {
       const values = parseCSVLine(lines[i], separator)
       if (values.length < 3) continue
       
-      const cnpj = values[colMap['cnpj']]?.trim()
-      if (!cnpj) continue
+      const rawCnpj = values[colMap['cnpj']]?.trim()
+      if (!rawCnpj) continue
       
-      // Validate CNPJ format
-      const cnpjClean = cnpj.replace(/[\.\-\/]/g, '')
-      if (!/^\d{11,14}$/.test(cnpjClean)) {
-        console.log(`Skipping invalid CNPJ: ${cnpj}`)
+      // Parse CNPJ (handles scientific notation from Excel)
+      const cnpj = parseCNPJ(rawCnpj)
+      if (!cnpj) {
+        console.log(`Skipping invalid CNPJ: ${rawCnpj}`)
         continue
       }
       
