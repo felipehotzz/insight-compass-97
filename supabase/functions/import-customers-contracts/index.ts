@@ -519,6 +519,7 @@ serve(async (req) => {
     // Now handle contracts with diff logic
     const contractsToInsert: any[] = []
     const contractsToUpdateList: { id: string; data: any }[] = []
+    const insertedIdFinanceiros = new Set<string>() // Track duplicates in same batch
     
     // Process CSV contracts
     for (const [cnpj, customerData] of customerMap) {
@@ -538,6 +539,12 @@ serve(async (req) => {
           continue
         }
         
+        // Skip if we've already added this id_financeiro in this batch
+        if (insertedIdFinanceiros.has(idFinanceiro)) {
+          console.log(`Skipping duplicate id_financeiro in CSV: ${idFinanceiro}`)
+          continue
+        }
+        
         const existingContract = existingContractsMap.get(idFinanceiro)
         
         if (!existingContract) {
@@ -547,6 +554,7 @@ serve(async (req) => {
             import_id: importId,
             ...contract
           })
+          insertedIdFinanceiros.add(idFinanceiro)
         } else {
           // Existing contract - check if needs update
           if (contractsAreDifferent(existingContract, contract)) {
@@ -606,13 +614,18 @@ serve(async (req) => {
       }
     }
 
-    // Batch insert new contracts in chunks
+    // Batch insert/upsert new contracts in chunks
     const CHUNK_SIZE = 500
     for (let i = 0; i < contractsToInsert.length; i += CHUNK_SIZE) {
       const chunk = contractsToInsert.slice(i, i + CHUNK_SIZE)
-      const { error: contractError } = await supabase
+      
+      // Use upsert with onConflict to handle any remaining duplicates
+      const { error: contractError, count } = await supabase
         .from('contracts')
-        .insert(chunk)
+        .upsert(chunk, { 
+          onConflict: 'id_financeiro',
+          ignoreDuplicates: false 
+        })
 
       if (contractError) {
         console.error('Error inserting contracts:', contractError)
