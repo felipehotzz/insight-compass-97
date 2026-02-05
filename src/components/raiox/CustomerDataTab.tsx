@@ -166,10 +166,24 @@ const formatCurrency = (value: number | null) => {
   }).format(value);
 };
 
+// Parse date string without timezone conversion (treats as local date)
+const parseDateWithoutTimezone = (dateStr: string | null): Date | null => {
+  if (!dateStr) return null;
+  // Date format from DB is YYYY-MM-DD, parse parts directly to avoid timezone issues
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return null;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1; // months are 0-indexed
+  const day = parseInt(parts[2], 10);
+  return new Date(year, month, day);
+};
+
 const formatDate = (dateStr: string | null) => {
   if (!dateStr) return "-";
   try {
-    return format(new Date(dateStr), "dd/MM/yyyy", { locale: ptBR });
+    const date = parseDateWithoutTimezone(dateStr);
+    if (!date) return "-";
+    return format(date, "dd/MM/yyyy", { locale: ptBR });
   } catch {
     return "-";
   }
@@ -177,11 +191,8 @@ const formatDate = (dateStr: string | null) => {
 
 const formatDateForInput = (dateStr: string | null) => {
   if (!dateStr) return "";
-  try {
-    return format(new Date(dateStr), "yyyy-MM-dd");
-  } catch {
-    return "";
-  }
+  // Just return the raw date string since it's already in YYYY-MM-DD format
+  return dateStr.split('T')[0];
 };
 
 interface CustomerDataTabProps {
