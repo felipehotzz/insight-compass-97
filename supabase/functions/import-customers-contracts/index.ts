@@ -260,12 +260,12 @@ serve(async (req) => {
       'mrr_atual': ['mrr atual', 'mrr_atual'],
       'data_cohort': ['cohort', 'data cohort', 'data_cohort'],
       'data_movimento': ['data movimento', 'data_movimento'],
-      'mrr': ['mrr'],
+      'mrr': ['mrr;movimento', 'mrr$'],
       'movimento_mrr': ['movimento mrr', 'movimento_mrr'],
       'tipo_movimento': ['tipo movimento', 'tipo_movimento'],
       'status_contrato': ['status contrato', 'status_contrato'],
       'id_contrato': ['id contrato', 'id_contrato'],
-      'tipo_documento': ['tipo documento', 'tipo_documento'],
+      'tipo_documento': ['documento', 'tipo documento', 'tipo_documento'],
       'vigencia_inicial': ['vigência inicial', 'vigencia inicial', 'vigencia_inicial'],
       'vigencia_final': ['vigência final', 'vigencia final', 'vigencia_final'],
       'meses_vigencia': ['meses vigência', 'meses vigencia', 'meses_vigencia'],
@@ -273,15 +273,23 @@ serve(async (req) => {
       'tipo_renovacao': ['tipo renovação', 'tipo renovacao', 'tipo_renovacao'],
       'indice_renovacao': ['índice renovação', 'indice renovacao', 'indice_renovacao'],
       'vendedor': ['vendedor'],
-      'valor_original_mrr': ['valor original mrr', 'valor_original_mrr'],
+      'valor_original_mrr': ['valor original do mrr', 'valor original mrr', 'valor_original_mrr'],
       'observacoes': ['observações', 'observacoes'],
       'condicao_pagamento': ['condição pagamento', 'condicao pagamento', 'condicao_pagamento'],
     }
 
+    // First pass: find exact column mappings
     for (const [key, variations] of Object.entries(columnMappings)) {
       for (let i = 0; i < headers.length; i++) {
         const header = headers[i].toLowerCase().trim()
-        if (variations.some(v => header.includes(v.toLowerCase()))) {
+        // For 'mrr', we need exact match to avoid confusion with 'mrr atual' and 'movimento mrr'
+        if (key === 'mrr') {
+          // Check if header is exactly 'mrr' (the 9th column with value like "R$ 20.000,00")
+          if (header === 'mrr') {
+            colMap[key] = i
+            break
+          }
+        } else if (variations.some(v => header.includes(v.toLowerCase()))) {
           colMap[key] = i
           break
         }
@@ -376,7 +384,7 @@ serve(async (req) => {
       }
       
       const mrrAtualValue = values[colMap['mrr_atual']]?.trim() || ''
-      const mrrAtual = mrrAtualValue !== '' && mrrAtualValue !== '-' && mrrAtualValue !== '0'
+      const mrrAtual = mrrAtualValue.toLowerCase() === 'sim'
       
       customer.contracts.push({
         id_financeiro: idFinanceiro,
