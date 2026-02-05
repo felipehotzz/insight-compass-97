@@ -206,6 +206,7 @@ export function CustomerDataTab({ customer, contracts, champions, profiles }: Cu
   });
   const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
   const [contractForm, setContractForm] = useState<NewContractForm>(initialContractForm);
+  const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [isChampionDialogOpen, setIsChampionDialogOpen] = useState(false);
   const [championForm, setChampionForm] = useState<NewChampionForm>(initialChampionForm);
   const [editingChampionId, setEditingChampionId] = useState<string | null>(null);
@@ -263,10 +264,68 @@ export function CustomerDataTab({ customer, contracts, champions, profiles }: Cu
       queryClient.invalidateQueries({ queryKey: ["customer-contracts-raiox", customer.id] });
       setIsContractDialogOpen(false);
       setContractForm(initialContractForm);
+      setEditingContractId(null);
       toast.success("Contrato criado com sucesso");
     },
     onError: (error) => {
       toast.error("Erro ao criar contrato: " + error.message);
+    },
+  });
+
+  // Update contract mutation
+  const updateContractMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: NewContractForm }) => {
+      const { error } = await supabase
+        .from("contracts")
+        .update({
+          id_financeiro: data.id_financeiro || null,
+          id_contrato: data.id_contrato || null,
+          tipo_documento: data.tipo_documento || null,
+          status_contrato: data.status_contrato || null,
+          tipo_movimento: data.tipo_movimento || null,
+          data_movimento: data.data_movimento || null,
+          vigencia_inicial: data.vigencia_inicial || null,
+          vigencia_final: data.vigencia_final || null,
+          meses_vigencia: data.meses_vigencia ? parseInt(data.meses_vigencia) : null,
+          mrr: data.mrr ? parseFloat(data.mrr) : null,
+          mrr_atual: data.mrr_atual,
+          movimento_mrr: data.movimento_mrr ? parseFloat(data.movimento_mrr) : null,
+          valor_original_mrr: data.valor_original_mrr ? parseFloat(data.valor_original_mrr) : null,
+          valor_contrato: data.valor_contrato ? parseFloat(data.valor_contrato) : null,
+          vendedor: data.vendedor || null,
+          condicao_pagamento: data.condicao_pagamento || null,
+          indice_renovacao: data.indice_renovacao || null,
+          tipo_renovacao: data.tipo_renovacao || null,
+          observacoes: data.observacoes || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customer-contracts-raiox", customer.id] });
+      setIsContractDialogOpen(false);
+      setContractForm(initialContractForm);
+      setEditingContractId(null);
+      toast.success("Contrato atualizado com sucesso");
+    },
+    onError: (error) => {
+      toast.error("Erro ao atualizar contrato: " + error.message);
+    },
+  });
+
+  // Delete contract mutation
+  const deleteContractMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("contracts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customer-contracts-raiox", customer.id] });
+      toast.success("Contrato removido com sucesso");
+    },
+    onError: (error) => {
+      toast.error("Erro ao remover contrato: " + error.message);
     },
   });
 
@@ -366,7 +425,49 @@ export function CustomerDataTab({ customer, contracts, champions, profiles }: Cu
 
   const handleCreateContract = (e: React.FormEvent) => {
     e.preventDefault();
-    createContractMutation.mutate(contractForm);
+    if (editingContractId) {
+      updateContractMutation.mutate({ id: editingContractId, data: contractForm });
+    } else {
+      createContractMutation.mutate(contractForm);
+    }
+  };
+
+  const handleEditContract = (contract: Contract) => {
+    setContractForm({
+      id_financeiro: contract.id_financeiro || "",
+      id_contrato: contract.id_contrato || "",
+      tipo_documento: contract.tipo_documento || "",
+      status_contrato: contract.status_contrato || "vigente",
+      tipo_movimento: contract.tipo_movimento || "",
+      data_movimento: formatDateForInput(contract.data_movimento),
+      vigencia_inicial: formatDateForInput(contract.vigencia_inicial),
+      vigencia_final: formatDateForInput(contract.vigencia_final),
+      meses_vigencia: contract.meses_vigencia?.toString() || "",
+      mrr: contract.mrr?.toString() || "",
+      mrr_atual: contract.mrr_atual ?? true,
+      movimento_mrr: contract.movimento_mrr?.toString() || "",
+      valor_original_mrr: contract.valor_original_mrr?.toString() || "",
+      valor_contrato: contract.valor_contrato?.toString() || "",
+      vendedor: contract.vendedor || "",
+      condicao_pagamento: contract.condicao_pagamento || "Mensal",
+      indice_renovacao: contract.indice_renovacao || "",
+      tipo_renovacao: contract.tipo_renovacao || "",
+      observacoes: contract.observacoes || "",
+    });
+    setEditingContractId(contract.id);
+    setIsContractDialogOpen(true);
+  };
+
+  const handleDeleteContract = (id: string) => {
+    if (window.confirm("Tem certeza que deseja remover este contrato?")) {
+      deleteContractMutation.mutate(id);
+    }
+  };
+
+  const handleCloseContractDialog = () => {
+    setIsContractDialogOpen(false);
+    setContractForm(initialContractForm);
+    setEditingContractId(null);
   };
 
   const handleCreateChampion = (e: React.FormEvent) => {
@@ -568,16 +669,22 @@ export function CustomerDataTab({ customer, contracts, champions, profiles }: Cu
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Contratos</CardTitle>
-            <Dialog open={isContractDialogOpen} onOpenChange={setIsContractDialogOpen}>
+            <Dialog open={isContractDialogOpen} onOpenChange={(open) => {
+              if (!open) handleCloseContractDialog();
+              else setIsContractDialogOpen(true);
+            }}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
+                <Button size="sm" className="gap-2" onClick={() => {
+                  setContractForm(initialContractForm);
+                  setEditingContractId(null);
+                }}>
                   <Plus className="h-4 w-4" />
                   Novo Contrato
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Novo Contrato</DialogTitle>
+                  <DialogTitle>{editingContractId ? "Editar Contrato" : "Novo Contrato"}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleCreateContract} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -655,11 +762,11 @@ export function CustomerDataTab({ customer, contracts, champions, profiles }: Cu
                     </div>
                   </div>
                   <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setIsContractDialogOpen(false)}>
+                    <Button type="button" variant="outline" onClick={handleCloseContractDialog}>
                       Cancelar
                     </Button>
-                    <Button type="submit" disabled={createContractMutation.isPending}>
-                      {createContractMutation.isPending ? "Salvando..." : "Salvar"}
+                    <Button type="submit" disabled={createContractMutation.isPending || updateContractMutation.isPending}>
+                      {(createContractMutation.isPending || updateContractMutation.isPending) ? "Salvando..." : "Salvar"}
                     </Button>
                   </div>
                 </form>
@@ -681,6 +788,7 @@ export function CustomerDataTab({ customer, contracts, champions, profiles }: Cu
                     <TableHead className="text-xs">Fim</TableHead>
                     <TableHead className="text-xs text-right">MRR</TableHead>
                     <TableHead className="text-xs text-right">Valor</TableHead>
+                    <TableHead className="text-xs w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -703,6 +811,40 @@ export function CustomerDataTab({ customer, contracts, champions, profiles }: Cu
                       <TableCell className="text-sm">{formatDate(contract.vigencia_final)}</TableCell>
                       <TableCell className="text-sm text-right">{formatCurrency(contract.mrr)}</TableCell>
                       <TableCell className="text-sm text-right">{formatCurrency(contract.valor_contrato)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 justify-end">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => handleEditContract(contract)}
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Editar contrato</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteContract(contract.id)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Remover contrato</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
