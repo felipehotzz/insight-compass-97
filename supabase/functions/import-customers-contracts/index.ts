@@ -236,14 +236,31 @@ serve(async (req) => {
     const headers = parseCSVLine(lines[0], separator).map((h: string) => h.toLowerCase().trim())
     console.log('Header columns:', headers.length, headers.slice(0, 5))
     
-    // Simple CNPJ normalization - remove formatting only, keep original value
+    // CNPJ normalization - handles scientific notation from Excel and special characters
     function normalizeCNPJ(value: string): string | null {
       if (!value || value.trim() === '' || value.trim() === '-') return null
       
-      // Just remove formatting characters, keep the number as-is
-      const cleaned = value.trim().replace(/[\.\-\/\s]/g, '')
+      let cleaned = value.trim()
       
-      if (!cleaned || !/^\d+$/.test(cleaned)) return null
+      // Handle Excel scientific notation (e.g., "8,3769E+12" or "7,50558E+13")
+      // Replace comma with dot for proper float parsing
+      const sciNotation = cleaned.replace(',', '.').match(/^[\d.]+[eE]\+?\d+$/)
+      if (sciNotation) {
+        const num = parseFloat(cleaned.replace(',', '.'))
+        if (!isNaN(num)) {
+          cleaned = Math.round(num).toString()
+        }
+      }
+      
+      // Remove all non-digit characters (formatting, soft hyphens, invisible chars, etc.)
+      cleaned = cleaned.replace(/\D/g, '')
+      
+      if (!cleaned || cleaned.length === 0) return null
+      
+      // Pad to 14 digits if it looks like a CNPJ missing leading zeros
+      if (cleaned.length > 0 && cleaned.length < 14) {
+        cleaned = cleaned.padStart(14, '0')
+      }
       
       return cleaned
     }
