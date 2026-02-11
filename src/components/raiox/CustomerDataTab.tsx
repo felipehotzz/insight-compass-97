@@ -803,7 +803,11 @@ export function CustomerDataTab({ customer, contracts, champions, profiles }: Cu
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {contracts.map((contract) => (
+                  {[...contracts].sort((a, b) => {
+                    if (!a.vigencia_final) return 1;
+                    if (!b.vigencia_final) return -1;
+                    return a.vigencia_final.localeCompare(b.vigencia_final);
+                  }).map((contract) => (
                     <TableRow key={contract.id}>
                       <TableCell className="text-sm font-mono">{contract.id_financeiro || "-"}</TableCell>
                       <TableCell className="text-sm">{contract.tipo_documento || "-"}</TableCell>
