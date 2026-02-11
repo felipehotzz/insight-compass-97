@@ -336,7 +336,7 @@ serve(async (req) => {
     }
     
     const customerMap = new Map<string, CustomerData>()
-    const csvIdFinanceiroSet = new Set<string>()
+    
     
     for (let i = 1; i < lines.length; i++) {
       const values = parseCSVLine(lines[i], separator)
@@ -353,9 +353,7 @@ serve(async (req) => {
       }
       
       const idFinanceiro = values[colMap['id_financeiro']]?.trim() || null
-      if (idFinanceiro) {
-        csvIdFinanceiroSet.add(idFinanceiro)
-      }
+      
       
       const razaoSocial = values[colMap['razao_social']]?.trim() || ''
       const nomeFantasia = values[colMap['nome_fantasia']]?.trim() || razaoSocial
@@ -411,7 +409,7 @@ serve(async (req) => {
     }
 
     console.log(`Found ${customerMap.size} unique customers in CSV`)
-    console.log(`Found ${csvIdFinanceiroSet.size} unique id_financeiro in CSV`)
+    console.log(`Found ${customerMap.size} unique customers in CSV (additive import - no deletions)`)
     
     // Get all existing customers by CNPJ in batch
     const cnpjs = Array.from(customerMap.keys())
@@ -443,7 +441,7 @@ serve(async (req) => {
     let customersUpdated = 0
     let contractsInserted = 0
     let contractsUpdated = 0
-    let contractsDeleted = 0
+    let contractsDeleted = 0 // Always 0 - additive import only
     const errors: string[] = []
 
     // Process customers: insert new, update existing
@@ -560,34 +558,7 @@ serve(async (req) => {
       }
     }
 
-    // Find contracts to delete (exist in DB but not in CSV)
-    const contractsToDelete: string[] = []
-    for (const [idFinanceiro, contract] of existingContractsMap) {
-      if (!csvIdFinanceiroSet.has(idFinanceiro)) {
-        contractsToDelete.push(contract.id)
-      }
-    }
-
-    console.log(`Contracts: ${contractsToInsert.length} to insert, ${contractsToUpdateList.length} to update, ${contractsToDelete.length} to delete`)
-
-    // Delete contracts that are no longer in CSV
-    if (contractsToDelete.length > 0) {
-      const CHUNK_SIZE = 500
-      for (let i = 0; i < contractsToDelete.length; i += CHUNK_SIZE) {
-        const chunk = contractsToDelete.slice(i, i + CHUNK_SIZE)
-        const { error: deleteError } = await supabase
-          .from('contracts')
-          .delete()
-          .in('id', chunk)
-
-        if (deleteError) {
-          console.error('Error deleting contracts:', deleteError)
-          errors.push(`Erro ao deletar contratos: ${deleteError.message}`)
-        } else {
-          contractsDeleted += chunk.length
-        }
-      }
-    }
+    console.log(`Contracts: ${contractsToInsert.length} to insert, ${contractsToUpdateList.length} to update (no deletions - additive import)`)
 
     // Update existing contracts
     for (const { id, data } of contractsToUpdateList) {
