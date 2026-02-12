@@ -72,18 +72,49 @@ export function useDispatches() {
     };
   }, [fetchDispatches]);
 
-  // Today's counters
-  const today = new Date().toISOString().split("T")[0];
-  const todayDispatches = dispatches.filter((d) => d.sent_at.startsWith(today));
-  const counters = {
-    total: todayDispatches.length,
-    enviado: todayDispatches.filter((d) => d.status === "enviado").length,
-    erro: todayDispatches.filter((d) => d.status === "erro").length,
-    processando: todayDispatches.filter((d) => d.status === "processando").length,
+  // Counter period filtering
+  const getCounterDispatches = (period: string) => {
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+
+    return dispatches.filter((d) => {
+      const sentDate = new Date(d.sent_at);
+      switch (period) {
+        case "hoje":
+          return d.sent_at.startsWith(today);
+        case "semana": {
+          const weekAgo = new Date(now);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return sentDate >= weekAgo;
+        }
+        case "mes": {
+          const monthAgo = new Date(now);
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          return sentDate >= monthAgo;
+        }
+        case "3meses": {
+          const threeMonthsAgo = new Date(now);
+          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+          return sentDate >= threeMonthsAgo;
+        }
+        default:
+          return d.sent_at.startsWith(today);
+      }
+    });
+  };
+
+  const getCounters = (period: string) => {
+    const filtered = getCounterDispatches(period);
+    return {
+      total: filtered.length,
+      enviado: filtered.filter((d) => d.status === "enviado").length,
+      erro: filtered.filter((d) => d.status === "erro").length,
+      processando: filtered.filter((d) => d.status === "processando").length,
+    };
   };
 
   // Unique clients for filter dropdown
   const uniqueClients = [...new Set(dispatches.map((d) => d.cliente))].sort();
 
-  return { dispatches, loading, filters, setFilters, counters, uniqueClients, refetch: fetchDispatches };
+  return { dispatches, loading, filters, setFilters, getCounters, uniqueClients, refetch: fetchDispatches };
 }
