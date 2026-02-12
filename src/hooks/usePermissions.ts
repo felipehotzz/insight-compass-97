@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
-type AppPage = "visao_geral" | "pipeline" | "growth" | "clientes" | "raio_x" | "acoes" | "convidar" | "perfis_acesso" | "tickets";
+type AppPage = "visao_geral" | "pipeline" | "growth" | "clientes" | "raio_x" | "acoes" | "convidar" | "perfis_acesso" | "tickets" | "tempo_real";
 
 interface Permission {
   page: AppPage;
@@ -19,6 +19,7 @@ export function usePermissions() {
     raio_x: false,
     acoes: false,
     tickets: false,
+    tempo_real: false,
     convidar: false,
     perfis_acesso: false,
   });

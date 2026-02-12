@@ -15,6 +15,7 @@ import NewAction from "./pages/NewAction";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import UnlinkedTickets from "./pages/UnlinkedTickets";
+import TempoReal from "./pages/TempoReal";
 import { GlobalSearch, useGlobalSearch } from "./components/search/GlobalSearch";
 import { useNewActionShortcut } from "./hooks/useNewActionShortcut";
 import { useAuth } from "./hooks/useAuth";
@@ -60,6 +61,7 @@ function AppContent() {
         <Route path="/actions/new" element={<ProtectedRoute><NewAction /></ProtectedRoute>} />
         <Route path="/actions/:id" element={<ProtectedRoute><NewAction /></ProtectedRoute>} />
         <Route path="/tickets/unlinked" element={<ProtectedRoute><UnlinkedTickets /></ProtectedRoute>} />
+        <Route path="/tempo-real" element={<ProtectedRoute><TempoReal /></ProtectedRoute>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
