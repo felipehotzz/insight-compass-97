@@ -318,9 +318,13 @@ export type Database = {
           created_at: string
           error_details: string | null
           external_link: string | null
+          finished_at: string | null
           id: string
-          sent_at: string
+          started_at: string | null
           status: string
+          total_errors: number | null
+          total_programmed: number | null
+          total_sent: number | null
         }
         Insert: {
           cliente: string
@@ -328,9 +332,13 @@ export type Database = {
           created_at?: string
           error_details?: string | null
           external_link?: string | null
+          finished_at?: string | null
           id?: string
-          sent_at?: string
+          started_at?: string | null
           status?: string
+          total_errors?: number | null
+          total_programmed?: number | null
+          total_sent?: number | null
         }
         Update: {
           cliente?: string
@@ -338,9 +346,13 @@ export type Database = {
           created_at?: string
           error_details?: string | null
           external_link?: string | null
+          finished_at?: string | null
           id?: string
-          sent_at?: string
+          started_at?: string | null
           status?: string
+          total_errors?: number | null
+          total_programmed?: number | null
+          total_sent?: number | null
         }
         Relationships: []
       }

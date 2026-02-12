@@ -5,8 +5,12 @@ export interface Dispatch {
   id: string;
   comunicado: string;
   cliente: string;
-  sent_at: string;
+  started_at: string | null;
+  finished_at: string | null;
   status: "enviado" | "erro" | "processando";
+  total_programmed: number;
+  total_sent: number;
+  total_errors: number;
   error_details: string | null;
   external_link: string | null;
   created_at: string;
@@ -27,7 +31,7 @@ export function useDispatches() {
     let query = supabase
       .from("dispatches")
       .select("*")
-      .order("sent_at", { ascending: false })
+      .order("started_at", { ascending: false })
       .limit(200);
 
     if (filters.cliente) {
@@ -37,68 +41,42 @@ export function useDispatches() {
       query = query.eq("status", filters.status);
     }
     if (filters.date) {
-      query = query.gte("sent_at", `${filters.date}T00:00:00`).lte("sent_at", `${filters.date}T23:59:59`);
+      query = query.gte("started_at", `${filters.date}T00:00:00`).lte("started_at", `${filters.date}T23:59:59`);
     }
 
     const { data, error } = await query;
     if (!error && data) {
-      setDispatches(data as Dispatch[]);
+      setDispatches(data as unknown as Dispatch[]);
     }
     setLoading(false);
   }, [filters]);
 
-  // Initial fetch + polling every 30s
   useEffect(() => {
     fetchDispatches();
     const interval = setInterval(fetchDispatches, 30000);
     return () => clearInterval(interval);
   }, [fetchDispatches]);
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel("dispatches-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "dispatches" },
-        () => {
-          fetchDispatches();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "dispatches" }, () => fetchDispatches())
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [fetchDispatches]);
 
-  // Counter period filtering
   const getCounterDispatches = (period: string) => {
     const now = new Date();
     const today = now.toISOString().split("T")[0];
-
     return dispatches.filter((d) => {
-      const sentDate = new Date(d.sent_at);
+      const ref = d.started_at || d.created_at;
+      const refDate = new Date(ref);
       switch (period) {
-        case "hoje":
-          return d.sent_at.startsWith(today);
-        case "semana": {
-          const weekAgo = new Date(now);
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          return sentDate >= weekAgo;
-        }
-        case "mes": {
-          const monthAgo = new Date(now);
-          monthAgo.setMonth(monthAgo.getMonth() - 1);
-          return sentDate >= monthAgo;
-        }
-        case "3meses": {
-          const threeMonthsAgo = new Date(now);
-          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-          return sentDate >= threeMonthsAgo;
-        }
-        default:
-          return d.sent_at.startsWith(today);
+        case "hoje": return ref.startsWith(today);
+        case "semana": { const ago = new Date(now); ago.setDate(ago.getDate() - 7); return refDate >= ago; }
+        case "mes": { const ago = new Date(now); ago.setMonth(ago.getMonth() - 1); return refDate >= ago; }
+        case "3meses": { const ago = new Date(now); ago.setMonth(ago.getMonth() - 3); return refDate >= ago; }
+        default: return ref.startsWith(today);
       }
     });
   };
@@ -113,7 +91,6 @@ export function useDispatches() {
     };
   };
 
-  // Unique clients for filter dropdown
   const uniqueClients = [...new Set(dispatches.map((d) => d.cliente))].sort();
 
   return { dispatches, loading, filters, setFilters, getCounters, uniqueClients, refetch: fetchDispatches };

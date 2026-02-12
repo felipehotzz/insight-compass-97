@@ -3,21 +3,12 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDispatches } from "@/hooks/useDispatches";
 import { StatCard } from "@/components/dashboard/StatCard";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { ExternalLink, RefreshCw, Send, AlertTriangle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,6 +29,13 @@ const periodLabels: Record<string, string> = {
   "3meses": "Últimos 3 meses",
 };
 
+const formatDateTime = (dateStr: string | null) => {
+  if (!dateStr) return "—";
+  return format(new Date(dateStr), "dd/MM/yyyy HH:mm", { locale: ptBR });
+};
+
+const COL_COUNT = 9;
+
 export default function TempoReal() {
   const { dispatches, loading, filters, setFilters, getCounters, uniqueClients, refetch } = useDispatches();
   const [counterPeriod, setCounterPeriod] = useState("hoje");
@@ -50,9 +48,7 @@ export default function TempoReal() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Tempo Real</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Monitoramento de envios da plataforma
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">Monitoramento de envios da plataforma</p>
           </div>
           <Button variant="outline" size="sm" onClick={refetch} className="gap-2">
             <RefreshCw className="h-4 w-4" />
@@ -78,21 +74,9 @@ export default function TempoReal() {
             </div>
             <p className="stat-value">{counters.total}</p>
           </div>
-          <StatCard
-            title="Enviados"
-            value={counters.enviado}
-            className="border-l-2 border-l-emerald-500"
-          />
-          <StatCard
-            title="Erros"
-            value={counters.erro}
-            className="border-l-2 border-l-red-500"
-          />
-          <StatCard
-            title="Processando"
-            value={counters.processando}
-            className="border-l-2 border-l-amber-500"
-          />
+          <StatCard title="Enviados" value={counters.enviado} className="border-l-2 border-l-emerald-500" />
+          <StatCard title="Erros" value={counters.erro} className="border-l-2 border-l-red-500" />
+          <StatCard title="Processando" value={counters.processando} className="border-l-2 border-l-amber-500" />
         </div>
 
         {/* Filters */}
@@ -132,9 +116,12 @@ export default function TempoReal() {
               <TableRow>
                 <TableHead>Comunicado</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Data/Hora</TableHead>
+                <TableHead>Data/Hora Início</TableHead>
+                <TableHead>Data/Hora Fim</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Erros</TableHead>
+                <TableHead className="text-right">Programados</TableHead>
+                <TableHead className="text-right">Realizados</TableHead>
+                <TableHead className="text-right">Erros</TableHead>
                 <TableHead className="text-right">Ação</TableHead>
               </TableRow>
             </TableHeader>
@@ -142,16 +129,14 @@ export default function TempoReal() {
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
-                      <TableCell key={j}>
-                        <Skeleton className="h-4 w-full" />
-                      </TableCell>
+                    {Array.from({ length: COL_COUNT }).map((_, j) => (
+                      <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : dispatches.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={COL_COUNT} className="text-center py-12 text-muted-foreground">
                     Nenhum envio encontrado
                   </TableCell>
                 </TableRow>
@@ -162,9 +147,8 @@ export default function TempoReal() {
                     <TableRow key={d.id}>
                       <TableCell className="font-medium">{d.comunicado}</TableCell>
                       <TableCell>{d.cliente}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(d.sent_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                      </TableCell>
+                      <TableCell className="text-muted-foreground">{formatDateTime(d.started_at)}</TableCell>
+                      <TableCell className="text-muted-foreground">{formatDateTime(d.finished_at)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={cfg.className}>
                           {d.status === "enviado" && <Send className="h-3 w-3 mr-1" />}
@@ -173,17 +157,17 @@ export default function TempoReal() {
                           {cfg.label}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                        {d.error_details || "—"}
+                      <TableCell className="text-right tabular-nums">{d.total_programmed}</TableCell>
+                      <TableCell className="text-right tabular-nums">{d.total_sent}</TableCell>
+                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                        {d.total_errors > 0 ? (
+                          <span className="text-red-500">{d.total_errors}</span>
+                        ) : "0"}
                       </TableCell>
                       <TableCell className="text-right">
                         {d.external_link ? (
-                          <a
-                            href={d.external_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                          >
+                          <a href={d.external_link} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
                             Acessar <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : (
