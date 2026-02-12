@@ -20,6 +20,7 @@ const statusConfig = {
   enviado: { label: "Enviado", className: "bg-emerald-500/15 text-emerald-600 border-emerald-500/20" },
   erro: { label: "Erro", className: "bg-red-500/15 text-red-600 border-red-500/20" },
   processando: { label: "Processando", className: "bg-amber-500/15 text-amber-600 border-amber-500/20" },
+  agendado: { label: "Agendado", className: "bg-blue-500/15 text-blue-600 border-blue-500/20" },
 } as const;
 
 const periodLabels: Record<string, string> = {
@@ -57,7 +58,7 @@ export default function TempoReal() {
         </div>
 
         {/* Counters */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-4">
           <div className="stat-card relative">
             <div className="flex items-center justify-between">
               <p className="stat-label">Disparos</p>
@@ -74,9 +75,10 @@ export default function TempoReal() {
             </div>
             <p className="stat-value">{counters.total}</p>
           </div>
-          <StatCard title="Enviados" value={counters.enviado} className="border-l-2 border-l-emerald-500" />
-          <StatCard title="Erros" value={counters.erro} className="border-l-2 border-l-red-500" />
-          <StatCard title="Processando" value={counters.processando} className="border-l-2 border-l-amber-500" />
+          <StatCard title="Enviados" value={counters.enviado} className="border-b-2 border-b-emerald-500" />
+          <StatCard title="Processando" value={counters.processando} className="border-b-2 border-b-amber-500" />
+          <StatCard title="Na Fila" value={counters.agendado} className="border-b-2 border-b-blue-500" />
+          <StatCard title="Erros" value={counters.erro} className="border-b-2 border-b-red-500" />
         </div>
 
         {/* Filters */}
@@ -97,8 +99,9 @@ export default function TempoReal() {
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="enviado">Enviado</SelectItem>
-              <SelectItem value="erro">Erro</SelectItem>
               <SelectItem value="processando">Processando</SelectItem>
+              <SelectItem value="agendado">Na Fila</SelectItem>
+              <SelectItem value="erro">Erro</SelectItem>
             </SelectContent>
           </Select>
           <Input

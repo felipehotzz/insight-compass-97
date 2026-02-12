@@ -7,7 +7,7 @@ export interface Dispatch {
   cliente: string;
   started_at: string | null;
   finished_at: string | null;
-  status: "enviado" | "erro" | "processando";
+  status: "enviado" | "erro" | "processando" | "agendado";
   total_programmed: number;
   total_sent: number;
   total_errors: number;
@@ -88,6 +88,7 @@ export function useDispatches() {
       enviado: filtered.filter((d) => d.status === "enviado").length,
       erro: filtered.filter((d) => d.status === "erro").length,
       processando: filtered.filter((d) => d.status === "processando").length,
+      agendado: filtered.filter((d) => d.status === "agendado").length,
     };
   };
 
