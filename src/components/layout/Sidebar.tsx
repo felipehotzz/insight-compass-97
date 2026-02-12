@@ -13,6 +13,7 @@ import {
   User,
   Database,
   Ticket,
+  Radio,
 } from "lucide-react";
 import {
   Popover,
@@ -24,7 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import logoImg from "@/assets/logo-comunica.png";
 
-type AppPage = "visao_geral" | "pipeline" | "growth" | "clientes" | "raio_x" | "acoes" | "tickets";
+type AppPage = "visao_geral" | "pipeline" | "growth" | "clientes" | "raio_x" | "acoes" | "tickets" | "tempo_real";
 
 const navigation: { name: string; href: string; icon: any; permission: AppPage }[] = [
   { name: "Visão Geral", href: "/", icon: BarChart3, permission: "visao_geral" },
@@ -35,6 +36,7 @@ const navigation: { name: string; href: string; icon: any; permission: AppPage }
   { name: "Raio-X", href: "/raio-x", icon: UserCircle, permission: "raio_x" },
   { name: "Ações", href: "/actions", icon: ClipboardList, permission: "acoes" },
   { name: "Tickets", href: "/tickets/unlinked", icon: Ticket, permission: "tickets" },
+  { name: "Tempo Real", href: "/tempo-real", icon: Radio, permission: "tempo_real" },
 ];
 
 export function Sidebar() {

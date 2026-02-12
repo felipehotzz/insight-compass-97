@@ -311,6 +311,39 @@ export type Database = {
           },
         ]
       }
+      dispatches: {
+        Row: {
+          cliente: string
+          comunicado: string
+          created_at: string
+          error_details: string | null
+          external_link: string | null
+          id: string
+          sent_at: string
+          status: string
+        }
+        Insert: {
+          cliente: string
+          comunicado: string
+          created_at?: string
+          error_details?: string | null
+          external_link?: string | null
+          id?: string
+          sent_at?: string
+          status?: string
+        }
+        Update: {
+          cliente?: string
+          comunicado?: string
+          created_at?: string
+          error_details?: string | null
+          external_link?: string | null
+          id?: string
+          sent_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       email_messages: {
         Row: {
           action_id: string
@@ -812,6 +845,7 @@ export type Database = {
         | "convidar"
         | "perfis_acesso"
         | "tickets"
+        | "tempo_real"
       app_role: "admin" | "editor" | "viewer" | "customer_success" | "growth"
     }
     CompositeTypes: {
@@ -950,6 +984,7 @@ export const Constants = {
         "convidar",
         "perfis_acesso",
         "tickets",
+        "tempo_real",
       ],
       app_role: ["admin", "editor", "viewer", "customer_success", "growth"],
     },
