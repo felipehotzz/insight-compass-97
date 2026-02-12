@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDispatches } from "@/hooks/useDispatches";
 import { StatCard } from "@/components/dashboard/StatCard";
@@ -30,8 +31,17 @@ const statusConfig = {
   processando: { label: "Processando", className: "bg-amber-500/15 text-amber-600 border-amber-500/20" },
 } as const;
 
+const periodLabels: Record<string, string> = {
+  hoje: "Hoje",
+  semana: "Esta semana",
+  mes: "Este mês",
+  "3meses": "Últimos 3 meses",
+};
+
 export default function TempoReal() {
-  const { dispatches, loading, filters, setFilters, counters, uniqueClients, refetch } = useDispatches();
+  const { dispatches, loading, filters, setFilters, getCounters, uniqueClients, refetch } = useDispatches();
+  const [counterPeriod, setCounterPeriod] = useState("hoje");
+  const counters = getCounters(counterPeriod);
 
   return (
     <DashboardLayout>
@@ -52,7 +62,22 @@ export default function TempoReal() {
 
         {/* Counters */}
         <div className="grid grid-cols-4 gap-4">
-          <StatCard title="Disparos Hoje" value={counters.total} />
+          <div className="stat-card relative">
+            <div className="flex items-center justify-between">
+              <p className="stat-label">Disparos</p>
+              <Select value={counterPeriod} onValueChange={setCounterPeriod}>
+                <SelectTrigger className="h-7 w-auto gap-1 border-none bg-secondary/50 text-xs px-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(periodLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="stat-value">{counters.total}</p>
+          </div>
           <StatCard
             title="Enviados"
             value={counters.enviado}
