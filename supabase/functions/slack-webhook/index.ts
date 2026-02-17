@@ -359,13 +359,11 @@ serve(async (req) => {
     // Handle Events API
     const eventPayload = JSON.parse(bodyText);
     
-    if (eventPayload.event?.type === "app_mention") {
+    if (eventPayload.event?.type === "app_mention" || 
+        (eventPayload.event?.type === "message" && eventPayload.event?.channel_type === "im" && !eventPayload.event?.bot_id)) {
       // Respond immediately with 200 to avoid retries
-      // Process in background
       const responsePromise = handleMention(supabase, eventPayload.event);
-      
-      // Use waitUntil-style pattern
-      responsePromise.catch((err) => console.error("Error handling mention:", err));
+      responsePromise.catch((err) => console.error("Error handling event:", err));
       
       return new Response("ok", {
         status: 200,
