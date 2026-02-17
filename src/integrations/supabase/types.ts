@@ -255,6 +255,48 @@ export type Database = {
           },
         ]
       }
+      customer_slack_channels: {
+        Row: {
+          channel_id: string
+          channel_name: string | null
+          created_at: string
+          customer_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          channel_id: string
+          channel_name?: string | null
+          created_at?: string
+          customer_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          channel_id?: string
+          channel_name?: string | null
+          created_at?: string
+          customer_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_slack_channels_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_metrics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_slack_channels_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           cnpj: string
