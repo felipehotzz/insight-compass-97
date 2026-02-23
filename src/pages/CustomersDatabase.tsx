@@ -32,6 +32,7 @@ interface Customer {
   data_cohort: string | null;
   cs_responsavel: string | null;
   plano: string | null;
+  fase: string | null;
   created_at: string;
 }
 
@@ -63,6 +64,7 @@ interface CustomerWithMetrics extends Customer {
   meses_ativo: number;
   formato_pagamento: string | null;
   domain: string | null;
+  fase: string | null;
 }
 
 const formatCurrency = (value: number) => {
@@ -197,6 +199,7 @@ export default function CustomersDatabase() {
           meses_ativo: Math.max(0, meses_ativo),
           formato_pagamento,
           domain: domainMap.get(customer.id) || null,
+          fase: customer.fase || null,
         };
       });
 
@@ -400,6 +403,7 @@ export default function CustomersDatabase() {
               <TableRow className="bg-muted/50">
                 <TableHead>Cliente</TableHead>
                 <TableHead>Plano</TableHead>
+                <TableHead>Fase</TableHead>
                 <TableHead>Domínio</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Pagamento</TableHead>
@@ -412,7 +416,7 @@ export default function CustomersDatabase() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
+                  <TableCell colSpan={10} className="text-center py-8">
                     <div className="flex items-center justify-center gap-2 text-muted-foreground">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                       Carregando...
@@ -421,7 +425,7 @@ export default function CustomersDatabase() {
                 </TableRow>
               ) : filteredCustomers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                     Nenhum cliente encontrado
                   </TableCell>
                 </TableRow>
@@ -437,6 +441,22 @@ export default function CustomersDatabase() {
                     </TableCell>
                     <TableCell>
                       {customer.plano || "-"}
+                     </TableCell>
+                    <TableCell>
+                      {customer.fase ? (
+                        <span className={`text-sm font-medium ${
+                          customer.fase.toLowerCase().includes('onboarding') ? 'text-blue-400' :
+                          customer.fase.toLowerCase().includes('ongoing') ? 'text-green-400' :
+                          customer.fase.toLowerCase().includes('renovação') || customer.fase.toLowerCase().includes('renovacao') ? 'text-yellow-400' :
+                          customer.fase.toLowerCase().includes('recuperação') || customer.fase.toLowerCase().includes('recuperacao') ? 'text-red-400' :
+                          customer.fase.toLowerCase().includes('expansão') || customer.fase.toLowerCase().includes('expansao') ? 'text-purple-400' :
+                          'text-muted-foreground'
+                        }`}>
+                          {customer.fase}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {customer.domain ? (
