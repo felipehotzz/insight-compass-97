@@ -65,6 +65,7 @@ interface CustomerWithMetrics extends Customer {
   formato_pagamento: string | null;
   domain: string | null;
   fase: string | null;
+  ongoingYear: number;
 }
 
 const formatCurrency = (value: number) => {
@@ -137,6 +138,7 @@ export default function CustomersDatabase() {
       });
 
       // Group contracts by customer and calculate metrics
+      const now = new Date();
       const customersWithMetrics: CustomerWithMetrics[] = (customers || []).map((customer) => {
         const customerContracts = (contracts || []).filter(
           (c) => c.customer_id === customer.id
@@ -189,6 +191,30 @@ export default function CustomersDatabase() {
         
         const formato_pagamento = contratoVigentePrincipal?.condicao_pagamento || null;
 
+        // Calculate effective phase (same logic as Raio-X)
+        const activeContracts = customerContracts.filter(
+          (c) => c.status_contrato?.toLowerCase() === "vigente"
+        );
+        const latestActiveContract = [...activeContracts]
+          .sort((a, b) => new Date(b.vigencia_inicial || 0).getTime() - new Date(a.vigencia_inicial || 0).getTime())[0];
+        
+        const diasRestantes = latestActiveContract?.vigencia_final
+          ? Math.max(0, Math.floor((new Date(latestActiveContract.vigencia_final).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+          : 0;
+        
+        let effectiveFase = customer.fase || 'onboarding';
+        if (diasRestantes > 0 && diasRestantes <= 90 && effectiveFase !== 'recuperacao' && effectiveFase !== 'expansao') {
+          effectiveFase = 'renovacao';
+        }
+
+        // Calculate ongoing year
+        let ongoingYear = 0;
+        if (effectiveFase === 'ongoing' && customer.data_cohort) {
+          const cohortDate = new Date(customer.data_cohort);
+          const yearsActive = Math.floor((now.getTime() - cohortDate.getTime()) / (1000 * 60 * 60 * 24 * 365));
+          ongoingYear = Math.max(1, yearsActive + 1);
+        }
+
         return {
           ...customer,
           contracts: customerContracts,
@@ -199,7 +225,8 @@ export default function CustomersDatabase() {
           meses_ativo: Math.max(0, meses_ativo),
           formato_pagamento,
           domain: domainMap.get(customer.id) || null,
-          fase: customer.fase || null,
+          fase: effectiveFase,
+          ongoingYear,
         };
       });
 
@@ -445,14 +472,19 @@ export default function CustomersDatabase() {
                     <TableCell>
                       {customer.fase ? (
                         <span className={`text-sm font-medium ${
-                          customer.fase.toLowerCase().includes('onboarding') ? 'text-blue-400' :
-                          customer.fase.toLowerCase().includes('ongoing') ? 'text-green-400' :
-                          customer.fase.toLowerCase().includes('renovação') || customer.fase.toLowerCase().includes('renovacao') ? 'text-yellow-400' :
-                          customer.fase.toLowerCase().includes('recuperação') || customer.fase.toLowerCase().includes('recuperacao') ? 'text-red-400' :
-                          customer.fase.toLowerCase().includes('expansão') || customer.fase.toLowerCase().includes('expansao') ? 'text-purple-400' :
+                          customer.fase === 'onboarding' ? 'text-blue-400' :
+                          customer.fase === 'ongoing' ? 'text-green-400' :
+                          customer.fase === 'renovacao' ? 'text-yellow-400' :
+                          customer.fase === 'recuperacao' ? 'text-red-400' :
+                          customer.fase === 'expansao' ? 'text-purple-400' :
                           'text-muted-foreground'
                         }`}>
-                          {customer.fase}
+                          {customer.fase === 'onboarding' ? 'Onboarding' :
+                           customer.fase === 'ongoing' ? `Ongoing ${customer.ongoingYear}` :
+                           customer.fase === 'renovacao' ? 'Renovação' :
+                           customer.fase === 'recuperacao' ? 'Recuperação' :
+                           customer.fase === 'expansao' ? 'Expansão' :
+                           customer.fase}
                         </span>
                       ) : (
                         <span className="text-muted-foreground">-</span>
