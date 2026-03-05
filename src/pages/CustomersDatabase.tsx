@@ -14,14 +14,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Search, 
   Filter,
   Download,
   Globe,
-  Loader2
+  Loader2,
+  Check,
+  X,
+  Pencil
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTeamMembers } from "@/hooks/useTeamMembers";
 
 interface Customer {
   id: string;
@@ -68,6 +79,14 @@ interface CustomerWithMetrics extends Customer {
   ongoingYear: number;
 }
 
+const FASE_OPTIONS = [
+  { value: "onboarding", label: "Onboarding", color: "text-blue-400" },
+  { value: "ongoing", label: "Ongoing", color: "text-green-400" },
+  { value: "renovacao", label: "Renovação", color: "text-yellow-400" },
+  { value: "recuperacao", label: "Recuperação", color: "text-red-400" },
+  { value: "expansao", label: "Expansão", color: "text-purple-400" },
+];
+
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -76,7 +95,7 @@ const formatCurrency = (value: number) => {
     maximumFractionDigits: 0,
   }).format(value);
 };
-// Calcula meses entre duas datas
+
 const calculateMonthsBetween = (startDate: string | null, endDate: string | null): number => {
   if (!startDate || !endDate) return 1;
   try {
@@ -89,7 +108,6 @@ const calculateMonthsBetween = (startDate: string | null, endDate: string | null
   }
 };
 
-// Calcula meses de vigência usando meses_vigencia ou calculando pelas datas
 const getContractMonths = (contract: Contract): number => {
   if (contract.meses_vigencia && contract.meses_vigencia > 0) {
     return contract.meses_vigencia;
@@ -100,16 +118,18 @@ const getContractMonths = (contract: Contract): number => {
 export default function CustomersDatabase() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "ativo" | "inativo">("all");
+  const [faseFilter, setFaseFilter] = useState<string>("all");
   const [enrichingDomains, setEnrichingDomains] = useState(false);
   const [cleaningDomains, setCleaningDomains] = useState(false);
+  const [editingCell, setEditingCell] = useState<{ customerId: string; field: "fase" | "cs_responsavel" } | null>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { teamMembers } = useTeamMembers();
 
   // Fetch customers with their contracts
   const { data: customersData, isLoading } = useQuery({
     queryKey: ["customers-database"],
     queryFn: async () => {
-      // Fetch customers
       const { data: customers, error: customersError } = await supabase
         .from("customers")
         .select("*")
@@ -117,39 +137,33 @@ export default function CustomersDatabase() {
 
       if (customersError) throw customersError;
 
-      // Fetch all contracts
       const { data: contracts, error: contractsError } = await supabase
         .from("contracts")
         .select("*");
 
       if (contractsError) throw contractsError;
 
-      // Fetch all customer domains
       const { data: domains, error: domainsError } = await supabase
         .from("customer_domains")
         .select("customer_id, domain");
 
       if (domainsError) throw domainsError;
 
-      // Create domain map
       const domainMap = new Map<string, string>();
       (domains || []).forEach((d) => {
         domainMap.set(d.customer_id, d.domain);
       });
 
-      // Group contracts by customer and calculate metrics
       const now = new Date();
       const customersWithMetrics: CustomerWithMetrics[] = (customers || []).map((customer) => {
         const customerContracts = (contracts || []).filter(
           (c) => c.customer_id === customer.id
         );
 
-        // MRR Atual: soma apenas dos contratos VIGENTES
         const mrr_atual_total = customerContracts
           .filter((c) => c.status_contrato?.toLowerCase() === "vigente")
           .reduce((sum, c) => sum + (c.mrr || 0), 0);
 
-        // LTV Total: soma de MRR × meses de vigência de TODOS os contratos
         const ltv_total = customerContracts.reduce(
           (sum, c) => sum + (c.mrr || 0) * getContractMonths(c),
           0
@@ -159,15 +173,11 @@ export default function CustomersDatabase() {
           (c) => c.status_contrato?.toLowerCase() === "vigente"
         ).length;
 
-        // Meses Ativo: calcula baseado no período real de atividade
-        // Para clientes ativos: desde cohort até hoje
-        // Para clientes inativos: desde cohort até o último contrato que terminou
         let meses_ativo = 0;
         if (customer.data_cohort) {
           const startDate = new Date(customer.data_cohort);
-          let endDate = new Date(); // default: hoje
+          let endDate = new Date();
           
-          // Se cliente inativo, usar a data final do último contrato
           if (customer.status !== "ativo" && customerContracts.length > 0) {
             const lastContractEnd = customerContracts
               .filter((c) => c.vigencia_final)
@@ -184,14 +194,12 @@ export default function CustomersDatabase() {
           );
         }
 
-        // Formato de pagamento: pegar do contrato vigente principal (maior MRR)
         const contratoVigentePrincipal = customerContracts
           .filter((c) => c.status_contrato?.toLowerCase() === "vigente")
           .sort((a, b) => (b.mrr || 0) - (a.mrr || 0))[0];
         
         const formato_pagamento = contratoVigentePrincipal?.condicao_pagamento || null;
 
-        // Calculate effective phase (same logic as Raio-X)
         const activeContracts = customerContracts.filter(
           (c) => c.status_contrato?.toLowerCase() === "vigente"
         );
@@ -207,7 +215,6 @@ export default function CustomersDatabase() {
           effectiveFase = 'renovacao';
         }
 
-        // Calculate ongoing year
         let ongoingYear = 0;
         if (effectiveFase === 'ongoing' && customer.data_cohort) {
           const cohortDate = new Date(customer.data_cohort);
@@ -245,7 +252,11 @@ export default function CustomersDatabase() {
       statusFilter === "all" ||
       customer.status.toLowerCase() === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    const matchesFase =
+      faseFilter === "all" ||
+      customer.fase === faseFilter;
+
+    return matchesSearch && matchesStatus && matchesFase;
   });
 
   // Calculate summary metrics
@@ -258,6 +269,25 @@ export default function CustomersDatabase() {
 
   const handleOpenRaioX = (customerId: string) => {
     navigate(`/raio-x?customer=${customerId}`);
+  };
+
+  const handleInlineUpdate = async (customerId: string, field: "fase" | "cs_responsavel", value: string) => {
+    try {
+      const { error } = await supabase
+        .from("customers")
+        .update({ [field]: value || null })
+        .eq("id", customerId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["customers-database"] });
+      toast.success(field === "fase" ? "Fase atualizada" : "CS atualizado");
+    } catch (error) {
+      console.error("Error updating:", error);
+      toast.error("Erro ao atualizar");
+    } finally {
+      setEditingCell(null);
+    }
   };
 
   const handleCleanupDomains = async () => {
@@ -320,6 +350,15 @@ export default function CustomersDatabase() {
     }
   };
 
+  const getFaseColor = (fase: string | null) => {
+    return FASE_OPTIONS.find(f => f.value === fase)?.color || "text-muted-foreground";
+  };
+
+  const getFaseLabel = (fase: string | null, ongoingYear: number) => {
+    if (fase === "ongoing") return `Ongoing ${ongoingYear}`;
+    return FASE_OPTIONS.find(f => f.value === fase)?.label || fase || "-";
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -366,17 +405,14 @@ export default function CustomersDatabase() {
             <p className="text-sm text-muted-foreground">Total Clientes</p>
             <p className="text-2xl">{summaryMetrics.totalClientes}</p>
           </div>
-
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">Clientes Ativos</p>
             <p className="text-2xl">{summaryMetrics.clientesAtivos}</p>
           </div>
-
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">MRR Total</p>
             <p className="text-2xl">{formatCurrency(summaryMetrics.mrrTotal)}</p>
           </div>
-
           <div className="bg-card border border-border rounded-lg p-4">
             <p className="text-sm text-muted-foreground">LTV Total</p>
             <p className="text-2xl">{formatCurrency(summaryMetrics.ltvTotal)}</p>
@@ -384,7 +420,7 @@ export default function CustomersDatabase() {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -421,6 +457,30 @@ export default function CustomersDatabase() {
               </Button>
             </div>
           </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Fase:</span>
+            <div className="flex gap-1">
+              <Button
+                variant={faseFilter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFaseFilter("all")}
+              >
+                Todas
+              </Button>
+              {FASE_OPTIONS.map((fase) => (
+                <Button
+                  key={fase.value}
+                  variant={faseFilter === fase.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFaseFilter(fase.value)}
+                  className={faseFilter !== fase.value ? fase.color : ""}
+                >
+                  {fase.label}
+                </Button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Customers Table */}
@@ -431,6 +491,7 @@ export default function CustomersDatabase() {
                 <TableHead>Cliente</TableHead>
                 <TableHead>Plano</TableHead>
                 <TableHead>Fase</TableHead>
+                <TableHead>CS Responsável</TableHead>
                 <TableHead>Domínio</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Pagamento</TableHead>
@@ -443,7 +504,7 @@ export default function CustomersDatabase() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8">
+                  <TableCell colSpan={11} className="text-center py-8">
                     <div className="flex items-center justify-center gap-2 text-muted-foreground">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                       Carregando...
@@ -452,7 +513,7 @@ export default function CustomersDatabase() {
                 </TableRow>
               ) : filteredCustomers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                     Nenhum cliente encontrado
                   </TableCell>
                 </TableRow>
@@ -468,26 +529,63 @@ export default function CustomersDatabase() {
                     </TableCell>
                     <TableCell>
                       {customer.plano || "-"}
-                     </TableCell>
-                    <TableCell>
-                      {customer.fase ? (
-                        <span className={`text-sm font-medium ${
-                          customer.fase === 'onboarding' ? 'text-blue-400' :
-                          customer.fase === 'ongoing' ? 'text-green-400' :
-                          customer.fase === 'renovacao' ? 'text-yellow-400' :
-                          customer.fase === 'recuperacao' ? 'text-red-400' :
-                          customer.fase === 'expansao' ? 'text-purple-400' :
-                          'text-muted-foreground'
-                        }`}>
-                          {customer.fase === 'onboarding' ? 'Onboarding' :
-                           customer.fase === 'ongoing' ? `Ongoing ${customer.ongoingYear}` :
-                           customer.fase === 'renovacao' ? 'Renovação' :
-                           customer.fase === 'recuperacao' ? 'Recuperação' :
-                           customer.fase === 'expansao' ? 'Expansão' :
-                           customer.fase}
-                        </span>
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      {editingCell?.customerId === customer.id && editingCell?.field === "fase" ? (
+                        <Select
+                          defaultValue={customer.fase || ""}
+                          onValueChange={(value) => handleInlineUpdate(customer.id, "fase", value)}
+                          open={true}
+                          onOpenChange={(open) => { if (!open) setEditingCell(null); }}
+                        >
+                          <SelectTrigger className="h-8 w-[140px] text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FASE_OPTIONS.map((fase) => (
+                              <SelectItem key={fase.value} value={fase.value}>
+                                <span className={fase.color}>{fase.label}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       ) : (
-                        <span className="text-muted-foreground">-</span>
+                        <button
+                          className={`text-sm font-medium ${getFaseColor(customer.fase)} hover:underline inline-flex items-center gap-1 group`}
+                          onClick={() => setEditingCell({ customerId: customer.id, field: "fase" })}
+                        >
+                          {getFaseLabel(customer.fase, customer.ongoingYear)}
+                          <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+                        </button>
+                      )}
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      {editingCell?.customerId === customer.id && editingCell?.field === "cs_responsavel" ? (
+                        <Select
+                          defaultValue={customer.cs_responsavel || ""}
+                          onValueChange={(value) => handleInlineUpdate(customer.id, "cs_responsavel", value)}
+                          open={true}
+                          onOpenChange={(open) => { if (!open) setEditingCell(null); }}
+                        >
+                          <SelectTrigger className="h-8 w-[160px] text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {teamMembers.map((member) => (
+                              <SelectItem key={member.id} value={member.name}>
+                                {member.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <button
+                          className="text-sm inline-flex items-center gap-1 group hover:underline"
+                          onClick={() => setEditingCell({ customerId: customer.id, field: "cs_responsavel" })}
+                        >
+                          {customer.cs_responsavel || <span className="text-muted-foreground">-</span>}
+                          <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+                        </button>
                       )}
                     </TableCell>
                     <TableCell>
